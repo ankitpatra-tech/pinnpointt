@@ -62,7 +62,7 @@ function updateThemeButton(): void {
   if (!themeBtn) return;
   const icon = currentTheme === 'dark' ? '☀️' : '🌙';
   const label = currentTheme === 'dark' ? 'Light' : 'Dark';
-  themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span>${label}</span>`;
+  themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span class="theme-label">${label}</span>`;
   themeBtn.setAttribute('title', `Switch to ${currentTheme === 'dark' ? 'light' : 'dark'} mode`);
 }
 
@@ -180,10 +180,57 @@ function setupThreatSandbox(): void {
   });
 }
 
+function setupMobileMenu(): void {
+  const toggleBtn = document.getElementById('nav-toggle-btn') as HTMLButtonElement | null;
+  const navLinks = document.getElementById('site-nav-links');
+  if (!toggleBtn || !navLinks) return;
+
+  const toggleMenu = (forceOpen?: boolean) => {
+    const shouldOpen = forceOpen !== undefined ? forceOpen : !navLinks.classList.contains('mobile-open');
+    navLinks.classList.toggle('mobile-open', shouldOpen);
+    toggleBtn.classList.toggle('active', shouldOpen);
+    toggleBtn.setAttribute('aria-expanded', String(shouldOpen));
+  };
+
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
+  });
+
+  // Close when clicking any nav link
+  navLinks.querySelectorAll<HTMLAnchorElement>('.site-nav-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      toggleMenu(false);
+    });
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!navLinks.contains(e.target as Node) && !toggleBtn.contains(e.target as Node)) {
+      toggleMenu(false);
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      toggleMenu(false);
+    }
+  });
+
+  // Close when expanding to desktop viewport
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) {
+      toggleMenu(false);
+    }
+  });
+}
+
 // ── Startup ──
 document.addEventListener('DOMContentLoaded', () => {
   setupTheme();
   setupPWAInstallation();
   setupModalTriggers();
   setupThreatSandbox();
+  setupMobileMenu();
 });

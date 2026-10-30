@@ -266,6 +266,31 @@ async function run(): Promise<void> {
     }
     console.log('✓ Verified interactive threat sandbox detects double-extension deception in real-time.');
 
+    // Test Narrow Mobile Viewport Responsive Navbar
+    console.log('Testing narrow mobile viewport navbar adjustment (375px)...');
+    await pageWebsite.setViewport({ width: 375, height: 667 });
+    const mobileToggleVisible = await pageWebsite.$eval('.nav-mobile-toggle', (el) => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none';
+    });
+    console.log(`✓ Verified mobile menu toggle button appears on narrow screens: ${mobileToggleVisible}`);
+    if (!mobileToggleVisible) throw new Error('Mobile menu toggle button not visible on 375px viewport');
+
+    // Click mobile toggle to open menu
+    await pageWebsite.click('.nav-mobile-toggle');
+    const menuOpen = await pageWebsite.$eval('#site-nav-links', (el) => el.classList.contains('mobile-open'));
+    console.log(`✓ Mobile menu opened on toggle click: ${menuOpen}`);
+    if (!menuOpen) throw new Error('Mobile menu failed to open on toggle click');
+
+    // Click link inside mobile menu to verify it auto-closes
+    await pageWebsite.click('#site-nav-links a[href="#why"]');
+    const menuClosed = await pageWebsite.$eval('#site-nav-links', (el) => !el.classList.contains('mobile-open'));
+    console.log(`✓ Mobile menu auto-closed on link selection: ${menuClosed}`);
+    if (!menuClosed) throw new Error('Mobile menu failed to auto-close after link click');
+
+    // Restore desktop viewport
+    await pageWebsite.setViewport({ width: 1280, height: 800 });
+
     // Verify PWA installation triggers exist
     const pwaTriggers = await pageWebsite.$$eval('.trigger-pwa-install', (els) => els.length);
     console.log(`✓ Verified ${pwaTriggers} PWA install triggers on website.`);

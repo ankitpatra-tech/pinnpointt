@@ -105,7 +105,7 @@ export function createNavbar(
 
   const icon = theme === 'dark' ? '☀️' : '🌙';
   const label = theme === 'dark' ? 'Light' : 'Dark';
-  themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span>${label}</span>`;
+  themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span class="theme-label">${label}</span>`;
   themeBtn.addEventListener('click', onToggleTheme);
 
   actions.append(aboutLink, themeBtn);

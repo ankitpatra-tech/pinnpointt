@@ -102,7 +102,7 @@ export class App {
     if (themeBtn) {
       const icon = this.currentTheme === 'dark' ? '☀️' : '🌙';
       const label = this.currentTheme === 'dark' ? 'Light' : 'Dark';
-      themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span>${label}</span>`;
+      themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span class="theme-label">${label}</span>`;
       themeBtn.setAttribute('title', `Switch to ${this.currentTheme === 'dark' ? 'light' : 'dark'} mode`);
     }
 

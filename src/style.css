@@ -1944,9 +1944,17 @@ h2 {
   }
   .app-navbar {
     padding-bottom: 12px;
+    gap: 8px;
   }
   .nav-title {
     font-size: 15px;
+  }
+  .btn-theme-toggle .theme-label {
+    display: none;
+  }
+  .nav-website-link {
+    font-size: 11px;
+    padding: 5px 9px;
   }
   .chat-feed {
     height: clamp(280px, 48vh, 380px);

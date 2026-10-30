@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <nav class="site-nav-links">
+      <nav class="site-nav-links" id="site-nav-links">
         <a href="#how-it-works" class="site-nav-link">How It Works</a>
         <a href="#why" class="site-nav-link">Why PinnPointt</a>
         <a href="#comparison" class="site-nav-link">PinnPointt vs Others</a>
@@ -38,9 +38,17 @@
 
       <div class="nav-actions">
         <button id="website-theme-toggle" class="btn-theme-toggle" type="button" title="Toggle theme">
-          <span class="theme-icon">☀️</span> <span>Light</span>
+          <span class="theme-icon">☀️</span> <span class="theme-label">Light</span>
         </button>
-        <a href="/" class="site-nav-cta">Launch App →</a>
+        <a href="/" class="site-nav-cta">
+          <span class="cta-text-full">Launch App →</span>
+          <span class="cta-text-short">App →</span>
+        </a>
+        <button id="nav-toggle-btn" class="nav-mobile-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
     </div>
   </header>
