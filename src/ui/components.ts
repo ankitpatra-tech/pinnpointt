@@ -92,8 +92,8 @@ export function createNavbar(
 
   const aboutLink = el('a', {
     className: 'nav-website-link',
-    href: '/about.html',
-    textContent: 'About & Roadmap ↗',
+    href: '/',
+    textContent: 'Home & Roadmap ↗',
     title: 'Why PinnPointt, Features, PWA Install & Open Source Roadmap',
   });
 
@@ -141,8 +141,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   // Link to Showcase Website & Roadmap
   const siteLink = el('a', {
     className: 'footer-link',
-    href: '/about.html',
-    textContent: 'About & Roadmap',
+    href: '/',
+    textContent: 'Home & Roadmap',
     title: 'Why PinnPointt, Features & Open Source Roadmap',
   });
   linksRow.append(siteLink);
@@ -473,7 +473,7 @@ export function createRoomDisplay(
     title: 'Opens a second window that auto-joins this room to test device-to-device transfer',
   });
   peerTabBtn.addEventListener('click', () => {
-    window.open(`${window.location.origin}/?room=${roomCode}`, '_blank');
+    window.open(`${window.location.origin}/app?room=${roomCode}`, '_blank');
   });
 
   container.append(qrWrap, sep, codeDisplay, status, peerTabBtn);

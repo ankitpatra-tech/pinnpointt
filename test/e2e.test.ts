@@ -206,13 +206,13 @@ async function run(): Promise<void> {
 
     // 4. Host (Sender) loads page, verifies Navbar, Theme Toggle & Footer
     console.log('Step A: Host opens PinnPointt, verifies Navbar, Theme toggle & Footer...');
-    await pageSender.goto('http://127.0.0.1:5174', { waitUntil: 'networkidle0' });
+    await pageSender.goto('http://127.0.0.1:5174/app', { waitUntil: 'networkidle0' });
     await pageSender.waitForSelector('.username-input');
 
-    // Verify PinnPointt Product Website (/about.html)
-    console.log('Step A.1: Opening PinnPointt Product Website (/about.html)...');
+    // Verify PinnPointt Product Website (Homepage /)
+    console.log('Step A.1: Opening PinnPointt Product Website (Homepage /)...');
     const pageWebsite = await browser.newPage();
-    await pageWebsite.goto('http://127.0.0.1:5174/about.html', { waitUntil: 'networkidle0' });
+    await pageWebsite.goto('http://127.0.0.1:5174/', { waitUntil: 'networkidle0' });
     await pageWebsite.waitForSelector('.hero-title');
 
     const heroTitle = await pageWebsite.$eval('.hero-title', (el) => el.textContent || '');
@@ -462,7 +462,7 @@ async function run(): Promise<void> {
 
     // 5. Guest (Receiver) loads page, sets username, and joins room
     console.log(`Step B: Guest joins room ${digits} with custom username...`);
-    await pageReceiver.goto('http://127.0.0.1:5174', { waitUntil: 'networkidle0' });
+    await pageReceiver.goto('http://127.0.0.1:5174/app', { waitUntil: 'networkidle0' });
     await pageReceiver.waitForSelector('.username-input');
 
     await pageReceiver.evaluate(() => {

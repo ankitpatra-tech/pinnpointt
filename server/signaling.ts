@@ -288,10 +288,20 @@ function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse): b
   const parsedUrl = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
   let pathname = decodeURIComponent(parsedUrl.pathname);
 
-  if (pathname === '/') {
-    pathname = '/index.html';
-  } else if (pathname === '/about') {
+  // If someone opens deep-link /?room=123456, redirect to /app?room=123456
+  if (pathname === '/' && parsedUrl.searchParams.has('room')) {
+    res.writeHead(302, { Location: `/app${parsedUrl.search}` });
+    res.end();
+    return true;
+  }
+
+  // Home Page -> Showcase Website (about.html)
+  if (pathname === '/' || pathname === '/about' || pathname === '/about.html') {
     pathname = '/about.html';
+  }
+  // Web App -> File Transfer App (index.html)
+  else if (pathname === '/app' || pathname === '/webapp' || pathname === '/index.html') {
+    pathname = '/index.html';
   }
 
   const filePath = path.join(distDir, pathname);
@@ -316,10 +326,12 @@ function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse): b
 
   // SPA fallback for pathnames without extension
   if (!path.extname(pathname)) {
-    const fallback = path.join(distDir, 'index.html');
-    if (fs.existsSync(fallback)) {
+    const fallbackFile = pathname.startsWith('/app') || pathname.startsWith('/webapp')
+      ? path.join(distDir, 'index.html')
+      : path.join(distDir, 'about.html');
+    if (fs.existsSync(fallbackFile)) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-      fs.createReadStream(fallback).pipe(res);
+      fs.createReadStream(fallbackFile).pipe(res);
       return true;
     }
   }

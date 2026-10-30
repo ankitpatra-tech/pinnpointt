@@ -8,6 +8,22 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   root: '.',
   publicDir: 'public',
+  plugins: [
+    {
+      name: 'route-rewrite',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          const url = req.url ?? '/';
+          if (url === '/' || url === '/about') {
+            req.url = '/about.html';
+          } else if (url === '/app' || url.startsWith('/app?') || url === '/webapp' || url.startsWith('/webapp?')) {
+            req.url = url.replace(/^\/(?:app|webapp)/, '/index.html');
+          }
+          next();
+        });
+      },
+    },
+  ],
   build: {
     outDir: 'dist',
     target: 'es2022',
