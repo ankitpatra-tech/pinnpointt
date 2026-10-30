@@ -9,6 +9,8 @@
  */
 
 import http from 'http';
+import path from 'path';
+import fs from 'fs';
 import { WebSocketServer, WebSocket } from 'ws';
 
 // ---------------------------------------------------------------------------
@@ -260,11 +262,92 @@ function handleMessage(ws: WebSocket, raw: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// Server (HTTP Health Check + WebSocket Relay)
+// Server (Static Files + HTTP Health Check + WebSocket Relay)
 // ---------------------------------------------------------------------------
 
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.webp': 'image/webp',
+};
+
+const distDir = path.resolve(process.cwd(), 'dist');
+
+function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse): boolean {
+  if (!fs.existsSync(distDir)) {
+    return false;
+  }
+
+  const parsedUrl = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+  let pathname = decodeURIComponent(parsedUrl.pathname);
+
+  if (pathname === '/') {
+    pathname = '/index.html';
+  } else if (pathname === '/about') {
+    pathname = '/about.html';
+  }
+
+  const filePath = path.join(distDir, pathname);
+
+  // Security: prevent directory traversal
+  if (!filePath.startsWith(distDir)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return true;
+  }
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] ?? 'application/octet-stream';
+    res.writeHead(200, {
+      'Content-Type': contentType,
+      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable',
+    });
+    fs.createReadStream(filePath).pipe(res);
+    return true;
+  }
+
+  // SPA fallback for pathnames without extension
+  if (!path.extname(pathname)) {
+    const fallback = path.join(distDir, 'index.html');
+    if (fs.existsSync(fallback)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+      fs.createReadStream(fallback).pipe(res);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 const server = http.createServer((req, res) => {
-  if (req.url === '/health' || req.url === '/' || req.url === '/healthz') {
+  if (req.url === '/health' || req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        status: 'healthy',
+        service: 'pinnpointt',
+        version: '0.0.51-beta',
+        activeRooms: rooms.size,
+        uptimeSeconds: Math.floor(process.uptime()),
+      })
+    );
+    return;
+  }
+
+  if (serveStaticFile(req, res)) {
+    return;
+  }
+
+  // Fallback if dist/ has not been built
+  if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({
@@ -277,6 +360,7 @@ const server = http.createServer((req, res) => {
     );
     return;
   }
+
   res.writeHead(404);
   res.end();
 });
