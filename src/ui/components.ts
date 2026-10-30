@@ -207,8 +207,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.52-beta',
-    title: 'PinnPointt Version 0.0.52 Beta',
+    textContent: 'v0.0.53-beta',
+    title: 'PinnPointt Version 0.0.53 Beta',
   });
   meta.append(subtitle, version);
 

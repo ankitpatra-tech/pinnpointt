@@ -517,6 +517,7 @@ export class App {
     // 3. Start DataChannel keepalive ping (every 15s) to keep NAT tables active through cellular & router firewalls
     if (this.dcKeepaliveTimer) clearInterval(this.dcKeepaliveTimer);
     this.dcKeepaliveTimer = setInterval(() => {
+      if (this.isSendingFile) return;
       if (this.dataChannel && this.dataChannel.readyState === 'open') {
         this.sendJSON({ type: 'dc-ping' });
       }
@@ -663,16 +664,28 @@ export class App {
 
       let card: ReturnType<NonNullable<typeof this.workspace>['addFileTransfer']> | null = null;
 
-      receiveFile(channel, (progress: TransferProgress) => {
-        if (!card && this.workspace) {
-          card = this.workspace.addFileTransfer({
-            fileName: 'Receiving file...',
-            fileSize: progress.bytesTotal,
-            isMine: false,
-          });
-        }
-        card?.updateProgress(progress);
-      })
+      receiveFile(
+        channel,
+        (progress: TransferProgress) => {
+          if (!card && this.workspace) {
+            card = this.workspace.addFileTransfer({
+              fileName: 'Receiving file...',
+              fileSize: progress.bytesTotal,
+              isMine: false,
+            });
+          }
+          card?.updateProgress(progress);
+        },
+        (meta) => {
+          if (!card && this.workspace) {
+            card = this.workspace.addFileTransfer({
+              fileName: meta.name,
+              fileSize: meta.size,
+              isMine: false,
+            });
+          }
+        },
+      )
         .then((received: ReceivedFile) => {
           if (!card && this.workspace) {
             card = this.workspace.addFileTransfer({

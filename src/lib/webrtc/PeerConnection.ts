@@ -64,6 +64,7 @@ export class PeerManager {
   private pendingCandidates: RTCIceCandidateInit[] = [];
   private remoteDescriptionSet = false;
   private isClosedManually = false;
+  private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(signalingUrl: string, events?: PeerEvents) {
     this.signalingUrl = signalingUrl;
@@ -152,6 +153,11 @@ export class PeerManager {
       this.heartbeatTimer = null;
     }
 
+    if (this.disconnectGraceTimer) {
+      clearTimeout(this.disconnectGraceTimer);
+      this.disconnectGraceTimer = null;
+    }
+
     this.dataChannel?.close();
     this.dataChannel = null;
 
@@ -223,7 +229,13 @@ export class PeerManager {
     });
 
     ws.addEventListener('error', (e) => {
-      console.error(`[PeerConnection] WebSocket error`, e);
+      console.warn(`[PeerConnection] WebSocket error`, e);
+      // CRITICAL: If WebRTC DataChannel is already connected directly peer-to-peer,
+      // a signaling socket error must NOT abort the active transfer!
+      if (this.dataChannel && this.dataChannel.readyState === 'open') {
+        console.log('[PeerConnection] Signaling socket error, but P2P WebRTC DataChannel is active.');
+        return;
+      }
       const err = new Error('WebSocket connection to signaling server failed');
       this.events.onError?.(err);
       onFail(err);
@@ -313,11 +325,31 @@ export class PeerManager {
     pc.addEventListener('connectionstatechange', () => {
       switch (pc.connectionState) {
         case 'connected':
+          if (this.disconnectGraceTimer) {
+            clearTimeout(this.disconnectGraceTimer);
+            this.disconnectGraceTimer = null;
+          }
           this.events.onConnected?.();
           break;
         case 'disconnected':
+          // Disconnected is transient in WebRTC during heavy bandwidth saturation or ICE re-checks.
+          // Give ICE 5 seconds to re-verify or reconnect before triggering onDisconnected.
+          if (!this.disconnectGraceTimer) {
+            this.disconnectGraceTimer = setTimeout(() => {
+              this.disconnectGraceTimer = null;
+              if (this.pc && this.pc.connectionState === 'disconnected') {
+                console.log('[PeerConnection] Connection remained disconnected after grace period');
+                this.events.onDisconnected?.();
+              }
+            }, 5000);
+          }
+          break;
         case 'failed':
         case 'closed':
+          if (this.disconnectGraceTimer) {
+            clearTimeout(this.disconnectGraceTimer);
+            this.disconnectGraceTimer = null;
+          }
           this.events.onDisconnected?.();
           break;
       }

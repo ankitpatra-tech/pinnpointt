@@ -251,8 +251,22 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.52-beta</span>
+            <span class="changelog-version">v0.0.53-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Large File (&gt; 100 MB) Connection Stability Fix:</strong> Standardized chunk framing to 32 KB, safely within SCTP 64 KB limits, eliminating packet fragmentation and association resets.</li>
+            <li><strong>Dual-Watermark Backpressure Hysteresis:</strong> Implemented 512 KB high watermark and 128 KB low watermark draining to prevent browser buffer congestion and channel timeouts.</li>
+            <li><strong>Zero-Copy Reception &amp; OOM Elimination:</strong> Replaced monolithic ArrayBuffer allocations and map indexing with direct zero-copy typed array views and pre-allocated part arrays, preventing browser tab crashes.</li>
+            <li><strong>Transient ICE Disconnect Grace Period:</strong> Handled temporary network latency spikes with a 5-second recovery window instead of terminating the session prematurely.</li>
+            <li><strong>Signaling Resilience:</strong> Protected active P2P transfers from signaling socket errors and paused text keepalives during heavy binary streaming.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.52-beta</span>
+            <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Mobile Chat Viewport Alignment:</strong> Resolved flexbox overflow on mobile phone screens (< 480px) so the Send button stays perfectly aligned and fully visible within the viewport.</li>
