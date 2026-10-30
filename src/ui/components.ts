@@ -72,7 +72,8 @@ export function createNavbar(
   theme: ThemeMode,
   onToggleTheme: () => void,
   statusLabel: string = 'Direct P2P',
-  onBrandClick?: () => void
+  onBrandClick?: () => void,
+  onOpenGuide?: () => void
 ): HTMLElement {
   const nav = el('nav', { className: 'app-navbar' });
 
@@ -89,6 +90,17 @@ export function createNavbar(
   }
 
   const actions = el('div', { className: 'nav-actions' });
+
+  if (onOpenGuide) {
+    const guideBtn = el('button', {
+      className: 'btn-nav-guide',
+      type: 'button',
+      title: 'How to use PinnPointt (Step-by-step onboarding guide)',
+      textContent: 'Guide ?',
+    });
+    guideBtn.addEventListener('click', onOpenGuide);
+    actions.append(guideBtn);
+  }
 
   const aboutLink = el('a', {
     className: 'nav-website-link',
@@ -195,8 +207,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.51-beta',
-    title: 'PinnPointt Version 0.0.51 Beta',
+    textContent: 'v0.0.52-beta',
+    title: 'PinnPointt Version 0.0.52 Beta',
   });
   meta.append(subtitle, version);
 
@@ -223,7 +235,7 @@ export function createUsernameBar(
   const card = el('div', { className: 'identity-card' });
 
   const headerRow = el('div', { className: 'identity-card-header' });
-  const tag = el('div', { className: 'identity-tag', textContent: 'Operator Identity' });
+  const tag = el('div', { className: 'identity-tag', textContent: 'Your Device Name' });
   headerRow.append(tag);
 
   const bodyRow = el('div', { className: 'identity-body' });
@@ -242,7 +254,7 @@ export function createUsernameBar(
   const randBtn = el('button', {
     className: 'btn-randomize',
     type: 'button',
-    title: 'Generate random Bauhaus name',
+    title: 'Generate random name',
     textContent: '↻',
   });
 
@@ -284,23 +296,44 @@ export function createUsernameBar(
 
 export function createOnboarding(
   activeStep: number,
-  onSelectStep?: (step: 1 | 2 | 3) => void
+  onSelectStep?: (step: 1 | 2 | 3) => void,
+  onOpenTour?: () => void
 ): HTMLElement {
   const wrap = el('div', { className: 'onboarding' });
 
   const headerRow = el('div', { className: 'onboarding-header' });
-  headerRow.innerHTML = `
-    <span>Quick Start (Click a step to navigate)</span>
-    <button class="onboarding-toggle" type="button">collapse</button>
-  `;
+  const titleSpan = el('span', { textContent: 'Quick Start (Click a step to navigate)' });
+  const controls = el('div', { className: 'onboarding-controls' });
+
+  if (onOpenTour) {
+    const tourBtn = el('button', {
+      className: 'onboarding-guide-btn',
+      type: 'button',
+      title: 'Open step-by-step onboarding walkthrough',
+      textContent: 'Tour Guide 💡',
+    });
+    tourBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onOpenTour();
+    });
+    controls.append(tourBtn);
+  }
+
+  const toggleBtn = el('button', {
+    className: 'onboarding-toggle',
+    type: 'button',
+    textContent: 'collapse',
+  });
+  controls.append(toggleBtn);
+  headerRow.append(titleSpan, controls);
 
   const steps = el('div', { className: 'onboarding-steps' });
 
   const stepData = [
     {
       num: 1 as const,
-      title: '1. Set Moniker',
-      desc: 'Tap to customize display name',
+      title: '1. Set Your Name',
+      desc: 'Choose your display name',
     },
     {
       num: 2 as const,
@@ -350,7 +383,6 @@ export function createOnboarding(
 
   wrap.append(headerRow, steps);
 
-  const toggleBtn = headerRow.querySelector('.onboarding-toggle') as HTMLButtonElement;
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     wrap.classList.toggle('collapsed');
@@ -603,7 +635,7 @@ export function createConnectedWorkspace(
     container.append(banner);
   }
 
-  // 1. Header with Peer Badge & Disconnect
+  // 1. Header with Peer Badge, E2EE Indicator & Disconnect
   const header = el('div', { className: 'workspace-header' });
 
   const peerBadge = el('div', { className: 'workspace-peer-badge' });
@@ -613,12 +645,18 @@ export function createConnectedWorkspace(
   const roleEl = el('span', { className: 'text-xs mono muted', textContent: `(${initialRole})` });
   peerBadge.append(statusDot, peerText, peerNameEl, roleEl);
 
+  const e2eBadge = el('div', {
+    className: 'workspace-e2e-badge',
+    title: 'Direct peer-to-peer connection encrypted with WebRTC DTLS (TLS 1.3/AES-GCM). Zero server storage.',
+  });
+  e2eBadge.innerHTML = `<span class="e2e-lock">🔒</span> <span class="e2e-text">End-to-End Encrypted</span>`;
+
   const disconnectBtn = el('button', { className: 'btn btn-ghost btn-sm', textContent: 'Disconnect' });
   disconnectBtn.style.padding = '4px 10px';
   disconnectBtn.style.fontSize = '11px';
   disconnectBtn.addEventListener('click', callbacks.onDisconnect);
 
-  header.append(peerBadge, disconnectBtn);
+  header.append(peerBadge, e2eBadge, disconnectBtn);
 
   // 2. Chat & File Activity Feed
   const feed = el('div', { className: 'chat-feed' });
@@ -667,19 +705,24 @@ export function createConnectedWorkspace(
     type: 'button',
     title: 'Attach file (or drag & drop anywhere)',
   });
-  attachBtn.innerHTML = `<span>📎</span> <span>File</span>`;
+  attachBtn.innerHTML = `<span>📎</span> <span class="attach-label">File</span>`;
   attachBtn.addEventListener('click', () => fileInput.click());
 
   // Message text input
   const textInput = el('input', {
     type: 'text',
     className: 'chat-input',
-    placeholder: 'Type a message or drop files here...',
+    placeholder: 'Type an end-to-end encrypted message or drop files...',
     autocomplete: 'off',
+    title: 'End-to-End Encrypted via WebRTC DTLS',
   }) as HTMLInputElement;
 
-  // Send button
-  const sendBtn = el('button', { className: 'btn btn-primary', textContent: 'Send' });
+  // Send button (with explicit chat-send-btn class so it never overflows viewport on phones)
+  const sendBtn = el('button', {
+    className: 'btn btn-primary chat-send-btn',
+    textContent: 'Send',
+    type: 'button',
+  });
 
   const handleSend = () => {
     const text = textInput.value.trim();

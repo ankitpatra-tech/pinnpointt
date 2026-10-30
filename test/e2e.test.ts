@@ -209,6 +209,17 @@ async function run(): Promise<void> {
     await pageSender.goto('http://127.0.0.1:5174/app', { waitUntil: 'networkidle0' });
     await pageSender.waitForSelector('.username-input');
 
+    // Verify Onboarding Modal appears for first-time visitor and dismiss it
+    try {
+      await pageSender.waitForSelector('.onboarding-modal-card', { timeout: 2500 });
+      console.log('✓ Verified Welcome & Onboarding Guide modal appears on initial visit.');
+      await pageSender.click('.onboarding-cta-btn');
+      await pageSender.waitForSelector('.onboarding-modal-card', { hidden: true, timeout: 2000 });
+      console.log('✓ Onboarding modal dismissed successfully.');
+    } catch {
+      // Already dismissed or not present
+    }
+
     // Verify PinnPointt Product Website (Homepage /)
     console.log('Step A.1: Opening PinnPointt Product Website (Homepage /)...');
     const pageWebsite = await browser.newPage();
@@ -308,11 +319,11 @@ async function run(): Promise<void> {
       throw new Error(`Footer credit missing expected text: ${footerText}`);
     }
 
-    // Check version 0.0.51-beta at the bottom
+    // Check version 0.0.52-beta at the bottom
     const versionText = await pageSender.$eval('.footer-version', (el) => el.textContent?.trim());
     console.log(`✓ Found footer version tag: "${versionText}"`);
-    if (versionText !== 'v0.0.51-beta') {
-      throw new Error(`Expected v0.0.51-beta, got: ${versionText}`);
+    if (versionText !== 'v0.0.52-beta') {
+      throw new Error(`Expected v0.0.52-beta, got: ${versionText}`);
     }
 
     // Test Contact Form Modal with Rate Limiting (email hidden from DOM)
@@ -358,10 +369,10 @@ async function run(): Promise<void> {
       changelogTab?.click();
     });
     const changelogText = await pageSender.$eval('.modal-body', (el) => el.textContent || '');
-    if (!changelogText.includes('v0.0.51-beta')) {
-      throw new Error('Changelog tab missing v0.0.51-beta section');
+    if (!changelogText.includes('v0.0.52-beta')) {
+      throw new Error('Changelog tab missing v0.0.52-beta section');
     }
-    console.log('✓ Changelog tab verified with v0.0.51-beta release notes.');
+    console.log('✓ Changelog tab verified with v0.0.52-beta release notes.');
 
     // Close modal
     await pageSender.evaluate(() => {
@@ -465,6 +476,15 @@ async function run(): Promise<void> {
     await pageReceiver.goto('http://127.0.0.1:5174/app', { waitUntil: 'networkidle0' });
     await pageReceiver.waitForSelector('.username-input');
 
+    // Dismiss onboarding modal if present on guest
+    try {
+      const modalBtn = await pageReceiver.$('.onboarding-cta-btn');
+      if (modalBtn) {
+        await modalBtn.click();
+        await pageReceiver.waitForSelector('.onboarding-modal-card', { hidden: true, timeout: 2000 });
+      }
+    } catch {}
+
     await pageReceiver.evaluate(() => {
       const inp = document.querySelector('.username-input') as HTMLInputElement;
       inp.value = 'Bob-Builder';
@@ -503,6 +523,23 @@ async function run(): Promise<void> {
       pageReceiver.waitForSelector('.status-dot.connected', { timeout: 20000 }),
     ]);
     console.log('P2P WebRTC RTCDataChannel connected successfully on both peers!');
+
+    // Verify E2E encrypted badge in header
+    await pageSender.waitForSelector('.workspace-e2e-badge');
+    const e2eText = await pageSender.$eval('.workspace-e2e-badge', (el) => el.textContent || '');
+    console.log(`✓ Verified E2E encryption header indicator: "${e2eText.trim()}"`);
+
+    // Verify chat Send button alignment on narrow viewport (375px mobile phone)
+    await pageSender.setViewport({ width: 375, height: 667 });
+    const isSendBtnVisible = await pageSender.evaluate(() => {
+      const btn = document.querySelector('.chat-send-btn') as HTMLElement | null;
+      if (!btn) return false;
+      const rect = btn.getBoundingClientRect();
+      return rect.right <= window.innerWidth && rect.width > 0;
+    });
+    console.log(`✓ Verified Send button aligns within mobile window without overflow: ${isSendBtnVisible}`);
+    if (!isSendBtnVisible) throw new Error('Send button is out of window on mobile phone viewport!');
+    await pageSender.setViewport({ width: 1280, height: 800 });
 
     // Wait for username exchange handshake
     await pageSender.waitForFunction(

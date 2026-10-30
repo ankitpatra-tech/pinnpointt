@@ -35,7 +35,8 @@ interface IncomingMessage {
 // ---------------------------------------------------------------------------
 
 const PORT = parseInt(process.env['PORT'] ?? '8787', 10);
-const ROOM_EXPIRY_MS = 120_000; // 120 seconds of inactivity
+const ROOM_EXPIRY_MS = 600_000; // 10 minutes of waiting inactivity (prevents premature timeouts)
+const HEARTBEAT_INTERVAL_MS = 25_000; // 25 seconds ping-pong to keep cloud reverse proxies (Render, Cloudflare) alive
 const MAX_PEERS_PER_ROOM = 2;
 
 // ---------------------------------------------------------------------------
@@ -256,6 +257,11 @@ function handleMessage(ws: WebSocket, raw: string): void {
       break;
     }
 
+    case 'ping': {
+      sendJSON(ws, { type: 'pong' });
+      break;
+    }
+
     default:
       sendJSON(ws, { type: 'error', message: `Unknown message type: ${msg.type}` });
   }
@@ -346,7 +352,7 @@ const server = http.createServer((req, res) => {
       JSON.stringify({
         status: 'healthy',
         service: 'pinnpointt',
-        version: '0.0.51-beta',
+        version: '0.0.52-beta',
         activeRooms: rooms.size,
         uptimeSeconds: Math.floor(process.uptime()),
       })
@@ -365,7 +371,7 @@ const server = http.createServer((req, res) => {
       JSON.stringify({
         status: 'healthy',
         service: 'pinnpointt-signaling',
-        version: '0.0.51-beta',
+        version: '0.0.52-beta',
         activeRooms: rooms.size,
         uptimeSeconds: Math.floor(process.uptime()),
       })
@@ -377,10 +383,21 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
+interface AliveWebSocket extends WebSocket {
+  isAlive?: boolean;
+}
+
 const wss = new WebSocketServer({ server });
 
-wss.on('connection', (ws: WebSocket) => {
+wss.on('connection', (ws: AliveWebSocket) => {
+  ws.isAlive = true;
+
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+
   ws.on('message', (data: Buffer) => {
+    ws.isAlive = true;
     handleMessage(ws, data.toString('utf-8'));
   });
 
@@ -391,6 +408,27 @@ wss.on('connection', (ws: WebSocket) => {
   ws.on('error', () => {
     removePeer(ws);
   });
+});
+
+// Periodic ping-pong heartbeat to keep connections active through cloud proxies (Render, Cloudflare, AWS)
+const heartbeatTimer = setInterval(() => {
+  wss.clients.forEach((client) => {
+    const ws = client as AliveWebSocket;
+    if (ws.isAlive === false) {
+      log('Terminating unresponsive socket');
+      return ws.terminate();
+    }
+    ws.isAlive = false;
+    try {
+      ws.ping();
+    } catch {
+      // Ignored if socket closed during iteration
+    }
+  });
+}, HEARTBEAT_INTERVAL_MS);
+
+wss.on('close', () => {
+  clearInterval(heartbeatTimer);
 });
 
 server.listen(PORT, '0.0.0.0', () => {

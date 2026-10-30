@@ -52,6 +52,7 @@ export class PeerManager {
   private roomCode: string = '';
 
   private ws: WebSocket | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private pc: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
   public role: PeerRole | null = null;
@@ -146,6 +147,11 @@ export class PeerManager {
     this.isClosedManually = true;
     this.events = {}; // Detach event callbacks to prevent error transitions on intentional closure
 
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+
     this.dataChannel?.close();
     this.dataChannel = null;
 
@@ -176,6 +182,13 @@ export class PeerManager {
 
     ws.addEventListener('open', () => {
       console.log(`[PeerConnection] WebSocket open`);
+      // Start client heartbeat ping every 20 seconds to keep connection active
+      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = setInterval(() => {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.send({ type: 'ping' });
+        }
+      }, 20_000);
       onOpen();
     });
 
@@ -183,7 +196,9 @@ export class PeerManager {
       let msg: SignalingMessage;
       try {
         msg = JSON.parse(event.data as string) as SignalingMessage;
-        console.log(`[PeerConnection] Received signaling message:`, msg.type);
+        if (msg.type !== 'pong') {
+          console.log(`[PeerConnection] Received signaling message:`, msg.type);
+        }
       } catch {
         return; // ignore non-JSON
       }
@@ -192,6 +207,16 @@ export class PeerManager {
 
     ws.addEventListener('close', () => {
       console.log(`[PeerConnection] WebSocket closed`);
+      if (this.heartbeatTimer) {
+        clearInterval(this.heartbeatTimer);
+        this.heartbeatTimer = null;
+      }
+      // CRITICAL: If WebRTC DataChannel is connected directly peer-to-peer,
+      // a signaling socket closure must NOT abort the active transfer!
+      if (this.dataChannel && this.dataChannel.readyState === 'open') {
+        console.log('[PeerConnection] Signaling disconnected, but P2P WebRTC DataChannel is active.');
+        return;
+      }
       if (!this.isClosedManually) {
         this.events.onDisconnected?.();
       }
@@ -252,7 +277,15 @@ export class PeerManager {
         break;
 
       case 'peer-left':
+        if (this.dataChannel && this.dataChannel.readyState === 'open') {
+          console.log('[PeerConnection] Signaling peer-left received, but P2P WebRTC DataChannel is still active.');
+          return;
+        }
         this.events.onDisconnected?.();
+        break;
+
+      case 'pong':
+        // Heartbeat acknowledged by signaling relay
         break;
 
       case 'error': {
@@ -380,7 +413,11 @@ export class PeerManager {
     });
 
     dc.addEventListener('close', () => {
+      console.log('[PeerConnection] RTCDataChannel closed');
       this.dataChannel = null;
+      if (!this.isClosedManually) {
+        this.events.onDisconnected?.();
+      }
     });
 
     dc.addEventListener('error', (event) => {

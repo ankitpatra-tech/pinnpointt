@@ -22,6 +22,7 @@ import {
   type WorkspaceController,
 } from './components';
 import { openDocModal } from './legalModal';
+import { openOnboardingModal, shouldShowOnboardingOnStartup } from './onboardingModal';
 import { createInstallBanner } from '../lib/pwaInstaller';
 import {
   getInitialTheme,
@@ -83,6 +84,7 @@ export class App {
   private isPreviewMode: boolean = false;
   private errorMessage: string = 'Connection lost.';
   private currentTheme: ThemeMode = getInitialTheme();
+  private dcKeepaliveTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -91,6 +93,11 @@ export class App {
   init(): void {
     applyTheme(this.currentTheme);
     this.render();
+
+    // Show onboarding guide on first visit
+    if (shouldShowOnboardingOnStartup()) {
+      setTimeout(() => openOnboardingModal(), 350);
+    }
   }
 
   public joinWithCode(code: string): void {
@@ -151,7 +158,7 @@ export class App {
       statusLabel = 'Connecting';
     }
 
-    // Top desktop & mobile navigation bar with Light/Dark toggle
+    // Top desktop & mobile navigation bar with Light/Dark toggle & Guide
     const navbar = createNavbar(
       this.currentTheme,
       () => this.handleToggleTheme(),
@@ -161,7 +168,8 @@ export class App {
           this.cleanup();
           this.transition('idle');
         }
-      }
+      },
+      () => openOnboardingModal()
     );
     container.append(navbar);
 
@@ -177,42 +185,46 @@ export class App {
       );
     }
 
-    // Friendly 3-step micro-onboarding guide (Interactive navigation)
+    // Friendly 3-step micro-onboarding guide (Interactive navigation + full tour modal)
     if (['idle', 'creating', 'joining'].includes(this.state)) {
       const activeStep = this.state === 'idle' ? 1 : 2;
       container.append(
-        createOnboarding(activeStep, (step) => {
-          if (step === 1) {
-            const focusAndPulse = () => {
-              const input = document.querySelector('.identity-input') as HTMLInputElement | null;
-              input?.focus();
-              input?.select();
-              const card = document.querySelector('.identity-card') as HTMLElement | null;
-              card?.classList.add('identity-pulse');
-              setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
-            };
+        createOnboarding(
+          activeStep,
+          (step) => {
+            if (step === 1) {
+              const focusAndPulse = () => {
+                const input = document.querySelector('.identity-input') as HTMLInputElement | null;
+                input?.focus();
+                input?.select();
+                const card = document.querySelector('.identity-card') as HTMLElement | null;
+                card?.classList.add('identity-pulse');
+                setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
+              };
 
-            if (this.state !== 'idle') {
-              this.cleanup();
-              this.transition('idle');
-              setTimeout(focusAndPulse, 50);
-            } else {
-              focusAndPulse();
+              if (this.state !== 'idle') {
+                this.cleanup();
+                this.transition('idle');
+                setTimeout(focusAndPulse, 50);
+              } else {
+                focusAndPulse();
+              }
+            } else if (step === 2) {
+              if (this.state === 'idle') {
+                const pairCard = document.querySelector('.pair-options') as HTMLElement | null;
+                pairCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              } else if (this.state === 'joining') {
+                this.handleCreateRoom();
+              } else if (this.state === 'creating') {
+                this.cleanup();
+                this.transition('joining');
+              }
+            } else if (step === 3) {
+              this.startPreviewMode();
             }
-          } else if (step === 2) {
-            if (this.state === 'idle') {
-              const pairCard = document.querySelector('.pair-options') as HTMLElement | null;
-              pairCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else if (this.state === 'joining') {
-              this.handleCreateRoom();
-            } else if (this.state === 'creating') {
-              this.cleanup();
-              this.transition('joining');
-            }
-          } else if (step === 3) {
-            this.startPreviewMode();
-          }
-        })
+          },
+          () => openOnboardingModal()
+        )
       );
     }
 
@@ -476,6 +488,11 @@ export class App {
           const peerRole = myRole === 'HOST' ? 'GUEST' : 'HOST';
           this.workspace?.setPeerName(peerName, peerRole);
           this.workspace?.addSystemNotice(`${peerName} joined the room`);
+        } else if (msg.type === 'dc-ping') {
+          this.sendJSON({ type: 'dc-pong' });
+          return;
+        } else if (msg.type === 'dc-pong') {
+          return;
         } else if (msg.type === 'chat-msg') {
           this.workspace?.addChatMessage({
             sender: String(msg.sender || this.peerUsername),
@@ -497,7 +514,15 @@ export class App {
       }
     });
 
-    // 3. Start persistent receiver loop for binary file transfers
+    // 3. Start DataChannel keepalive ping (every 15s) to keep NAT tables active through cellular & router firewalls
+    if (this.dcKeepaliveTimer) clearInterval(this.dcKeepaliveTimer);
+    this.dcKeepaliveTimer = setInterval(() => {
+      if (this.dataChannel && this.dataChannel.readyState === 'open') {
+        this.sendJSON({ type: 'dc-ping' });
+      }
+    }, 15_000);
+
+    // 4. Start persistent receiver loop for binary file transfers
     this.listenForIncomingFiles(channel);
   }
 
@@ -684,6 +709,10 @@ export class App {
   // ── Cleanup ──────────────────────────────────────
 
   private cleanup(): void {
+    if (this.dcKeepaliveTimer) {
+      clearInterval(this.dcKeepaliveTimer);
+      this.dcKeepaliveTimer = null;
+    }
     if (this.peer) {
       this.peer.close();
       this.peer = null;

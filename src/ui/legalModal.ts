@@ -251,8 +251,22 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.51-beta</span>
+            <span class="changelog-version">v0.0.52-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Mobile Chat Viewport Alignment:</strong> Resolved flexbox overflow on mobile phone screens (< 480px) so the Send button stays perfectly aligned and fully visible within the viewport.</li>
+            <li><strong>End-to-End Encrypted (E2EE) Chat over WebRTC DTLS:</strong> Surfaced clear cryptographic indicators confirming that all real-time chat messages and file transfers are 100% end-to-end encrypted directly device-to-device with zero server storage.</li>
+            <li><strong>Large File (&gt; 100 MB) Memory &amp; Dropout Fix:</strong> Upgraded stream chunking to 64 KB and replaced whole-buffer RAM allocations with direct Blob slicing and dual-mode backpressure drain, preventing browser heap exhaustion and connection drops.</li>
+            <li><strong>Signaling Heartbeat &amp; 10-Minute Room Expiry:</strong> Implemented active 25s ping-pong keepalive preventing cloud reverse-proxy drops (Render / Cloudflare), extended room waiting timeout to 10 minutes, and decoupled signaling connection loss from active P2P transfers.</li>
+            <li><strong>Interactive Welcome &amp; Onboarding Guide:</strong> Added 3-step visual onboarding walkthrough, accessible on initial visit or via navbar guide, with friendly "Set Your Name" terminology.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.51-beta</span>
+            <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Signaling Timeout Resolution:</strong> Fixed room lifecycle timer so the 2-minute timeout only applies to abandoned, unjoined rooms. Paired peers enjoy unlimited session durations for huge file streaming and extended chat.</li>
@@ -338,7 +352,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
           </div>
           <ul class="changelog-list">
             <li><strong>Real-Time Encrypted Chat:</strong> End-to-end messaging over WebRTC data channels with timestamped message bubbles.</li>
-            <li><strong>Operator Moniker Generator:</strong> Architectural username generator with monogram avatar and persistence.</li>
+            <li><strong>Operator Name Generator:</strong> Architectural username generator with monogram avatar and persistence.</li>
             <li><strong>Unified Activity Feed:</strong> Single-canvas feed rendering real-time chat and in-feed file streaming cards simultaneously.</li>
             <li><strong>Interactive Demo Mode:</strong> Single-window sandbox with simulated peer to preview streaming and verification.</li>
           </ul>
