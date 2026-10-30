@@ -1,0 +1,25 @@
+{
+  "name": "pinnpointt",
+  "version": "0.0.42-beta",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx server/dev.ts",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "signal": "tsx server/signaling.ts",
+    "test:qr": "tsx src/lib/qr/qr.test.ts",
+    "test:e2e": "tsx test/e2e.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/ws": "^8.18.2",
+    "puppeteer-core": "^25.16.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "ws": "^8.22.0"
+  }
+}

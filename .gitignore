@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local
+.env.*.local
+test/*.bin
+test/profile*
+.vercel/

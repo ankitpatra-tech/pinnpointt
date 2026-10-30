@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#121214" />
+  <meta name="description" content="PinnPointt — Zero-cloud direct peer-to-peer file transfer and real-time collaboration. Why PinnPointt, core architecture, and open-source roadmap." />
+  <title>PinnPointt — Pure Peer-to-Peer File Transfer & Collaboration</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%23F26419'/><circle cx='16' cy='16' r='4' fill='%23121214'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/website/website.css" />
+</head>
+<body>
+  <!-- ── Top Navbar ── -->
+  <header class="site-navbar">
+    <div class="site-navbar-inner">
+      <div class="nav-brand" onclick="window.location.href='/'">
+        <div class="nav-logo"></div>
+        <div class="nav-title-wrap">
+          <span class="nav-title">PinnPointt</span>
+          <span class="nav-badge">v0.0.42-beta</span>
+        </div>
+      </div>
+
+      <nav class="site-nav-links">
+        <a href="#why" class="site-nav-link">Why PinnPointt</a>
+        <a href="#comparison" class="site-nav-link">PinnPointt vs Others</a>
+        <a href="#features" class="site-nav-link">Features</a>
+        <a href="#install" class="site-nav-link">Install App</a>
+        <a href="#roadmap" class="site-nav-link">Roadmap</a>
+        <a href="#developer-note" class="site-nav-link">Founder's Note</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="website-theme-toggle" class="btn-theme-toggle" type="button" title="Toggle theme">
+          <span class="theme-icon">☀️</span> <span>Light</span>
+        </button>
+        <a href="/" class="site-nav-cta">Launch App →</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="site-wrapper">
+
+    <!-- ── Hero Section ── -->
+    <section class="hero-section">
+      <div class="hero-pill">
+        <span class="hero-pill-badge">NEW</span>
+        <span>Direct Device-to-Device • No Apps or Accounts Needed</span>
+      </div>
+
+      <h1 class="hero-title">
+        Pure Peer-to-Peer Transfers.<br />
+        <span class="accent-text">Zero Cloud. Zero Compromise.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Send files of any size directly between your phone, laptop, or computer at full speed.
+        No cloud uploads, no account logins, and no file size limits — just open the browser and share.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/" class="hero-btn-primary">
+          <span>⚡</span> <span>Launch PinnPointt Web App</span>
+        </a>
+        <button type="button" class="hero-btn-secondary trigger-pwa-install">
+          <span>↓</span> <span>Install Mobile / Desktop App</span>
+        </button>
+        <a href="#comparison" class="hero-btn-secondary">
+          <span>⚖</span> <span>PinnPointt vs Others</span>
+        </a>
+      </div>
+
+      <!-- Interactive Hero Preview Widget -->
+      <div class="hero-preview-frame">
+        <div class="preview-bar">
+          <div class="preview-dots">
+            <span class="preview-dot"></span>
+            <span class="preview-dot"></span>
+            <span class="preview-dot"></span>
+          </div>
+          <span class="preview-pill">Direct Encrypted Stream • 100% Private</span>
+        </div>
+
+        <div class="preview-content">
+          <div class="preview-qr-box">
+            <canvas id="hero-qr-canvas" width="140" height="140"></canvas>
+            <span class="text-xs mono muted">Scan with Camera</span>
+          </div>
+
+          <div class="preview-telemetry">
+            <div class="telemetry-card">
+              <div class="telemetry-row">
+                <span class="bold">project-video-4k.mov</span>
+                <span class="accent mono">4.2 GB</span>
+              </div>
+              <div class="telemetry-bar-track">
+                <div class="telemetry-bar-fill"></div>
+              </div>
+              <div class="telemetry-row text-xs muted">
+                <span>Speed: <strong>48.6 MB/s</strong></span>
+                <span>Progress: <strong>82%</strong></span>
+                <span>ETA: <strong>14s</strong></span>
+              </div>
+            </div>
+
+            <div class="telemetry-row text-xs" style="color: var(--success); font-family: var(--font-mono);">
+              <span>✓ Direct Peer Connection • 100% Private</span>
+              <span>Bit-for-Bit Verified Delivery</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Why PinnPointt & What Issue It Solves ── -->
+    <section id="why">
+      <div class="section-header">
+        <span class="section-tag">Problem vs Solution</span>
+        <h2 class="section-title">Why PinnPointt Exists</h2>
+        <p class="section-desc">
+          Sending a file to someone sitting next to you shouldn't take a detour through a corporate data center.
+          PinnPointt fixes everyday file sharing once and for all.
+        </p>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- The Problem -->
+        <div class="comparison-card negative">
+          <div class="comparison-badge">The Traditional Cloud Way</div>
+          <ul class="comparison-list">
+            <li class="comparison-item">
+              <span class="icon">✕</span>
+              <span><strong>The Data Center Detour:</strong> Sending a simple video uploads gigabytes to third-party cloud servers hundreds of miles away, only for the receiver to download it again.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon">✕</span>
+              <span><strong>Paywalls &amp; 2 GB Caps:</strong> Free services cut you off at 2 GB, throttle download speeds, or demand monthly credit card subscriptions.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon">✕</span>
+              <span><strong>Your Files Are Stored Remotely:</strong> Cloud providers store your sensitive documents and personal photos on their remote disks.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon">✕</span>
+              <span><strong>Walled Ecosystems:</strong> AirDrop only connects Apple devices; Quick Share is fragmented across Android and Windows.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- The PinnPointt Solution -->
+        <div class="comparison-card positive">
+          <div class="comparison-badge">The PinnPointt Advantage</div>
+          <ul class="comparison-list">
+            <li class="comparison-item">
+              <span class="icon">✓</span>
+              <span><strong>Direct Device-to-Device:</strong> Data flows straight from your device to the other device across your local Wi-Fi or direct peer internet with zero cloud storage.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon">✓</span>
+              <span><strong>No File Size Limits:</strong> Share 50 MB or 50 GB. PinnPointt streams data in smooth chunks so your browser never freezes or crashes.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon">✓</span>
+              <span><strong>100% Private &amp; Temporary:</strong> Nothing is ever saved to any server. Once the transfer finishes, the connection closes and leaves no trace behind.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon">✓</span>
+              <span><strong>Universal Device Compatibility:</strong> Works instantly on iPhone, Android, Mac, Windows, Linux, and Chromebooks right in the browser.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Comparison & Superiority Section ── -->
+    <section id="comparison" class="comparison-section">
+      <div class="section-header">
+        <span class="section-tag">Head-to-Head Comparison</span>
+        <h2 class="section-title">How PinnPointt Compares to the Rest</h2>
+        <p class="section-desc">
+          Why PinnPointt is strictly superior to cloud drives, closed ecosystems, and older web transfer tools.
+        </p>
+      </div>
+
+      <!-- Interactive Comparison Matrix Table -->
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="min-width: 180px;">Feature</th>
+              <th class="col-pinnpointt">
+                <div class="table-brand-header">
+                  <span>PinnPointt</span>
+                  <span class="table-badge-winner">BEST</span>
+                </div>
+              </th>
+              <th>Apple AirDrop</th>
+              <th>Quick Share</th>
+              <th>Cloud (WeTransfer / Drive)</th>
+              <th>Old Web P2P (Snapdrop)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cross-Platform Freedom</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Any Browser</span></td>
+              <td><span class="table-status-no">✕ Apple Only</span></td>
+              <td><span class="table-status-no">✕ Android &amp; Windows</span></td>
+              <td><span class="table-status-partial">~ Any (Requires Upload)</span></td>
+              <td><span class="table-status-partial">~ Same Subnet Only</span></td>
+            </tr>
+            <tr>
+              <td><strong>No Account / Sign-Up Needed</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Zero Logins</span></td>
+              <td><span class="table-status-no">✕ Apple ID Needed</span></td>
+              <td><span class="table-status-no">✕ Google Account</span></td>
+              <td><span class="table-status-no">✕ Often Required</span></td>
+              <td><span class="table-status-yes">✓ Zero Logins</span></td>
+            </tr>
+            <tr>
+              <td><strong>Zero Cloud Storage / 100% Private</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Zero Cloud</span></td>
+              <td><span class="table-status-yes">✓ Direct Link</span></td>
+              <td><span class="table-status-yes">✓ Direct Link</span></td>
+              <td><span class="table-status-no">✕ Stored on Cloud</span></td>
+              <td><span class="table-status-yes">✓ Direct Link</span></td>
+            </tr>
+            <tr>
+              <td><strong>No File Size Limits (Multi-GB)</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Unlimited</span></td>
+              <td><span class="table-status-yes">✓ High Capacity</span></td>
+              <td><span class="table-status-yes">✓ High Capacity</span></td>
+              <td><span class="table-status-no">✕ 2 GB Free Caps</span></td>
+              <td><span class="table-status-no">✕ Crashes on &gt;500 MB</span></td>
+            </tr>
+            <tr>
+              <td><strong>Zero Double-Waiting</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Live Stream</span></td>
+              <td><span class="table-status-yes">✓ Immediate</span></td>
+              <td><span class="table-status-yes">✓ Immediate</span></td>
+              <td><span class="table-status-no">✕ Upload 100% First</span></td>
+              <td><span class="table-status-yes">✓ Live Stream</span></td>
+            </tr>
+            <tr>
+              <td><strong>Works Over Any Wi-Fi &amp; Internet</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Local &amp; Remote</span></td>
+              <td><span class="table-status-no">✕ Close Range Only</span></td>
+              <td><span class="table-status-no">✕ Close Range Only</span></td>
+              <td><span class="table-status-yes">✓ Anywhere</span></td>
+              <td><span class="table-status-no">✕ Strict Same Wi-Fi</span></td>
+            </tr>
+            <tr>
+              <td><strong>Built-In Live Chat During Transfer</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Real-Time Chat</span></td>
+              <td><span class="table-status-no">✕ None</span></td>
+              <td><span class="table-status-no">✕ None</span></td>
+              <td><span class="table-status-no">✕ None</span></td>
+              <td><span class="table-status-no">✕ None</span></td>
+            </tr>
+            <tr>
+              <td><strong>100% Free Forever &amp; Open Source</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ MIT at v1.0</span></td>
+              <td><span class="table-status-no">✕ Closed Apple</span></td>
+              <td><span class="table-status-no">✕ Closed Google</span></td>
+              <td><span class="table-status-no">✕ Paid Subscriptions</span></td>
+              <td><span class="table-status-partial">~ Abandoned Project</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 4 Pillars of Superiority -->
+      <div class="superiority-grid">
+        <div class="superiority-card">
+          <div class="superiority-header">
+            <div class="superiority-icon">🌐</div>
+            <h3>True Universal Freedom</h3>
+          </div>
+          <p>
+            No more Apple-only or Android-only barriers. PinnPointt works seamlessly between an iPhone and a Windows PC, an Android phone and a MacBook, or a Linux desktop and an iPad. If a device has a browser, it works.
+          </p>
+        </div>
+
+        <div class="superiority-card">
+          <div class="superiority-header">
+            <div class="superiority-icon">⚡</div>
+            <h3>Zero Double-Waiting</h3>
+          </div>
+          <p>
+            Cloud drives force you to wait twice: 15 minutes to upload a 4 GB video to their server, then the other person waits another 15 minutes to download it. PinnPointt streams data live — as the sender reads the file, the receiver saves it.
+          </p>
+        </div>
+
+        <div class="superiority-card">
+          <div class="superiority-header">
+            <div class="superiority-icon">🚀</div>
+            <h3>Rock-Solid Large File Streaming</h3>
+          </div>
+          <p>
+            Traditional browser transfer tools attempt to load whole files into memory all at once, crashing your browser tab on files over 500 MB. PinnPointt uses smart chunk streaming to deliver multi-gigabyte files reliably.
+          </p>
+        </div>
+
+        <div class="superiority-card">
+          <div class="superiority-header">
+            <div class="superiority-icon">🔒</div>
+            <h3>Bit-for-Bit Verified &amp; Private</h3>
+          </div>
+          <p>
+            Files travel directly between your devices with end-to-end encryption. Every single file is checked upon arrival to ensure zero corruption or missing bytes. Once the transfer completes, nothing remains on any server.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Core Features ── -->
+    <section id="features">
+      <div class="section-header">
+        <span class="section-tag">Everyday Superpowers</span>
+        <h2 class="section-title">Designed to Be Simple &amp; Fast</h2>
+        <p class="section-desc">
+          No complex setups, no tech jargon. Just open PinnPointt and start sharing.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">📷</div>
+          <h3>Instant Camera Pairing</h3>
+          <p>Point your phone camera at the screen to connect in seconds. No Bluetooth pairing, no phone numbers, and no Wi-Fi passwords required.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">⚡</div>
+          <h3>No File Size Limits</h3>
+          <p>Share large 4K video clips, high-res photo albums, or big work archives. Smooth streaming ensures your browser never freezes or crashes.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">🛡️</div>
+          <h3>100% Verified Delivery</h3>
+          <p>Every file is automatically checked upon arrival to ensure not a single byte was corrupted, lost, or altered during transfer.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">💬</div>
+          <h3>Built-In Live Chat</h3>
+          <p>Send quick messages, notes, and links back and forth right in the app while your files transfer with live progress updates.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">🎨</div>
+          <h3>Easy on the Eyes</h3>
+          <p>A distraction-free design crafted with high contrast and smooth transitions. Switch between Dark and Light mode anytime.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">📱</div>
+          <h3>One-Tap App Installation</h3>
+          <p>Add PinnPointt directly to your mobile home screen or computer dock. Opens instantly like a native app with zero storage overhead.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Mobile & Desktop PWA Installation ── -->
+    <section id="install">
+      <div class="install-section-box">
+        <div class="install-left">
+          <span class="section-tag" style="text-align: left;">Instant App Installation</span>
+          <h2>Install Directly from Your Browser</h2>
+          <p>
+            PinnPointt is a modern Progressive Web App (PWA). No app store downloads, no megabytes of disk overhead, no intrusive tracking permissions.
+            Install once to launch full-screen directly from your mobile home screen or desktop dock.
+          </p>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary trigger-pwa-install">
+              <span>↓</span> <span>Install PinnPointt App</span>
+            </button>
+            <a href="/" class="btn btn-ghost">
+              <span>↗</span> <span>Open Web App in Browser</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="install-right">
+          <div class="install-platform-card">
+            <div class="platform-info">
+              <span class="platform-icon">🤖</span>
+              <div>
+                <div class="platform-name">Android & Chrome</div>
+                <div class="platform-desc">Tap "Install" or click the install pill in the address bar</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
+          </div>
+
+          <div class="install-platform-card">
+            <div class="platform-info">
+              <span class="platform-icon">🍏</span>
+              <div>
+                <div class="platform-name">iOS & Safari</div>
+                <div class="platform-desc">Tap Share (⎋) then choose "Add to Home Screen"</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('ios-install-steps').style.display = 'block'">Guide</button>
+          </div>
+
+          <div class="install-platform-card">
+            <div class="platform-info">
+              <span class="platform-icon">💻</span>
+              <div>
+                <div class="platform-name">Windows, Mac & Linux</div>
+                <div class="platform-desc">Install as a native desktop utility via Edge or Chrome</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
+          </div>
+
+          <div id="ios-install-steps" class="ios-guide-box" style="display: none; margin-top: 10px;">
+            <strong>iPhone / iPad Installation:</strong>
+            <ol style="padding-left: 18px; margin: 6px 0 0; font-size: 11.5px; line-height: 1.5;">
+              <li>Open PinnPointt in Safari.</li>
+              <li>Tap the <strong>Share</strong> button (box with upward arrow ⎋) at the bottom.</li>
+              <li>Scroll down and tap <strong>Add to Home Screen (⊕)</strong>.</li>
+              <li>PinnPointt will appear on your home screen like a native app.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Future Roadmap to Open Source & Global Launch ── -->
+    <section id="roadmap">
+      <div class="section-header">
+        <span class="section-tag">The Journey Ahead</span>
+        <h2 class="section-title">The Path to Open Source &amp; Global Launch</h2>
+        <p class="section-desc">
+          Our commitment is clear: PinnPointt will become 100% free and open-source software (FOSS)
+          under the MIT License upon reaching its v1.0.0 Global Stable release.
+        </p>
+        <div class="roadmap-disclaimer-pill">
+          <span class="disclaimer-badge">NOTE</span>
+          <span>Roadmap milestones, feature targets, and release timelines are <strong>subject to change</strong> based on community feedback, browser standard evolutions, and engineering priorities.</span>
+        </div>
+      </div>
+
+      <div class="roadmap-timeline">
+
+        <!-- Phase 1 (Current) -->
+        <div class="roadmap-card current">
+          <div class="roadmap-meta">
+            <span class="roadmap-version">v0.0.1 – v0.0.42 beta</span>
+            <span class="roadmap-status completed">✓ Shipped &amp; Live</span>
+          </div>
+          <div class="roadmap-details">
+            <h3>Phase 1: Core Foundation &amp; Web App</h3>
+            <p>Direct device-to-device streaming, pairing, and visual experience.</p>
+            <ul class="roadmap-items">
+              <li>Direct peer-to-peer file streaming with zero cloud storage.</li>
+              <li>Instant camera pairing via dynamic on-screen QR codes.</li>
+              <li>Encrypted real-time live chat with automatic usernames.</li>
+              <li>Distraction-free dual-theme design (Dark &amp; Light modes).</li>
+              <li>Privacy Policy, Fair Usage, and in-app developer contact channel.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="roadmap-card">
+          <div class="roadmap-meta">
+            <span class="roadmap-version">v0.0.5 – v0.0.8 beta</span>
+            <span class="roadmap-status planned">Q1 2027 • In Progress</span>
+          </div>
+          <div class="roadmap-details">
+            <h3>Phase 2: Enhanced Sharing Capabilities</h3>
+            <p>Expanding file handling capabilities and peer discovery resilience.</p>
+            <ul class="roadmap-items">
+              <li>Whole folder directory streaming preserving subfolder hierarchies.</li>
+              <li>Automatic local network discovery without requiring internet signaling.</li>
+              <li>Resumable transfer checkpoints if network drops temporarily.</li>
+              <li>Multi-device broadcast (send one file to multiple devices at once).</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Phase 3 (Open Source Launch) -->
+        <div class="roadmap-card future-highlight">
+          <div class="roadmap-meta">
+            <span class="roadmap-version">v1.0.0 Global Stable</span>
+            <span class="roadmap-status target">★ Open-Source Launch</span>
+          </div>
+          <div class="roadmap-details">
+            <h3>Phase 3: Global Launch &amp; 100% Open Source Release</h3>
+            <p>PinnPointt will transition into a fully public, decentralized community utility.</p>
+            <ul class="roadmap-items">
+              <li><strong>Public GitHub Repository:</strong> Complete source code released under the permissive MIT License.</li>
+              <li><strong>1-Command Docker Node:</strong> Easy self-hosting for universities, teams, and private networks.</li>
+              <li><strong>Decentralized Discovery:</strong> Direct peer discovery with zero dependence on central servers.</li>
+              <li><strong>Community Contributor Program:</strong> Bounties for translations, accessibility, and platform optimizations.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Note from the Founder ── -->
+    <section id="developer-note">
+      <div class="section-header">
+        <span class="section-tag">A Note From Founder</span>
+        <h2 class="section-title">A Note from Founder</h2>
+      </div>
+
+      <div class="dev-letter-card">
+        <div class="dev-letter-header">
+          <div class="dev-avatar">AP</div>
+          <div class="dev-info">
+            <h3>Ankit Patra</h3>
+            <span>Founder of PinnPointt</span>
+          </div>
+        </div>
+
+        <div class="dev-letter-body">
+          <p>
+            Hey everyone,
+          </p>
+          <p>
+            I built PinnPointt because sharing a file between two devices in 2026 is still surprisingly frustrating.
+          </p>
+          <p>
+            Think about what usually happens: you want to send a video from your phone to your laptop, or share photos with a friend sitting next to you who has a different phone. You're forced to upload it to a cloud drive, wait forever, hit a 2 GB storage limit, or sign up for an account you didn't want. And while you wait, your private files are saved on someone else's servers.
+          </p>
+          <p>
+            I wanted something that just works: open the page, point your camera, and send the file straight across at full speed. No logins, no cloud storage, and no size limits.
+          </p>
+          <p>
+            PinnPointt is completely free, does not track you, and will become 100% open-source under the MIT license when we reach our v1.0.0 release so the community owns it forever.
+          </p>
+          <p>
+            Thank you for using PinnPointt and helping make the web faster and more private for all of us.
+          </p>
+          <div class="dev-signature">
+            — Ankit Patra<br />
+            <span class="text-xs muted mono">Founder, PinnPointt</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Website Footer ── -->
+    <footer class="app-footer site-footer">
+      <div class="site-footer-top">
+        <div class="footer-brand-col">
+          <div class="nav-brand" onclick="window.location.href='/'">
+            <div class="nav-logo"></div>
+            <div class="nav-title-wrap">
+              <span class="nav-title">PinnPointt</span>
+              <span class="nav-badge">v0.0.42-beta</span>
+            </div>
+          </div>
+          <p class="footer-tagline">
+            Zero-cloud, browser-native direct peer-to-peer file transfer and real-time collaboration.
+            No logins, no file size caps, and memory-to-memory encryption.
+          </p>
+        </div>
+
+        <div class="footer-nav-col">
+          <span class="footer-col-title">Navigation</span>
+          <div class="footer-col-links">
+            <a href="/" class="footer-nav-link">Launch Web App →</a>
+            <a href="#why" class="footer-nav-link">Why PinnPointt</a>
+            <a href="#comparison" class="footer-nav-link">PinnPointt vs Others</a>
+            <a href="#features" class="footer-nav-link">Features</a>
+            <a href="#install" class="footer-nav-link">Install App</a>
+            <a href="#roadmap" class="footer-nav-link">Roadmap</a>
+            <a href="#developer-note" class="footer-nav-link">Founder's Note</a>
+          </div>
+        </div>
+
+        <div class="footer-nav-col">
+          <span class="footer-col-title">Legal &amp; Community</span>
+          <div class="footer-col-links">
+            <button class="footer-link" data-open-modal="privacy">Privacy Policy</button>
+            <button class="footer-link" data-open-modal="fair-usage">Fair Usage</button>
+            <button class="footer-link" data-open-modal="disclaimer">Disclaimer</button>
+            <button class="footer-link" data-open-modal="changelog">Changelog</button>
+            <button class="footer-link" data-open-modal="contact">Contact</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="site-footer-bottom">
+        <div class="footer-credit">
+          Developed by <span>Ankit Patra</span> for the community <span class="heart">❤️</span>
+        </div>
+
+        <div class="footer-meta">
+          <span class="footer-subtitle">Direct device-to-device transfers • Zero cloud storage • 100% private</span>
+          <span class="footer-version">v0.0.42-beta</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="/src/website/main.ts"></script>
+</body>
+</html>
