@@ -249,8 +249,6 @@ function renderTabContent(tab: DocTab): HTMLElement {
             <li><strong>Interactive Quick Start Navigation:</strong> Onboarding steps are now interactive navigation shortcuts. Clicking Step 1 highlights and focuses your display name with an identity pulse, Step 2 guides device pairing, and Step 3 launches the interactive demo mode.</li>
             <li><strong>Room Creation Navigation:</strong> Added dual back-button controls in the "Create a Room" view (top header and bottom primary button) to cleanly return to pairing options without page reloads.</li>
             <li><strong>Motion &amp; Micro-Interaction Overhaul:</strong> Added smooth staggered card entrances, tactile button physics, room code digit pop-ins, and animated step hover feedback.</li>
-            <li><strong>Founder's Note &amp; Comparison Matrix:</strong> Down-to-earth founder's story by Ankit Patra alongside head-to-head comparisons against AirDrop, Quick Share, and Cloud Drives.</li>
-            <li><strong>Free Lifetime Hosting Readiness:</strong> Zero-cost hosting configuration for Vercel edge frontend and Render/Koyeb WebSockets with lifetime free subdomains and zero custom domain requirement.</li>
           </ul>
         </div>
 
