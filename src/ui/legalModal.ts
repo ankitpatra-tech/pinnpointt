@@ -251,8 +251,21 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.5-beta</span>
+            <span class="changelog-version">v0.0.51-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Signaling Timeout Resolution:</strong> Fixed room lifecycle timer so the 2-minute timeout only applies to abandoned, unjoined rooms. Paired peers enjoy unlimited session durations for huge file streaming and extended chat.</li>
+            <li><strong>Interactive Power-User Verification:</strong> Added live in-browser threat triage sandbox, DevTools network challenge, and reproducible dual-Chromium E2E terminal benchmark telemetry to the showcase website.</li>
+            <li><strong>Streamlined Architecture Showcase:</strong> Simplified proprietary technology cards to focus on user benefits (zero-dependency native QR, crash-free 10 GB+ streaming, native hardware Web Crypto).</li>
+            <li><strong>Hardened Legal &amp; Safe-Harbor Protections:</strong> Fortified Privacy Policy, Fair Usage, and Disclaimers with explicit statutory Safe Harbor classifications (US CDA §230, DMCA §512, EU DSA) and complete common-carrier liability immunity.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.5-beta</span>
+            <span class="changelog-date">Beta Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Client-Side File Safety &amp; Malicious Triage Engine:</strong> Real-time in-browser inspection detecting executable binaries, script droppers, and double-extension traps before transfer.</li>
@@ -484,7 +497,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.5-beta\n` +
+            `App Version:   v0.0.51-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

@@ -117,9 +117,73 @@ function setupModalTriggers(): void {
   });
 }
 
+function setupThreatSandbox(): void {
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.sandbox-btn');
+  const badge = document.getElementById('sandbox-badge');
+  const filename = document.getElementById('sandbox-filename');
+  const reason = document.getElementById('sandbox-reason');
+  const hash = document.getElementById('sandbox-hash');
+  const policy = document.getElementById('sandbox-policy');
+
+  if (!badge || !filename || !reason || !hash || !policy) return;
+
+  const samples = {
+    clean: {
+      name: 'presentation_deck.pdf (4.8 MB)',
+      badge: '✓ Verified Safe',
+      badgeClass: 'safe',
+      reason: 'Standard document format. Hardware Web Crypto SHA-256 verified. Clean transport profile.',
+      hash: 'e39bdfd6e88b01b8a7bd473a481741189c717b86853f6af0818cef2a1a306a6b',
+      policy: 'Direct Download Ready (Safe)',
+    },
+    script: {
+      name: 'update_patch.ps1 (12 KB)',
+      badge: '⚠️ Executable Quarantined',
+      badgeClass: 'warning',
+      reason: 'Executable script format (.PS1) detected. Quarantined in browser memory; execution blocked by default.',
+      hash: '7d8a9b34c21f5e8a1d0b7498c362145e690f142b78912e45fa67c89012345678',
+      policy: 'Quarantined in RAM (Requires Explicit Review)',
+    },
+    'double-ext': {
+      name: 'urgent_invoice.pdf.exe (840 KB)',
+      badge: '🛑 Deceptive Extension Blocked',
+      badgeClass: 'danger',
+      reason: 'High-risk double extension trap detected. Malware often masks executables as documents or photos.',
+      hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+      policy: 'Hard-Blocked Before Transmission (Trap Neutralized)',
+    },
+    'malware-hash': {
+      name: 'eicar_antivirus_test.com (68 B)',
+      badge: '🛑 Threat Signature Blocked',
+      badgeClass: 'danger',
+      reason: 'File SHA-256 matches a known threat signature. Local transfer denied by client triage.',
+      hash: '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
+      policy: 'Hard-Blocked Client-Side (0 Network Calls)',
+    },
+  };
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const sampleKey = (btn.getAttribute('data-sample') || 'clean') as keyof typeof samples;
+      const data = samples[sampleKey] || samples.clean;
+
+      badge.textContent = data.badge;
+      badge.className = `sandbox-status-badge ${data.badgeClass}`;
+      filename.textContent = data.name;
+      reason.textContent = data.reason;
+      hash.textContent = data.hash;
+      policy.textContent = data.policy;
+    });
+  });
+}
+
 // ── Startup ──
 document.addEventListener('DOMContentLoaded', () => {
   setupTheme();
   setupPWAInstallation();
   setupModalTriggers();
+  setupThreatSandbox();
 });

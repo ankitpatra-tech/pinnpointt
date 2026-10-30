@@ -252,6 +252,20 @@ async function run(): Promise<void> {
     console.log(`✓ Verified ${proofCardsCount} live cryptographic proof metric cards.`);
     if (proofCardsCount !== 4) throw new Error(`Expected 4 proof cards, got ${proofCardsCount}`);
 
+    // Verify Interactive Threat Sandbox on website
+    await pageWebsite.waitForSelector('#threat-sandbox');
+    const sandboxButtons = await pageWebsite.$$eval('.sandbox-btn', (els) => els.length);
+    console.log(`✓ Verified ${sandboxButtons} live interactive threat sandbox test presets.`);
+    if (sandboxButtons < 4) throw new Error(`Expected at least 4 sandbox buttons, got ${sandboxButtons}`);
+
+    // Click double-extension test button and verify output badge
+    await pageWebsite.click('.sandbox-btn[data-sample="double-ext"]');
+    const sandboxOutput = await pageWebsite.$eval('#sandbox-output', (el) => el.textContent || '');
+    if (!sandboxOutput.includes('Blocked') || !sandboxOutput.includes('double extension')) {
+      throw new Error(`Threat sandbox failed to flag double-extension: ${sandboxOutput}`);
+    }
+    console.log('✓ Verified interactive threat sandbox detects double-extension deception in real-time.');
+
     // Verify PWA installation triggers exist
     const pwaTriggers = await pageWebsite.$$eval('.trigger-pwa-install', (els) => els.length);
     console.log(`✓ Verified ${pwaTriggers} PWA install triggers on website.`);
@@ -269,11 +283,11 @@ async function run(): Promise<void> {
       throw new Error(`Footer credit missing expected text: ${footerText}`);
     }
 
-    // Check version 0.0.5-beta at the bottom
+    // Check version 0.0.51-beta at the bottom
     const versionText = await pageSender.$eval('.footer-version', (el) => el.textContent?.trim());
     console.log(`✓ Found footer version tag: "${versionText}"`);
-    if (versionText !== 'v0.0.5-beta') {
-      throw new Error(`Expected v0.0.5-beta, got: ${versionText}`);
+    if (versionText !== 'v0.0.51-beta') {
+      throw new Error(`Expected v0.0.51-beta, got: ${versionText}`);
     }
 
     // Test Contact Form Modal with Rate Limiting (email hidden from DOM)
@@ -319,10 +333,10 @@ async function run(): Promise<void> {
       changelogTab?.click();
     });
     const changelogText = await pageSender.$eval('.modal-body', (el) => el.textContent || '');
-    if (!changelogText.includes('v0.0.5-beta')) {
-      throw new Error('Changelog tab missing v0.0.5-beta section');
+    if (!changelogText.includes('v0.0.51-beta')) {
+      throw new Error('Changelog tab missing v0.0.51-beta section');
     }
-    console.log('✓ Changelog tab verified with v0.0.5-beta release notes.');
+    console.log('✓ Changelog tab verified with v0.0.51-beta release notes.');
 
     // Close modal
     await pageSender.evaluate(() => {

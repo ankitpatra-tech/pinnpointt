@@ -72,16 +72,21 @@ function getOtherPeer(room: Room, sender: WebSocket): WebSocket | undefined {
 
 /**
  * Resets the inactivity timer for a room.
+ * Note: Abandonment timeout ONLY applies when a single peer is waiting.
+ * Once 2 peers are paired, the timer is cleared and the session stays active indefinitely.
  */
 function resetRoomExpiry(code: string): void {
   const room = rooms.get(code);
   if (!room) return;
 
   clearTimeout(room.expiryTimer);
-  room.expiryTimer = setTimeout(() => {
-    log(`Room ${code} expired due to inactivity`);
-    destroyRoom(code);
-  }, ROOM_EXPIRY_MS);
+
+  if (room.peers.length === 1) {
+    room.expiryTimer = setTimeout(() => {
+      log(`Room ${code} expired while waiting for a peer`);
+      destroyRoom(code);
+    }, ROOM_EXPIRY_MS);
+  }
 }
 
 /**
@@ -265,7 +270,7 @@ const server = http.createServer((req, res) => {
       JSON.stringify({
         status: 'healthy',
         service: 'pinnpointt-signaling',
-        version: '0.0.5-beta',
+        version: '0.0.51-beta',
         activeRooms: rooms.size,
         uptimeSeconds: Math.floor(process.uptime()),
       })

@@ -1510,3 +1510,360 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Power-User Proofs & DevTools Challenge ── */
+.devtools-challenge-card {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  box-shadow: 0 0 16px var(--accent-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.devtools-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.devtools-body h3 {
+  font-size: clamp(17px, 2.5vw, 21px);
+  font-weight: 800;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+}
+
+.devtools-body p {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.devtools-body kbd {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border-focus);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent);
+}
+
+/* ── Interactive Threat Sandbox Widget ── */
+.threat-sandbox-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(22px, 3.5vw, 32px);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.threat-sandbox-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sandbox-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.sandbox-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.sandbox-title-wrap h3 {
+  font-size: clamp(17px, 2.5vw, 21px);
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.sandbox-title-wrap p {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.sandbox-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sandbox-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.sandbox-btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-1.5px);
+}
+
+.sandbox-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  font-weight: 700;
+}
+
+.sandbox-output {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sandbox-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sandbox-status-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sandbox-status-badge.safe {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.sandbox-status-badge.warning {
+  background: rgba(255, 165, 0, 0.15);
+  color: #FFA500;
+  border: 1px solid rgba(255, 165, 0, 0.35);
+}
+
+.sandbox-status-badge.danger {
+  background: rgba(255, 77, 77, 0.15);
+  color: #FF4D4D;
+  border: 1px solid rgba(255, 77, 77, 0.35);
+}
+
+.sandbox-file-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sandbox-reason {
+  font-size: 13px;
+  color: var(--text-bright);
+  line-height: 1.5;
+}
+
+.sandbox-details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.sandbox-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-label {
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 12px;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.detail-value.highlight {
+  color: #22C55E;
+  font-weight: 700;
+}
+
+/* ── Reproducible E2E Terminal Benchmark Card ── */
+.e2e-benchmark-card {
+  background: #0D0D10;
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.terminal-header {
+  background: #18181D;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #27272E;
+}
+
+.terminal-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.terminal-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal-dots .dot.red { background: #FF5F56; }
+.terminal-dots .dot.yellow { background: #FFBD2E; }
+.terminal-dots .dot.green { background: #27C93F; }
+
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #A1A1AA;
+  flex: 1;
+}
+
+.terminal-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(255, 107, 0, 0.15);
+  border: 1px solid var(--accent);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.terminal-body {
+  padding: 18px 20px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: #EDEDED;
+  overflow-x: auto;
+}
+
+.term-dim { color: #71717A; }
+.term-green { color: #4ADE80; font-weight: 600; }
+.term-cyan { color: #38BDF8; }
+.term-yellow { color: #FDE047; }
+
+/* ── Waterfall Comparison Card ── */
+.waterfall-compare-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(22px, 3.5vw, 32px);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.waterfall-compare-card h3 {
+  font-size: clamp(17px, 2.5vw, 21px);
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.waterfall-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.waterfall-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.waterfall-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.waterfall-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.waterfall-track {
+  display: flex;
+  width: 100%;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.waterfall-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.waterfall-bar.upload { background: #3B82F6; color: #FFFFFF; }
+.waterfall-bar.store { background: #64748B; color: #FFFFFF; }
+.waterfall-bar.download { background: #8B5CF6; color: #FFFFFF; }
+.waterfall-bar.stream { background: linear-gradient(90deg, var(--accent) 0%, #FF8533 100%); color: #FFFFFF; font-weight: 700; }
+
+.waterfall-meta {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
