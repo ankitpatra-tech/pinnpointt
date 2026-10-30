@@ -1241,6 +1241,73 @@ h2 {
   gap: 4px;
 }
 
+.feed-file-threat {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.feed-file-threat.warning {
+  color: #FFA500;
+}
+
+.feed-file-threat.danger {
+  color: #FF4D4D;
+}
+
+.safety-badge {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.safety-badge.warning {
+  background: rgba(255, 165, 0, 0.15);
+  color: #FFA500;
+  border: 1px solid rgba(255, 165, 0, 0.35);
+}
+
+.safety-badge.danger {
+  background: rgba(255, 77, 77, 0.15);
+  color: #FF4D4D;
+  border: 1px solid rgba(255, 77, 77, 0.35);
+}
+
+.safety-badge.safe {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.threat-notice {
+  font-size: 11.5px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.threat-notice.warning {
+  background: rgba(255, 165, 0, 0.08);
+  border: 1px solid rgba(255, 165, 0, 0.25);
+  color: var(--text);
+}
+
+.threat-notice.danger {
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #FF6B6B;
+}
+
 /* ── Chat Input Row ────────────────────────────── */
 .chat-input-row {
   display: flex;

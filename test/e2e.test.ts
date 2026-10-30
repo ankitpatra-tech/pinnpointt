@@ -19,6 +19,7 @@ import * as crypto from 'node:crypto';
 import puppeteer, { type Browser, type Page } from 'puppeteer-core';
 import { createServer, type ViteDevServer } from 'vite';
 import { WebSocketServer, WebSocket } from 'ws';
+import { inspectFileSafety } from '../src/lib/safety';
 
 const CHROME_PATH = fs.existsSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
   ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
@@ -156,6 +157,18 @@ async function run(): Promise<void> {
   fs.writeFileSync(TEST_FILE_PATH, buffer);
   console.log(`Generated 10 MB payload, ground truth SHA-256: ${groundTruthHash}`);
 
+  // Test client-side threat detection engine
+  console.log('Verifying client-side safety engine...');
+  const exeAssessment = inspectFileSafety('ransomware.exe', 1024);
+  if (exeAssessment.riskLevel !== 'warning') throw new Error('Failed to flag .exe file');
+
+  const doubleExtAssessment = inspectFileSafety('statement.pdf.exe', 1024);
+  if (doubleExtAssessment.riskLevel !== 'danger') throw new Error('Failed to flag double extension trap');
+
+  const safeAssessment = inspectFileSafety('photo.png', 1024);
+  if (safeAssessment.riskLevel !== 'safe') throw new Error('Flagged clean PNG as unsafe');
+  console.log('✓ Verified client-side file safety triage engine (executables, double extensions, clean files).');
+
   // 2. Start signaling server in-process
   console.log('Starting signaling server on ws://127.0.0.1:8789...');
   const wss = startSignalingServer(8789);
@@ -232,6 +245,13 @@ async function run(): Promise<void> {
     console.log(`✓ Verified Founder's Note author: "${devNote.trim()}"`);
     if (devNote.trim() !== 'Ankit Patra') throw new Error(`Expected Ankit Patra, got: ${devNote}`);
 
+    // Verify Security & Cryptographic Verification section on website
+    const secTitle = await pageWebsite.$eval('#security .section-title', (el) => el.textContent || '');
+    console.log(`✓ Verified Security section title: "${secTitle}"`);
+    const proofCardsCount = await pageWebsite.$$eval('.security-proof-grid .proof-card', (els) => els.length);
+    console.log(`✓ Verified ${proofCardsCount} live cryptographic proof metric cards.`);
+    if (proofCardsCount !== 4) throw new Error(`Expected 4 proof cards, got ${proofCardsCount}`);
+
     // Verify PWA installation triggers exist
     const pwaTriggers = await pageWebsite.$$eval('.trigger-pwa-install', (els) => els.length);
     console.log(`✓ Verified ${pwaTriggers} PWA install triggers on website.`);
@@ -249,11 +269,11 @@ async function run(): Promise<void> {
       throw new Error(`Footer credit missing expected text: ${footerText}`);
     }
 
-    // Check version 0.0.42-beta at the bottom
+    // Check version 0.0.5-beta at the bottom
     const versionText = await pageSender.$eval('.footer-version', (el) => el.textContent?.trim());
     console.log(`✓ Found footer version tag: "${versionText}"`);
-    if (versionText !== 'v0.0.42-beta') {
-      throw new Error(`Expected v0.0.42-beta, got: ${versionText}`);
+    if (versionText !== 'v0.0.5-beta') {
+      throw new Error(`Expected v0.0.5-beta, got: ${versionText}`);
     }
 
     // Test Contact Form Modal with Rate Limiting (email hidden from DOM)
@@ -299,10 +319,10 @@ async function run(): Promise<void> {
       changelogTab?.click();
     });
     const changelogText = await pageSender.$eval('.modal-body', (el) => el.textContent || '');
-    if (!changelogText.includes('v0.0.42-beta')) {
-      throw new Error('Changelog tab missing v0.0.42-beta section');
+    if (!changelogText.includes('v0.0.5-beta')) {
+      throw new Error('Changelog tab missing v0.0.5-beta section');
     }
-    console.log('✓ Changelog tab verified with v0.0.42-beta release notes.');
+    console.log('✓ Changelog tab verified with v0.0.5-beta release notes.');
 
     // Close modal
     await pageSender.evaluate(() => {

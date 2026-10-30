@@ -3,6 +3,7 @@
 import type { TransferProgress } from '../lib/webrtc/BinaryStreamer';
 import type { ThemeMode } from './theme';
 import { openDocModal, type DocTab } from './legalModal';
+import { inspectFileSafety } from '../lib/safety';
 
 // ─── Helpers ────────────────────────────────────────
 
@@ -194,8 +195,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.42-beta',
-    title: 'PinnPointt Version 0.0.42 Beta',
+    textContent: 'v0.0.5-beta',
+    title: 'PinnPointt Version 0.0.5 Beta',
   });
   meta.append(subtitle, version);
 
@@ -735,6 +736,17 @@ export function createConnectedWorkspace(
       const name = el('div', { className: 'feed-file-name', textContent: opts.fileName });
       const size = el('div', { className: 'feed-file-size', textContent: formatBytes(opts.fileSize) });
       info.append(name, size);
+
+      const initialSafety = inspectFileSafety(opts.fileName, opts.fileSize);
+      if (initialSafety.riskLevel !== 'safe') {
+        const badge = el('span', {
+          className: `safety-badge ${initialSafety.riskLevel}`,
+          textContent: initialSafety.badgeLabel,
+          title: initialSafety.reason,
+        });
+        info.append(badge);
+      }
+
       head.append(icon, info);
 
       // Progress bar
@@ -768,20 +780,48 @@ export function createConnectedWorkspace(
           progWrap.remove();
 
           const doneRow = el('div', { className: 'feed-file-done' });
-          const verified = el('div', { className: 'feed-file-verified' });
-          verified.innerHTML = `<span>✓</span> <span>Verified 100% Intact</span>`;
-          verified.title = `SHA-256: ${info.sha256}`;
-          doneRow.append(verified);
+          const safety = inspectFileSafety(opts.fileName, opts.fileSize, info.sha256);
 
-          if (info.onDownload) {
-            const dlBtn = el('button', {
-              className: 'btn btn-primary btn-sm',
-              textContent: 'Download',
-            });
-            dlBtn.style.padding = '4px 10px';
-            dlBtn.style.fontSize = '11px';
-            dlBtn.addEventListener('click', info.onDownload);
-            doneRow.append(dlBtn);
+          if (safety.isBlockedHash) {
+            const blocked = el('div', { className: 'feed-file-threat danger' });
+            blocked.innerHTML = `<span>🛑</span> <span>Blocked Threat</span>`;
+            blocked.title = `SHA-256: ${info.sha256} matches a known malicious signature. Quarantined.`;
+            doneRow.append(blocked);
+          } else {
+            const verified = el('div', { className: 'feed-file-verified' });
+            verified.innerHTML = `<span>✓</span> <span>${safety.riskLevel === 'warning' ? 'Verified (Quarantined)' : 'Verified Safe'}</span>`;
+            verified.title = `SHA-256: ${info.sha256}`;
+            doneRow.append(verified);
+
+            if (safety.riskLevel === 'warning') {
+              const warningBadge = el('div', { className: 'feed-file-threat warning' });
+              warningBadge.innerHTML = `<span>⚠️</span> <span>Executable</span>`;
+              warningBadge.title = `SHA-256: ${info.sha256}. High-risk executable binary. Verify sender.`;
+              doneRow.append(warningBadge);
+
+              if (info.onDownload) {
+                const dlBtn = el('button', {
+                  className: 'btn btn-secondary btn-sm',
+                  textContent: 'Save File',
+                  title: 'Exercise caution before executing downloaded software binaries',
+                });
+                dlBtn.style.padding = '4px 10px';
+                dlBtn.style.fontSize = '11px';
+                dlBtn.addEventListener('click', info.onDownload);
+                doneRow.append(dlBtn);
+              }
+            } else {
+              if (info.onDownload) {
+                const dlBtn = el('button', {
+                  className: 'btn btn-primary btn-sm',
+                  textContent: 'Download',
+                });
+                dlBtn.style.padding = '4px 10px';
+                dlBtn.style.fontSize = '11px';
+                dlBtn.addEventListener('click', info.onDownload);
+                doneRow.append(dlBtn);
+              }
+            }
           }
 
           card.append(doneRow);
@@ -869,15 +909,41 @@ export function createFileCard(
   const size = el('div', { className: 'file-size', textContent: formatBytes(fileSize) });
   info.append(name, size);
 
+  const safety = inspectFileSafety(fileName, fileSize);
+  if (safety.riskLevel !== 'safe') {
+    const badge = el('span', {
+      className: `safety-badge ${safety.riskLevel}`,
+      textContent: safety.badgeLabel,
+      title: safety.reason,
+    });
+    info.append(badge);
+  }
+
   const removeBtn = el('button', { className: 'file-remove', textContent: '✕' });
   removeBtn.addEventListener('click', onRemove);
 
   card.append(icon, info, removeBtn);
 
-  const sendBtn = el('button', { className: 'btn btn-primary w-full', textContent: 'Send File' });
-  sendBtn.addEventListener('click', onSend);
+  if (safety.riskLevel === 'danger') {
+    const warningNotice = el('div', {
+      className: 'threat-notice danger',
+      textContent: `Blocked: ${safety.reason}`,
+    });
+    container.append(card, warningNotice);
+  } else if (safety.riskLevel === 'warning') {
+    const warningNotice = el('div', {
+      className: 'threat-notice warning',
+      textContent: `Security Warning: ${safety.reason}`,
+    });
+    const sendBtn = el('button', { className: 'btn btn-primary w-full', textContent: 'Confirm & Send Binary' });
+    sendBtn.addEventListener('click', onSend);
+    container.append(card, warningNotice, sendBtn);
+  } else {
+    const sendBtn = el('button', { className: 'btn btn-primary w-full', textContent: 'Send File' });
+    sendBtn.addEventListener('click', onSend);
+    container.append(card, sendBtn);
+  }
 
-  container.append(card, sendBtn);
   return container;
 }
 

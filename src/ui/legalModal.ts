@@ -152,13 +152,13 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>PinnPointt is engineered from first principles on a zero-knowledge, zero-retention foundation. Your files and conversations belong solely to you and your recipient.</p>
 
         <div class="policy-card">
-          <h4>🔒 1. Zero Cloud Storage & Direct Device-to-Device Link</h4>
-          <p>PinnPointt does not maintain file servers, databases, or intermediary cloud storage. When you send files or chat messages, data streams straight from your device's memory to your recipient's device.</p>
+          <h4>🔒 1. Zero Cloud Storage &amp; Direct Device-to-Device Link</h4>
+          <p>PinnPointt does not maintain file servers, databases, or intermediary cloud storage. When you send files or chat messages, data streams straight from your device's memory to your recipient's device via WebRTC.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🛡️ 2. Transport-Layer Encryption</h4>
-          <p>Every direct connection established by PinnPointt is protected by transport-layer encryption using modern TLS-grade cipher suites (AES-GCM). Intermediary network nodes, Wi-Fi operators, and signaling relays cannot inspect or read your transferred payloads.</p>
+          <h4>🛡️ 2. Transport-Layer Encryption (DTLS 1.3 / SRTP)</h4>
+          <p>Every direct peer-to-peer connection is protected by cryptographic transport-layer encryption using modern TLS-grade cipher suites (AES-GCM). Intermediary network nodes, Wi-Fi operators, ISPs, and signaling relays cannot inspect, intercept, or decrypt your transferred payloads.</p>
         </div>
 
         <div class="policy-card">
@@ -167,12 +167,12 @@ function renderTabContent(tab: DocTab): HTMLElement {
         </div>
 
         <div class="policy-card">
-          <h4>✓ 4. In-Browser Integrity Verification</h4>
-          <p>Before any file is dispatched, an in-browser cryptographic hash is calculated. Upon arrival, the receiving device re-verifies the hash before saving. Corrupted or modified payloads are immediately discarded.</p>
+          <h4>✓ 4. In-Browser Integrity Verification &amp; Safety Triage</h4>
+          <p>Before any file is dispatched, an in-browser cryptographic SHA-256 hash is calculated. Upon arrival, the receiving device re-verifies the hash before saving. Corrupted, modified, or quarantined payloads are immediately caught in browser memory.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🚫 5. Zero Tracking & No Third-Party Cookies</h4>
+          <h4>🚫 5. Zero Tracking &amp; No Third-Party Cookies</h4>
           <p>PinnPointt contains zero analytics trackers, zero advertising pixels, and zero profiling cookies. Your display name and visual theme preferences reside strictly in your device's local storage.</p>
         </div>
 
@@ -188,7 +188,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
     case 'fair-usage':
       container.innerHTML = `
         <h3>Fair Usage Policy</h3>
-        <p>PinnPointt provides a decentralized, direct transport utility for lawful and constructive collaboration. By using PinnPointt, you agree to this Fair Usage Policy.</p>
+        <p>PinnPointt provides a decentralized, direct transport utility for lawful, productive, and constructive collaboration. By using PinnPointt, you agree to this Fair Usage Policy.</p>
 
         <div class="policy-card">
           <h4>⚖️ Permitted Usage</h4>
@@ -196,19 +196,19 @@ function renderTabContent(tab: DocTab): HTMLElement {
         </div>
 
         <div class="policy-card">
-          <h4>⛔ Prohibited Activities</h4>
-          <p>You strictly agree not to use PinnPointt to transmit, distribute, or facilitate:</p>
-          <ul style="padding-left: 20px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-            <li>Malicious code, trojans, ransomware, spyware, or security exploit payloads.</li>
-            <li>Unlawfully acquired copyrighted materials, trade secrets, or proprietary assets without authorization.</li>
-            <li>Child sexual abuse material (CSAM), non-consensual imagery, or violent harassment.</li>
-            <li>Automated scripts or denial-of-service payloads designed to disrupt peer devices or signaling infrastructure.</li>
+          <h4>⛔ Zero-Tolerance Prohibited Activities</h4>
+          <p>PinnPointt is engineered strictly for lawful file exchange. You strictly agree NOT to use PinnPointt to transmit, distribute, facilitate, or store:</p>
+          <ul style="padding-left: 20px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+            <li><strong>Malware &amp; Cyberattacks:</strong> Any computer viruses, worms, trojans, ransomware, spyware, keyloggers, exploit scripts, or malicious payloads designed to damage, compromise, or intercept hardware, networks, or devices.</li>
+            <li><strong>CSAM &amp; Exploitation:</strong> Child Sexual Abuse Material (CSAM), non-consensual explicit imagery, or unlawful harassment of any kind. Zero tolerance is strictly enforced.</li>
+            <li><strong>Illicit Data &amp; Stolen Assets:</strong> Stolen credentials, exfiltrated personal data, illicit financial databases, credit card dumps, or copyrighted materials in violation of applicable laws.</li>
+            <li><strong>Network Infiltration:</strong> Automated scripts, port scanners, denial-of-service payloads, or any attempt to exploit PinnPointt for unauthorized network infiltration.</li>
           </ul>
         </div>
 
         <div class="policy-card">
           <h4>👤 User Responsibility</h4>
-          <p>Because PinnPointt is a direct peer-to-peer transport with zero centralized content inspection or storage, you bear full legal responsibility for all files and communications transmitted from your device.</p>
+          <p>Because PinnPointt is a direct peer-to-peer transport with zero centralized content inspection or storage, you bear full and exclusive legal responsibility for all files and communications transmitted from your device.</p>
         </div>
       `;
       break;
@@ -219,17 +219,26 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>Please review this disclaimer before utilizing PinnPointt.</p>
 
         <div class="policy-card">
+          <h4>🏛️ Statutory Safe Harbor &amp; Neutral Conduit Status</h4>
+          <p>PinnPointt operates strictly as a decentralized, zero-knowledge peer-to-peer transport utility (analogous to a neutral fiber optic cable, local network switch, or Wi-Fi radio). Under US CDA Section 230, DMCA Section 512(a), and the EU Digital Services Act / E-Commerce Directive, PinnPointt and its developer (Ankit Patra) qualify as a passive, neutral conduit:
+          <br/>• We do not initiate, host, store, inspect, modify, or curate peer-to-peer data transfers.
+          <br/>• All data streams encrypted directly from sender device memory to recipient device memory.
+          <br/>• The signaling relay possesses zero decryption keys, stores zero logs, and cannot access transferred files.
+          </p>
+        </div>
+
+        <div class="policy-card">
           <h4>⚠️ "AS IS" Software License</h4>
           <p>PinnPointt is provided free of charge on an "AS IS" and "AS AVAILABLE" basis without warranties of any kind, whether express, statutory, or implied, including fitness for a particular purpose or non-infringement.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🛡️ Limitation of Liability</h4>
-          <p>To the maximum extent permitted by applicable law, the author (Ankit Patra) and contributors shall not be held liable for any direct, indirect, incidental, or consequential damages resulting from data loss, network interruptions, hardware incompatibility, or unauthorized third-party actions.</p>
+          <h4>🛡️ Complete Limitation of Liability</h4>
+          <p>To the maximum extent permitted by applicable law, the author (Ankit Patra) and open-source contributors expressly disclaim all liability for any direct, indirect, incidental, punitive, or consequential damages resulting from peer-to-peer file exchanges, user transmissions, malware infection, network interruptions, or data loss. Users bear sole and exclusive legal accountability for all data transmitted from their devices.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🌐 Network & Firewall Traversal</h4>
+          <h4>🌐 Network &amp; Firewall Traversal</h4>
           <p>Direct peer connections rely on local network topologies and NAT configurations. While standard STUN traversal is provided, restrictive corporate firewalls or symmetric NATs may occasionally prevent direct connectivity.</p>
         </div>
       `;
@@ -242,8 +251,21 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.5-beta</span>
+            <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Client-Side File Safety &amp; Malicious Triage Engine:</strong> Real-time in-browser inspection detecting executable binaries, script droppers, and double-extension traps before transfer.</li>
+            <li><strong>Threat Quarantining &amp; Verification:</strong> High-risk payloads are quarantined in browser memory with visual risk badges and SHA-256 verification, preventing silent or accidental execution.</li>
+            <li><strong>Cryptographic Security Showcase:</strong> Added dedicated Security &amp; Verification section on the website detailing our custom-engineered TS QR engine, 64 KB WebRTC chunking, and zero-knowledge architecture.</li>
+            <li><strong>Enhanced Abuse &amp; Safe-Harbor Policy:</strong> Strengthened Fair Usage Policy with strict zero-tolerance prohibitions against malware, CSAM, stolen databases, and statutory safe-harbor protections.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.42-beta</span>
-            <span class="changelog-date">Current Release • October 2026</span>
+            <span class="changelog-date">Beta Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Interactive Quick Start Navigation:</strong> Onboarding steps are now interactive navigation shortcuts. Clicking Step 1 highlights and focuses your display name with an identity pulse, Step 2 guides device pairing, and Step 3 launches the interactive demo mode.</li>
@@ -255,7 +277,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <div class="changelog-release">
           <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.41-beta</span>
-            <span class="changelog-date">October 2026</span>
+            <span class="changelog-date">Beta Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Cohesive Design System Overhaul:</strong> Unified warm Industrial Bauhaus aesthetics across both the Web App and Showcase Website with frosted glassmorphism and tactile button physics.</li>
@@ -269,7 +291,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <div class="changelog-release">
           <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.4-beta</span>
-            <span class="changelog-date">October 2026</span>
+            <span class="changelog-date">Beta Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Rebranding to PinnPointt:</strong> Unified product identity across all application modules and manifests.</li>
@@ -284,7 +306,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <div class="changelog-release">
           <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.3-beta</span>
-            <span class="changelog-date">October 2026</span>
+            <span class="changelog-date">Beta Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Human-First Language:</strong> Replaced technical protocol terms with accessible everyday descriptions.</li>
@@ -299,7 +321,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <div class="changelog-release">
           <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.2-beta</span>
-            <span class="changelog-date">October 2026</span>
+            <span class="changelog-date">Beta Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Real-Time Encrypted Chat:</strong> End-to-end messaging over WebRTC data channels with timestamped message bubbles.</li>
@@ -315,7 +337,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             <span class="changelog-date">Initial Architecture</span>
           </div>
           <ul class="changelog-list">
-            <li><strong>Proprietary QR Engine:</strong> Pure TypeScript ISO/IEC 18004 V2-M generator (Galois Field GF(2^8) Reed-Solomon encoding & BCH format masking).</li>
+            <li><strong>Proprietary QR Engine:</strong> Pure TypeScript ISO/IEC 18004 V2-M generator (Galois Field GF(2^8) Reed-Solomon encoding &amp; BCH format masking).</li>
             <li><strong>Native WebRTC Binary Pipeline:</strong> 32 KB chunk framing with 8-byte binary sequence header.</li>
             <li><strong>Backpressure Flow Control:</strong> 1 MB threshold throttling via <code>bufferedAmountLow</code> to prevent memory exhaustion.</li>
             <li><strong>Cryptographic SHA-256 Validation:</strong> Pre/post transfer checksum verification with automatic corruption rejection.</li>
@@ -462,7 +484,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.42-beta\n` +
+            `App Version:   v0.0.5-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +
