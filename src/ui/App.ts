@@ -51,7 +51,8 @@ type AppState =
 
 // Signaling server URL (supports local dev, E2E test runner, and production cloud hosts)
 const getSignalUrl = (): string => {
-  const envUrl = (import.meta as unknown as { env?: { VITE_SIGNAL_URL?: string } }).env?.VITE_SIGNAL_URL;
+  const env = (import.meta as unknown as { env?: { VITE_SIGNALING_URL?: string; VITE_SIGNAL_URL?: string } }).env;
+  const envUrl = env?.VITE_SIGNALING_URL || env?.VITE_SIGNAL_URL;
   if (envUrl) {
     return envUrl;
   }
