@@ -2,7 +2,8 @@ import { App } from './ui/App';
 
 // Manage Service Worker & cache-busting
 if ('serviceWorker' in navigator) {
-  if (import.meta.env.DEV) {
+  const isDev = Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV);
+  if (isDev) {
     // In dev mode, unregister any active service worker and clear caches to guarantee live updates
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (const reg of registrations) reg.unregister();
