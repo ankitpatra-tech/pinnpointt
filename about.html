@@ -59,7 +59,7 @@
     <section class="hero-section">
       <div class="hero-pill">
         <span class="hero-pill-badge">v0.0.57</span>
-        <span>P2P Virtual Drive • In-Flight Privacy Shield • Zero-RAM Disk Streaming</span>
+        <span>4-Channel Parallel WebRTC • Lossless Pause &amp; Resume • P2P Virtual Drive • Privacy Shield</span>
       </div>
 
       <h1 class="hero-title">
@@ -104,22 +104,30 @@
           <div class="preview-telemetry">
             <div class="telemetry-card">
               <div class="telemetry-row">
-                <span class="bold">vacation-video-4k.mov</span>
-                <span class="accent mono">4.2 GB</span>
+                <span class="bold">4k-render-archive.tar.zst</span>
+                <span class="accent mono tabular-nums">8.4 GB</span>
+              </div>
+              <div class="telemetry-controls-row">
+                <span class="telemetry-stream-badge"><span class="pulse-dot"></span> 4 Parallel Channels Active</span>
+                <div class="telemetry-actions">
+                  <span class="telemetry-btn">Pause ⏸</span>
+                  <span class="telemetry-btn">Resume ▶</span>
+                  <span class="telemetry-btn cancel">Cancel ✕</span>
+                </div>
               </div>
               <div class="telemetry-bar-track">
-                <div class="telemetry-bar-fill"></div>
+                <div class="telemetry-bar-fill" style="width: 74%;"></div>
               </div>
-              <div class="telemetry-row text-xs muted">
-                <span>Speed: <strong>48.6 MB/s</strong></span>
-                <span>Progress: <strong>82%</strong></span>
-                <span>ETA: <strong>14s</strong></span>
+              <div class="telemetry-row text-xs muted tabular-nums">
+                <span>Speed: <strong class="tabular-nums">68.4 MB/s</strong></span>
+                <span>Progress: <strong class="tabular-nums">74%</strong></span>
+                <span>ETA: <strong class="tabular-nums">32s</strong></span>
               </div>
             </div>
 
             <div class="telemetry-row text-xs" style="color: var(--success); font-family: var(--font-mono);">
-              <span>✓ Direct Peer Connection • 100% Private</span>
-              <span>Zero Cloud Delay</span>
+              <span>✓ 12-Byte Binary Framing • Zero-RAM OPFS Streaming</span>
+              <span>100% Private Link</span>
             </div>
           </div>
         </div>
@@ -313,6 +321,38 @@
               <td><span class="table-status-no">✕ Paid Subscriptions</span></td>
               <td><span class="table-status-partial">~ Abandoned Project</span></td>
             </tr>
+            <tr>
+              <td><strong>Parallel Multi-Channel WebRTC (4 Streams)</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ 4 Streams (30–80 MB/s)</span></td>
+              <td><span class="table-status-partial">~ 1 Stream</span></td>
+              <td><span class="table-status-partial">~ 1 Stream</span></td>
+              <td><span class="table-status-no">✕ Upload Capped</span></td>
+              <td><span class="table-status-no">✕ 1 Stream (Slow)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Instant Pause &amp; Lossless Resume</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Byte-Exact OPFS Resume</span></td>
+              <td><span class="table-status-no">✕ Fails &amp; Restarts</span></td>
+              <td><span class="table-status-partial">~ Partial</span></td>
+              <td><span class="table-status-partial">~ Requires Desktop App</span></td>
+              <td><span class="table-status-no">✕ Restarts from 0%</span></td>
+            </tr>
+            <tr>
+              <td><strong>P2P Virtual Drive (Remote Mount)</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ Preview Before Pull</span></td>
+              <td><span class="table-status-no">✕ Blind Push Only</span></td>
+              <td><span class="table-status-no">✕ Blind Push Only</span></td>
+              <td><span class="table-status-no">✕ Full Upload First</span></td>
+              <td><span class="table-status-no">✕ Blind Push Only</span></td>
+            </tr>
+            <tr>
+              <td><strong>In-Flight Photo Privacy Shield</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes">✓ In-Memory EXIF/GPS Strip</span></td>
+              <td><span class="table-status-no">✕ Leaks Location/EXIF</span></td>
+              <td><span class="table-status-no">✕ Leaks Location/EXIF</span></td>
+              <td><span class="table-status-no">✕ Stored on Cloud</span></td>
+              <td><span class="table-status-no">✕ Transmits Raw EXIF</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -373,37 +413,73 @@
 
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon-box">💽</div>
+          <div class="feature-header-row">
+            <div class="feature-icon-box">⚡</div>
+            <span class="feature-tag">30–80+ MB/s</span>
+          </div>
+          <h3>4-Channel Parallel WebRTC</h3>
+          <p>Dedicated pool of 4 negotiated binary data channels (<code>pinnpointt-data-0..3</code>) with round-robin lowest-buffered scheduling, saturating local 5GHz Wi-Fi at 30–80+ MB/s without pausing between reads.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header-row">
+            <div class="feature-icon-box">⏯️</div>
+            <span class="feature-tag">8-State Engine</span>
+          </div>
+          <h3>Instant Lossless Pause &amp; Resume</h3>
+          <p>Bidirectional pause and resume protocol backed by OPFS chunk checkpointing. Sender halts disk reads instantly; resume syncs the exact lowest unwritten chunk index on disk with zero duplicate bytes sent.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-header-row">
+            <div class="feature-icon-box">💽</div>
+            <span class="feature-tag">Live Mount</span>
+          </div>
           <h3>P2P Virtual Drive</h3>
           <p>Mount local files or full directory trees as a remote virtual drive. Peers browse remote folders, preview files via on-demand byte slicing, and selectively pull items without upfront bulk downloads.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">🛡️</div>
+          <div class="feature-header-row">
+            <div class="feature-icon-box">🛡️</div>
+            <span class="feature-tag">Exif &amp; GPS</span>
+          </div>
           <h3>In-Flight Privacy Shield</h3>
           <p>Automatic EXIF, GPS, and camera metadata stripping directly in memory before bytes leave your device. Losslessly removes location tags and timestamps with zero pixel recompression.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">💾</div>
+          <div class="feature-header-row">
+            <div class="feature-icon-box">💾</div>
+            <span class="feature-tag">Zero-RAM OPFS</span>
+          </div>
           <h3>Zero-RAM Disk Streaming</h3>
-          <p>Tiered storage writer streams incoming multi-gigabyte chunks sequentially into OPFS and direct disk handles, bypassing RAM constraints while Mobile WakeLock keeps screens awake.</p>
+          <p>12-byte binary framed chunks written directly to random-access byte positions via OPFS and File System Access, bypassing RAM constraints while Mobile Screen WakeLock keeps displays active.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">🔒</div>
-          <h3>Zero-Trace View &amp; Live Universal Clipboard</h3>
+          <div class="feature-header-row">
+            <div class="feature-icon-box">🔒</div>
+            <span class="feature-tag">Volatile RAM</span>
+          </div>
+          <h3>Zero-Trace View &amp; Live Clipboard</h3>
           <p>Ephemeral view mode renders confidential images directly into volatile HTML5 canvas memory with right-click saves blocked. Live universal clipboard syncs text, links, and code with one click.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">⚡</div>
+          <div class="feature-header-row">
+            <div class="feature-icon-box">🌐</div>
+            <span class="feature-tag">Zero Backend</span>
+          </div>
           <h3>Hybrid Serverless Signaling</h3>
           <p>High-speed WebSocket relay backed by automatic 2,500ms fallback to 100% serverless P2P Nostr signaling. Functions seamlessly on pure static web hosting with zero backend server dependencies.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">📷</div>
+          <div class="feature-header-row">
+            <div class="feature-icon-box">📷</div>
+            <span class="feature-tag">1-Second Pair</span>
+          </div>
           <h3>Instant Camera Pairing &amp; E2EE Chat</h3>
           <p>Scan the on-screen QR code or enter a 6-letter room code to connect in seconds. Communicate through end-to-end encrypted (WebRTC DTLS) live chat while files transfer with SHA-256 verification.</p>
         </div>
@@ -705,7 +781,9 @@
             <h3>Phase 1: Core Foundation &amp; Web App</h3>
             <p>Direct device-to-device streaming, pairing, and visual experience.</p>
             <ul class="roadmap-items">
-              <li>Direct peer-to-peer file streaming with zero cloud storage and large-file memory optimizations.</li>
+              <li>4-Channel parallel WebRTC multi-stream engine (30–80+ MB/s on local 5GHz Wi-Fi).</li>
+              <li>Instant, lossless Pause, Byte-Offset Resume &amp; Cancel protocol with OPFS disk checkpointing.</li>
+              <li>12-Byte zero-overhead binary framing with random-access OPFS and direct disk writes.</li>
               <li>P2P Virtual Drive: mount remote directories, on-demand byte-slice previews &amp; selective file pulls.</li>
               <li>In-Flight Privacy Shield: in-memory EXIF, GPS &amp; metadata stripping before DataChannel transmission.</li>
               <li>Zero-RAM disk streaming via OPFS &amp; FileSystemAccess with active Mobile Screen WakeLock.</li>
