@@ -42,6 +42,7 @@ import {
 } from '../lib/webrtc/BinaryStreamer';
 import { computeSHA256 } from '../lib/crypto';
 import { getSavedUsername, saveUsername } from '../lib/username';
+import { wakeLock } from '../lib/wakeLock';
 
 type AppState =
   | 'idle'
@@ -85,6 +86,8 @@ export class App {
   private errorMessage: string = 'Connection lost.';
   private currentTheme: ThemeMode = getInitialTheme();
   private dcKeepaliveTimer: ReturnType<typeof setInterval> | null = null;
+  private wakeLockUnsub: (() => void) | null = null;
+  private pendingFileCleanups: Array<() => Promise<void>> = [];
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -273,6 +276,7 @@ export class App {
   private startPreviewMode(): void {
     this.isPreviewMode = true;
     this.peerUsername = 'Kandinsky (Simulated)';
+    void wakeLock.acquire('webrtc');
     this.transition('connected');
 
     setTimeout(() => {
@@ -377,6 +381,15 @@ export class App {
       this.isPreviewMode
     );
 
+    if (this.wakeLockUnsub) {
+      this.wakeLockUnsub();
+      this.wakeLockUnsub = null;
+    }
+    this.workspace.setWakeLockActive(wakeLock.isActive());
+    this.wakeLockUnsub = wakeLock.onStateChange((active) => {
+      this.workspace?.setWakeLockActive(active);
+    });
+
     this.workspace.addSystemNotice(
       this.isPreviewMode
         ? 'Interactive demo active — Simulated peer ready'
@@ -476,6 +489,9 @@ export class App {
   private attachDataChannel(channel: RTCDataChannel): void {
     this.dataChannel = channel;
     this.transition('connected');
+
+    // Keep screen awake while direct peer connection is active
+    void wakeLock.acquire('webrtc');
 
     // 1. Send peer introduction with our username
     this.sendJSON({
@@ -601,37 +617,42 @@ export class App {
 
   private async handleSendFiles(files: FileList): Promise<void> {
     if (this.isPreviewMode) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const card = this.workspace?.addFileTransfer({
-          fileName: file.name,
-          fileSize: file.size,
-          isMine: true,
-        });
+      void wakeLock.acquire('transfer');
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const card = this.workspace?.addFileTransfer({
+            fileName: file.name,
+            fileSize: file.size,
+            isMine: true,
+          });
 
-        // Read and compute real SHA-256
-        const buf = await file.arrayBuffer();
-        const sha256 = await computeSHA256(buf);
+          // Read and compute real SHA-256
+          const buf = await file.arrayBuffer();
+          const sha256 = await computeSHA256(buf);
 
-        // Smooth streaming progress preview
-        const totalSteps = 8;
-        for (let s = 1; s <= totalSteps; s++) {
-          await new Promise((r) => setTimeout(r, 80));
-          const sent = Math.round((file.size * s) / totalSteps);
-          card?.updateProgress({
-            bytesSent: sent,
-            bytesTotal: file.size,
-            chunksComplete: s * 10,
-            chunksTotal: totalSteps * 10,
-            speedBps: file.size / 0.6,
-            etaSeconds: (totalSteps - s) * 0.08,
+          // Smooth streaming progress preview
+          const totalSteps = 8;
+          for (let s = 1; s <= totalSteps; s++) {
+            await new Promise((r) => setTimeout(r, 80));
+            const sent = Math.round((file.size * s) / totalSteps);
+            card?.updateProgress({
+              bytesSent: sent,
+              bytesTotal: file.size,
+              chunksComplete: s * 10,
+              chunksTotal: totalSteps * 10,
+              speedBps: file.size / 0.6,
+              etaSeconds: (totalSteps - s) * 0.08,
+            });
+          }
+
+          card?.complete({
+            sha256,
+            onDownload: () => downloadFile(new Blob([buf]), file.name),
           });
         }
-
-        card?.complete({
-          sha256,
-          onDownload: () => downloadFile(new Blob([buf]), file.name),
-        });
+      } finally {
+        void wakeLock.release('transfer');
       }
       return;
     }
@@ -643,6 +664,7 @@ export class App {
     }
 
     this.isSendingFile = true;
+    void wakeLock.acquire('transfer');
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -664,6 +686,7 @@ export class App {
       }
     } finally {
       this.isSendingFile = false;
+      void wakeLock.release('transfer');
     }
   }
 
@@ -686,6 +709,7 @@ export class App {
           card?.updateProgress(progress);
         },
         (meta) => {
+          void wakeLock.acquire('transfer');
           if (!card && this.workspace) {
             card = this.workspace.addFileTransfer({
               fileName: meta.name,
@@ -696,6 +720,7 @@ export class App {
         },
       )
         .then((received: ReceivedFile) => {
+          void wakeLock.release('transfer');
           if (!card && this.workspace) {
             card = this.workspace.addFileTransfer({
               fileName: received.name,
@@ -703,14 +728,30 @@ export class App {
               isMine: false,
             });
           }
+
+          if (received.cleanup) {
+            this.pendingFileCleanups.push(received.cleanup);
+          }
+
           card?.complete({
             sha256: received.sha256,
-            onDownload: () => downloadFile(received.blob, received.name),
+            isDirectDiskSave: received.isDirectDiskSave,
+            onDownload: received.isDirectDiskSave
+              ? undefined
+              : () => {
+                  downloadFile(received.blob, received.name);
+                  if (received.cleanup) {
+                    setTimeout(() => {
+                      void received.cleanup?.();
+                    }, 2500);
+                  }
+                },
           });
           // Immediately listen for the next file
           listenNext();
         })
         .catch((err) => {
+          void wakeLock.release('transfer');
           console.warn('File transfer completed or interrupted:', err);
           card?.fail(err instanceof Error ? err.message : 'Receive failed');
           if (channel.readyState === 'open') {
@@ -731,6 +772,17 @@ export class App {
   // ── Cleanup ──────────────────────────────────────
 
   private cleanup(): void {
+    if (this.wakeLockUnsub) {
+      this.wakeLockUnsub();
+      this.wakeLockUnsub = null;
+    }
+    void wakeLock.releaseAll();
+
+    while (this.pendingFileCleanups.length > 0) {
+      const fn = this.pendingFileCleanups.pop();
+      if (fn) void fn().catch(() => {});
+    }
+
     if (this.dcKeepaliveTimer) {
       clearInterval(this.dcKeepaliveTimer);
       this.dcKeepaliveTimer = null;

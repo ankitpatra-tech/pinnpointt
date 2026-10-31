@@ -319,11 +319,13 @@ async function run(): Promise<void> {
       throw new Error(`Footer credit missing expected text: ${footerText}`);
     }
 
-    // Check version 0.0.52-beta at the bottom
+    // Check version at the bottom matching package.json
+    const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) as { version: string };
+    const expectedVersion = `v${pkg.version}`;
     const versionText = await pageSender.$eval('.footer-version', (el) => el.textContent?.trim());
-    console.log(`✓ Found footer version tag: "${versionText}"`);
-    if (versionText !== 'v0.0.52-beta') {
-      throw new Error(`Expected v0.0.52-beta, got: ${versionText}`);
+    console.log(`✓ Found footer version tag: "${versionText}" (expected ${expectedVersion})`);
+    if (versionText !== expectedVersion) {
+      throw new Error(`Expected ${expectedVersion}, got: ${versionText}`);
     }
 
     // Test Contact Form Modal with Rate Limiting (email hidden from DOM)
@@ -369,10 +371,10 @@ async function run(): Promise<void> {
       changelogTab?.click();
     });
     const changelogText = await pageSender.$eval('.modal-body', (el) => el.textContent || '');
-    if (!changelogText.includes('v0.0.52-beta')) {
-      throw new Error('Changelog tab missing v0.0.52-beta section');
+    if (!changelogText.includes(expectedVersion)) {
+      throw new Error(`Changelog tab missing ${expectedVersion} section`);
     }
-    console.log('✓ Changelog tab verified with v0.0.52-beta release notes.');
+    console.log(`✓ Changelog tab verified with ${expectedVersion} release notes.`);
 
     // Close modal
     await pageSender.evaluate(() => {

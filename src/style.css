@@ -1104,6 +1104,30 @@ h2 {
   font-size: 11px;
 }
 
+.workspace-wakelock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.workspace-wakelock-badge .wakelock-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 .peer-name {
   color: var(--accent);
   font-weight: 600;
@@ -1252,6 +1276,8 @@ h2 {
   font-size: 11px;
   color: var(--muted);
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 .feed-file-progress {
@@ -1280,6 +1306,13 @@ h2 {
   font-size: 10px;
   font-family: var(--font-mono);
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 .feed-file-done {
@@ -1296,6 +1329,16 @@ h2 {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.feed-file-disk-saved {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
 }
 
 .feed-file-threat {
@@ -2295,7 +2338,8 @@ h2 {
     flex-wrap: wrap;
     gap: 6px;
   }
-  .workspace-e2e-badge {
+  .workspace-e2e-badge,
+  .workspace-wakelock-badge {
     font-size: 10px;
     padding: 2px 6px;
   }

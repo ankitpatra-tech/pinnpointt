@@ -251,8 +251,21 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.54-beta</span>
+            <span class="changelog-version">v0.0.55-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Screen WakeLock Manager:</strong> Automatically keeps screen awake on mobile and desktop browsers during active peer connections and large file transfers via <code>navigator.wakeLock</code>, re-acquiring on visibility change and displaying a subtle "Screen Awake Active" status indicator.</li>
+            <li><strong>Zero-RAM Disk Streaming:</strong> Upgraded file receiver to eliminate memory bloat for multi-gigabyte transfers using tiered storage: direct disk streaming via File System Access API on desktop Chromium and sequential Origin Private File System (OPFS) on iOS Safari, Android Chrome, and Firefox with automated cleanup.</li>
+            <li><strong>Strict WebRTC Backpressure Engine:</strong> Configured <code>bufferedAmountLowThreshold = 64 KB</code> with a 256 KB pause ceiling, preventing packet drops and UI thread stalls across high-latency cellular networks.</li>
+            <li><strong>Tabular Numeric Typography:</strong> Enforced non-jittering tabular figures across all transfer counters, speeds, percentages, and ETAs for clean, stable readouts.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.54-beta</span>
+            <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Auto-Connect QR Code (No App Required):</strong> Upgraded native QR generator to support auto-scaling (Versions 1–40), encoding full deep-link URLs (<code>/app?room=...</code>) so any smartphone camera opens the browser and connects immediately without saying "no app to connect".</li>
@@ -539,7 +552,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.51-beta\n` +
+            `App Version:   v0.0.55-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

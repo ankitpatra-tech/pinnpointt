@@ -207,8 +207,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.54-beta',
-    title: 'PinnPointt Version 0.0.54 Beta',
+    textContent: 'v0.0.55-beta',
+    title: 'PinnPointt Version 0.0.55 Beta',
   });
   meta.append(subtitle, version);
 
@@ -644,13 +644,14 @@ export interface WorkspaceCallbacks {
 
 export interface FileCardController {
   updateProgress: (p: TransferProgress) => void;
-  complete: (info: { sha256: string; onDownload?: () => void }) => void;
+  complete: (info: { sha256: string; onDownload?: () => void; isDirectDiskSave?: boolean }) => void;
   fail: (err: string) => void;
 }
 
 export interface WorkspaceController {
   element: HTMLElement;
   setPeerName: (name: string, role: string) => void;
+  setWakeLockActive: (active: boolean) => void;
   addSystemNotice: (text: string) => void;
   addChatMessage: (msg: { sender: string; text: string; timestamp: number; isMine: boolean }) => void;
   addFileTransfer: (opts: { fileName: string; fileSize: number; isMine: boolean }) => FileCardController;
@@ -690,12 +691,19 @@ export function createConnectedWorkspace(
   });
   e2eBadge.innerHTML = `<span class="e2e-lock">🔒</span> <span class="e2e-text">End-to-End Encrypted</span>`;
 
+  const wakeLockBadge = el('div', {
+    className: 'workspace-wakelock-badge',
+    title: 'Screen WakeLock Active — Display sleep prevented during transfer',
+  });
+  wakeLockBadge.style.display = 'none';
+  wakeLockBadge.innerHTML = `<span class="wakelock-dot"></span> <span class="wakelock-text">Screen Awake Active</span>`;
+
   const disconnectBtn = el('button', { className: 'btn btn-ghost btn-sm', textContent: 'Disconnect' });
   disconnectBtn.style.padding = '4px 10px';
   disconnectBtn.style.fontSize = '11px';
   disconnectBtn.addEventListener('click', callbacks.onDisconnect);
 
-  header.append(peerBadge, e2eBadge, disconnectBtn);
+  header.append(peerBadge, e2eBadge, wakeLockBadge, disconnectBtn);
 
   // 2. Chat & File Activity Feed
   const feed = el('div', { className: 'chat-feed' });
@@ -788,6 +796,9 @@ export function createConnectedWorkspace(
       peerNameEl.textContent = name;
       roleEl.textContent = `(${role})`;
     },
+    setWakeLockActive(active: boolean) {
+      wakeLockBadge.style.display = active ? 'inline-flex' : 'none';
+    },
     addSystemNotice(text: string) {
       const notice = el('div', { className: 'system-notice', textContent: text });
       feed.append(notice);
@@ -816,7 +827,7 @@ export function createConnectedWorkspace(
       const icon = el('div', { className: 'feed-file-icon', textContent: '📄' });
       const info = el('div', { className: 'feed-file-info' });
       const name = el('div', { className: 'feed-file-name', textContent: opts.fileName });
-      const size = el('div', { className: 'feed-file-size', textContent: formatBytes(opts.fileSize) });
+      const size = el('div', { className: 'feed-file-size tabular-nums', textContent: formatBytes(opts.fileSize) });
       info.append(name, size);
 
       const initialSafety = inspectFileSafety(opts.fileName, opts.fileSize);
@@ -837,10 +848,10 @@ export function createConnectedWorkspace(
       const fill = el('div', { className: 'feed-file-fill' });
       track.append(fill);
 
-      const stats = el('div', { className: 'feed-file-stats' });
-      const speedEl = el('span', { textContent: '0 B/s' });
-      const percentEl = el('span', { textContent: '0%' });
-      const etaEl = el('span', { textContent: '--' });
+      const stats = el('div', { className: 'feed-file-stats tabular-nums' });
+      const speedEl = el('span', { className: 'tabular-nums', textContent: '0 B/s' });
+      const percentEl = el('span', { className: 'tabular-nums', textContent: '0%' });
+      const etaEl = el('span', { className: 'tabular-nums', textContent: '--' });
       stats.append(speedEl, percentEl, etaEl);
 
       progWrap.append(track, stats);
@@ -858,7 +869,7 @@ export function createConnectedWorkspace(
           speedEl.textContent = formatSpeed(p.speedBps);
           etaEl.textContent = formatETA(p.etaSeconds);
         },
-        complete(info: { sha256: string; onDownload?: () => void }) {
+        complete(info: { sha256: string; onDownload?: () => void; isDirectDiskSave?: boolean }) {
           progWrap.remove();
 
           const doneRow = el('div', { className: 'feed-file-done' });
@@ -875,7 +886,14 @@ export function createConnectedWorkspace(
             verified.title = `SHA-256: ${info.sha256}`;
             doneRow.append(verified);
 
-            if (safety.riskLevel === 'warning') {
+            if (info.isDirectDiskSave) {
+              const savedBadge = el('div', {
+                className: 'feed-file-disk-saved',
+                title: 'File streamed directly to selected disk folder without RAM usage',
+              });
+              savedBadge.innerHTML = `<span>💾</span> <span>Saved to Disk</span>`;
+              doneRow.append(savedBadge);
+            } else if (safety.riskLevel === 'warning') {
               const warningBadge = el('div', { className: 'feed-file-threat warning' });
               warningBadge.innerHTML = `<span>⚠️</span> <span>Executable</span>`;
               warningBadge.title = `SHA-256: ${info.sha256}. High-risk executable binary. Verify sender.`;
