@@ -36,6 +36,7 @@ import {
   RollingSpeedEstimator,
 } from './fastChunker';
 import { ParallelChannelPool } from './parallelChannelPool';
+import { TransferController } from './transferController';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -94,8 +95,10 @@ export interface ReceivedFile {
 
 /** Options for sending a file over DataChannel */
 export interface SendFileOptions {
+  fileId?: string;
   isMetadataStripped?: boolean;
   isZeroTrace?: boolean;
+  controller?: TransferController;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +122,7 @@ export async function sendFile(
   onProgress?: (progress: TransferProgress) => void,
   options?: SendFileOptions,
   pool?: ParallelChannelPool,
+  existingController?: TransferController,
 ): Promise<TransferResult> {
   // 1. Calculate file integrity token / hash
   let sha256 = '';
@@ -135,10 +139,21 @@ export async function sendFile(
 
   const fileIdHash = computeNumericFileIdHash(`${file.name}:${file.size}:${file.lastModified}`);
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE) || 1;
+  const fileId = options?.fileId || options?.controller?.fileId || `tx-${fileIdHash}-${file.name}`;
+
+  const controller =
+    existingController ||
+    options?.controller ||
+    new TransferController(fileId, 'sender', totalChunks, (msg) => {
+      if (channel.readyState === 'open') {
+        channel.send(JSON.stringify(msg));
+      }
+    });
 
   // 2. Transmit metadata as a JSON string message on primary channel
   const meta: FileMetadata = {
     type: 'file-meta',
+    fileId,
     name: file.name,
     size: file.size,
     totalChunks,
@@ -156,12 +171,33 @@ export async function sendFile(
     channel.bufferedAmountLowThreshold = BUFFERED_AMOUNT_LOW;
   }
 
+  controller.start();
   const speedEstimator = new RollingSpeedEstimator(1500);
   let bytesSent = 0;
   let lastProgressTime = 0;
   let lastYieldTime = performance.now();
 
   for (let i = 0; i < totalChunks; i++) {
+    // 1. Check for cancellation
+    if (controller.isCancelled()) {
+      throw new Error('Transfer cancelled');
+    }
+
+    // 2. Check for pause & wait for resume
+    if (controller.isPaused()) {
+      await controller.waitForResume();
+      if (controller.isCancelled()) {
+        throw new Error('Transfer cancelled');
+      }
+
+      // Resume from synced lowest unwritten chunk index on receiver
+      const resumeIndex = controller.getNextResumeChunkIndex();
+      if (resumeIndex > i && resumeIndex < totalChunks) {
+        i = resumeIndex;
+        bytesSent = i * CHUNK_SIZE;
+      }
+    }
+
     let targetChannel: RTCDataChannel;
 
     if (usePool && pool) {
@@ -214,6 +250,7 @@ export async function sendFile(
     }
   }
 
+  controller.complete();
   return { success: true, sha256, bytesTransferred: bytesSent };
 }
 
@@ -271,18 +308,22 @@ export function receiveFile(
   channel: RTCDataChannel,
   onProgress?: (progress: TransferProgress) => void,
   onMeta?: (meta: {
+    fileId: string;
     name: string;
     size: number;
     isMetadataStripped?: boolean;
     isZeroTrace?: boolean;
+    controller?: TransferController;
   }) => void,
   options?: CreateWriterOptions,
   pool?: ParallelChannelPool,
+  existingController?: TransferController,
 ): Promise<ReceivedFile> {
   return new Promise<ReceivedFile>((resolve, reject) => {
     let meta: FileMetadata | null = null;
     let writer: DiskWriter | null = null;
     let isFinalized = false;
+    let controller: TransferController | null = existingController || null;
     const receivedChunkIndices = new Set<number>();
     let bytesReceived = 0;
     const speedEstimator = new RollingSpeedEstimator(1500);
@@ -309,6 +350,7 @@ export function receiveFile(
       // Direct random-access offset write into disk stream: position = chunkIndex * 65536
       await writer.writeChunk(chunkIndex, payload, meta.chunkSize || FAST_CHUNK_SIZE);
       receivedChunkIndices.add(chunkIndex);
+      controller?.markChunkWritten(chunkIndex);
       bytesReceived += payload.byteLength;
 
       const now = performance.now();
@@ -333,6 +375,7 @@ export function receiveFile(
       // All chunks received across all parallel channels — finalize disk writer
       if (receivedChunkIndices.size === meta.totalChunks && !isFinalized) {
         isFinalized = true;
+        controller?.complete();
         cleanupListeners();
 
         const result = await writer.finalize();
@@ -442,11 +485,34 @@ export function receiveFile(
 
           if (parsed.type === 'file-meta') {
             meta = parsed as unknown as FileMetadata;
+            const fileId = meta.fileId || `tx-${meta.fileIdHash || 0}-${meta.name}`;
+
+            if (!controller) {
+              controller = new TransferController(fileId, 'receiver', meta.totalChunks, (msg) => {
+                if (channel.readyState === 'open') {
+                  channel.send(JSON.stringify(msg));
+                }
+              });
+            }
+            controller.start();
+
+            controller.onStateChange(async (state) => {
+              if (state === 'cancelled') {
+                cleanupListeners();
+                if (writer) {
+                  await writer.abort().catch(() => {});
+                }
+                reject(new Error('Transfer cancelled'));
+              }
+            });
+
             onMeta?.({
+              fileId,
               name: meta.name,
               size: meta.size,
               isMetadataStripped: meta.isMetadataStripped,
               isZeroTrace: meta.isZeroTrace,
+              controller,
             });
 
             isInitializingWriter = true;

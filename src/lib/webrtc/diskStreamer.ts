@@ -15,6 +15,7 @@ import { computeSHA256 } from '../crypto';
 
 export interface FileMetadata {
   type: 'file-meta';
+  fileId?: string;
   name: string;
   size: number;
   totalChunks: number;

@@ -712,6 +712,8 @@ export interface FileCardController {
   updateProgress: (p: TransferProgress) => void;
   setMetadataStripped?: (stripped: boolean) => void;
   setZeroTrace?: (zeroTrace: boolean) => void;
+  setPaused?: (isPaused: boolean, pausedBy?: 'you' | 'peer' | 'sender' | 'receiver') => void;
+  setCancelled?: (cancelledBy?: 'you' | 'peer') => void;
   complete: (info: {
     sha256: string;
     onDownload?: () => void;
@@ -731,11 +733,15 @@ export interface WorkspaceController {
   addChatMessage: (msg: { sender: string; text: string; timestamp: number; isMine: boolean }) => void;
   addClipboardItem: (item: ClipboardItemData, isMine: boolean) => void;
   addFileTransfer: (opts: {
+    fileId?: string;
     fileName: string;
     fileSize: number;
     isMine: boolean;
     isMetadataStripped?: boolean;
     isZeroTrace?: boolean;
+    onPause?: () => void;
+    onResume?: () => void;
+    onCancel?: () => void;
   }) => FileCardController;
   getPrivacyShieldEnabled: () => boolean;
   getZeroTraceEnabled: () => boolean;
@@ -1325,11 +1331,15 @@ export function createConnectedWorkspace(
       scrollToBottom();
     },
     addFileTransfer(opts: {
+      fileId?: string;
       fileName: string;
       fileSize: number;
       isMine: boolean;
       isMetadataStripped?: boolean;
       isZeroTrace?: boolean;
+      onPause?: () => void;
+      onResume?: () => void;
+      onCancel?: () => void;
     }): FileCardController {
       let isMetadataStripped = !!opts.isMetadataStripped;
       let isZeroTrace = !!opts.isZeroTrace;
@@ -1384,7 +1394,50 @@ export function createConnectedWorkspace(
       const etaEl = el('span', { className: 'tabular-nums', textContent: '--' });
       stats.append(speedEl, percentEl, etaEl);
 
-      progWrap.append(track, stats);
+      // Utilitarian Pause, Resume, and Cancel Action Controls
+      const controls = el('div', { className: 'feed-file-controls' });
+      const statusBadge = el('span', { className: 'feed-file-status-badge' });
+      statusBadge.style.display = 'none';
+
+      const btnPause = el('button', {
+        type: 'button',
+        className: 'btn-file-control btn-control-pause',
+        title: 'Pause file transfer',
+        textContent: 'Pause ⏸',
+      });
+
+      const btnResume = el('button', {
+        type: 'button',
+        className: 'btn-file-control btn-control-resume',
+        title: 'Resume file transfer',
+        textContent: 'Resume ▶',
+      });
+      btnResume.style.display = 'none';
+
+      const btnCancel = el('button', {
+        type: 'button',
+        className: 'btn-file-control btn-control-cancel',
+        title: 'Cancel file transfer',
+        textContent: 'Cancel ✕',
+      });
+
+      btnPause.addEventListener('click', (e) => {
+        e.stopPropagation();
+        opts.onPause?.();
+      });
+
+      btnResume.addEventListener('click', (e) => {
+        e.stopPropagation();
+        opts.onResume?.();
+      });
+
+      btnCancel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        opts.onCancel?.();
+      });
+
+      controls.append(statusBadge, btnPause, btnResume, btnCancel);
+      progWrap.append(track, stats, controls);
       card.append(head, progWrap);
       row.append(card);
 
@@ -1406,6 +1459,39 @@ export function createConnectedWorkspace(
         setZeroTrace(zt: boolean) {
           isZeroTrace = zt;
           zeroTraceBadge.style.display = zt ? 'inline-flex' : 'none';
+        },
+        setPaused(isPaused: boolean, pausedBy?: 'you' | 'peer' | 'sender' | 'receiver') {
+          if (isPaused) {
+            btnPause.style.display = 'none';
+            btnResume.style.display = 'inline-flex';
+            statusBadge.style.display = 'inline-flex';
+            statusBadge.className = 'feed-file-status-badge paused';
+            const isYou =
+              pausedBy === 'you' ||
+              (opts.isMine && pausedBy === 'sender') ||
+              (!opts.isMine && pausedBy === 'receiver');
+            statusBadge.textContent = isYou ? 'Paused by you' : 'Paused by peer';
+            speedEl.textContent = 'Paused';
+            etaEl.textContent = 'Paused';
+          } else {
+            btnPause.style.display = 'inline-flex';
+            btnResume.style.display = 'none';
+            statusBadge.style.display = 'none';
+            statusBadge.className = 'feed-file-status-badge';
+          }
+        },
+        setCancelled(cancelledBy?: 'you' | 'peer') {
+          progWrap.remove();
+          const cancelRow = el('div', { className: 'feed-file-done' });
+          const cancelBadge = el('div', {
+            className: 'text-xs mono',
+            style: 'color: var(--muted); display: flex; align-items: center; gap: 4px;',
+          });
+          const who = cancelledBy === 'peer' ? 'peer' : 'you';
+          cancelBadge.innerHTML = `<span>✕</span> <span>Transfer cancelled by ${who}</span>`;
+          cancelRow.append(cancelBadge);
+          card.append(cancelRow);
+          scrollToBottom();
         },
         complete(info: {
           sha256: string;

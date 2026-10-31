@@ -53,6 +53,10 @@ import {
   isMetadataStrippable,
 } from '../lib/privacyShield';
 import {
+  TransferController,
+  TransferManager,
+} from '../lib/webrtc/transferController';
+import {
   detectClipboardContentType,
   isClipboardSyncMessage,
   readSystemClipboard,
@@ -106,6 +110,7 @@ export class App {
   private wakeLockUnsub: (() => void) | null = null;
   private pendingFileCleanups: Array<() => Promise<void>> = [];
   private virtualDrive: VirtualDriveManager | null = null;
+  private transferManager: TransferManager = new TransferManager();
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -662,6 +667,11 @@ export class App {
           return;
         }
 
+        // Route Transfer Pause/Resume/Cancel Control messages
+        if (this.transferManager.handleControlMessage(msg)) {
+          return;
+        }
+
         // Route Instant Universal Clipboard messages
         if (isClipboardSyncMessage(msg)) {
           this.workspace?.addClipboardItem(msg.item, false);
@@ -970,13 +980,44 @@ export class App {
       for (let i = 0; i < files.length; i++) {
         const rawFile = files[i];
         const { file, isMetadataStripped, isZeroTrace } = await this.processFileToSend(rawFile);
+        const fileId = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${file.name}`;
+        const totalChunks = Math.ceil(file.size / 65536) || 1;
+
+        const controller = new TransferController(
+          fileId,
+          'sender',
+          totalChunks,
+          (msg) => this.sendJSON(msg),
+        );
+        this.transferManager.register(controller);
 
         const card = this.workspace?.addFileTransfer({
+          fileId,
           fileName: file.name,
           fileSize: file.size,
           isMine: true,
           isMetadataStripped,
           isZeroTrace,
+          onPause: () => controller.pause(true),
+          onResume: () => controller.resume(true),
+          onCancel: () => controller.cancel(true),
+        });
+
+        controller.onStateChange((state, details) => {
+          if (state === 'paused_by_sender' || state === 'paused_by_receiver') {
+            card?.setPaused?.(true, details?.by);
+            this.workspace?.addSystemNotice(
+              `File transfer paused by ${details?.by === 'sender' ? 'you' : this.peerUsername}`
+            );
+          } else if (state === 'transferring' || state === 'resuming') {
+            card?.setPaused?.(false);
+            this.workspace?.addSystemNotice(`File transfer resumed`);
+          } else if (state === 'cancelled') {
+            card?.setCancelled?.(details?.by === 'receiver' ? 'peer' : 'you');
+            this.workspace?.addSystemNotice(
+              `File transfer cancelled by ${details?.by === 'receiver' ? this.peerUsername : 'you'}`
+            );
+          }
         });
 
         try {
@@ -986,8 +1027,9 @@ export class App {
             (progress: TransferProgress) => {
               card?.updateProgress(progress);
             },
-            { isMetadataStripped, isZeroTrace },
+            { isMetadataStripped, isZeroTrace, fileId, controller },
             this.peer?.getChannelPool(),
+            controller,
           );
           card?.complete({
             sha256: result.sha256,
@@ -995,7 +1037,13 @@ export class App {
             isZeroTrace,
           });
         } catch (err) {
-          card?.fail(err instanceof Error ? err.message : 'Send failed');
+          if (controller.isCancelled()) {
+            card?.setCancelled?.('you');
+          } else {
+            card?.fail(err instanceof Error ? err.message : 'Send failed');
+          }
+        } finally {
+          this.transferManager.remove(fileId);
         }
       }
     } finally {
@@ -1008,13 +1056,44 @@ export class App {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
 
     const { file, isMetadataStripped, isZeroTrace } = await this.processFileToSend(rawFile);
+    const fileId = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${file.name}`;
+    const totalChunks = Math.ceil(file.size / 65536) || 1;
+
+    const controller = new TransferController(
+      fileId,
+      'sender',
+      totalChunks,
+      (msg) => this.sendJSON(msg),
+    );
+    this.transferManager.register(controller);
 
     const card = this.workspace?.addFileTransfer({
+      fileId,
       fileName: file.name,
       fileSize: file.size,
       isMine: true,
       isMetadataStripped,
       isZeroTrace,
+      onPause: () => controller.pause(true),
+      onResume: () => controller.resume(true),
+      onCancel: () => controller.cancel(true),
+    });
+
+    controller.onStateChange((state, details) => {
+      if (state === 'paused_by_sender' || state === 'paused_by_receiver') {
+        card?.setPaused?.(true, details?.by);
+        this.workspace?.addSystemNotice(
+          `File transfer paused by ${details?.by === 'sender' ? 'you' : this.peerUsername}`
+        );
+      } else if (state === 'transferring' || state === 'resuming') {
+        card?.setPaused?.(false);
+        this.workspace?.addSystemNotice(`File transfer resumed`);
+      } else if (state === 'cancelled') {
+        card?.setCancelled?.(details?.by === 'receiver' ? 'peer' : 'you');
+        this.workspace?.addSystemNotice(
+          `File transfer cancelled by ${details?.by === 'receiver' ? this.peerUsername : 'you'}`
+        );
+      }
     });
 
     void wakeLock.acquire('transfer');
@@ -1025,8 +1104,9 @@ export class App {
         (progress: TransferProgress) => {
           card?.updateProgress(progress);
         },
-        { isMetadataStripped, isZeroTrace },
+        { isMetadataStripped, isZeroTrace, fileId, controller },
         this.peer?.getChannelPool(),
+        controller,
       );
       card?.complete({
         sha256: result.sha256,
@@ -1034,8 +1114,13 @@ export class App {
         isZeroTrace,
       });
     } catch (err) {
-      card?.fail(err instanceof Error ? err.message : 'Send failed');
+      if (controller.isCancelled()) {
+        card?.setCancelled?.('you');
+      } else {
+        card?.fail(err instanceof Error ? err.message : 'Send failed');
+      }
     } finally {
+      this.transferManager.remove(fileId);
       void wakeLock.release('transfer');
     }
   }
@@ -1060,13 +1145,38 @@ export class App {
         },
         (meta) => {
           void wakeLock.acquire('transfer');
+          if (meta.controller) {
+            this.transferManager.register(meta.controller);
+          }
+
           if (!card && this.workspace) {
             card = this.workspace.addFileTransfer({
+              fileId: meta.fileId,
               fileName: meta.name,
               fileSize: meta.size,
               isMine: false,
               isMetadataStripped: meta.isMetadataStripped,
               isZeroTrace: meta.isZeroTrace,
+              onPause: () => meta.controller?.pause(true),
+              onResume: () => meta.controller?.resume(true),
+              onCancel: () => meta.controller?.cancel(true),
+            });
+
+            meta.controller?.onStateChange((state, details) => {
+              if (state === 'paused_by_sender' || state === 'paused_by_receiver') {
+                card?.setPaused?.(true, details?.by);
+                this.workspace?.addSystemNotice(
+                  `Incoming file paused by ${details?.by === 'receiver' ? 'you' : this.peerUsername}`
+                );
+              } else if (state === 'transferring' || state === 'resuming') {
+                card?.setPaused?.(false);
+                this.workspace?.addSystemNotice(`Incoming file resumed`);
+              } else if (state === 'cancelled') {
+                card?.setCancelled?.(details?.by === 'sender' ? 'peer' : 'you');
+                this.workspace?.addSystemNotice(
+                  `Incoming file cancelled by ${details?.by === 'sender' ? this.peerUsername : 'you'}`
+                );
+              }
             });
           }
         },
@@ -1178,5 +1288,6 @@ export class App {
       this.virtualDrive.cleanup();
       this.virtualDrive = null;
     }
+    this.transferManager.clear();
   }
 }
