@@ -21,7 +21,7 @@
         <div class="nav-logo"></div>
         <div class="nav-title-wrap">
           <span class="nav-title">PinnPointt</span>
-          <span class="nav-badge">v0.0.52-beta</span>
+          <span class="nav-badge">v0.0.57-beta</span>
         </div>
       </div>
 
@@ -58,8 +58,8 @@
     <!-- ── Hero Section ── -->
     <section class="hero-section">
       <div class="hero-pill">
-        <span class="hero-pill-badge">NEW</span>
-        <span>Direct Device-to-Device • No Apps or Accounts Needed</span>
+        <span class="hero-pill-badge">v0.0.57</span>
+        <span>P2P Virtual Drive • In-Flight Privacy Shield • Zero-RAM Disk Streaming</span>
       </div>
 
       <h1 class="hero-title">
@@ -373,39 +373,39 @@
 
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon-box">📷</div>
-          <h3>Instant Camera Pairing</h3>
-          <p>Point your phone camera at the screen to connect in seconds. No Bluetooth pairing, no phone numbers, and no Wi-Fi passwords required.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-box">⚡</div>
-          <h3>No File Size Limits</h3>
-          <p>Share large 4K video clips, high-res photo albums, or big work archives. Smooth streaming ensures your browser never freezes or crashes.</p>
+          <div class="feature-icon-box">💽</div>
+          <h3>P2P Virtual Drive</h3>
+          <p>Mount local files or full directory trees as a remote virtual drive. Peers browse remote folders, preview files via on-demand byte slicing, and selectively pull items without upfront bulk downloads.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">🛡️</div>
-          <h3>100% Verified Delivery</h3>
-          <p>Every file is automatically checked upon arrival to ensure not a single byte was corrupted, lost, or altered during transfer.</p>
+          <h3>In-Flight Privacy Shield</h3>
+          <p>Automatic EXIF, GPS, and camera metadata stripping directly in memory before bytes leave your device. Losslessly removes location tags and timestamps with zero pixel recompression.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">💬</div>
-          <h3>Built-In Live Chat</h3>
-          <p>Send quick messages, notes, and links back and forth right in the app while your files transfer with live progress updates.</p>
+          <div class="feature-icon-box">💾</div>
+          <h3>Zero-RAM Disk Streaming</h3>
+          <p>Tiered storage writer streams incoming multi-gigabyte chunks sequentially into OPFS and direct disk handles, bypassing RAM constraints while Mobile WakeLock keeps screens awake.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">🎨</div>
-          <h3>Easy on the Eyes</h3>
-          <p>A distraction-free design crafted with high contrast and smooth transitions. Switch between Dark and Light mode anytime.</p>
+          <div class="feature-icon-box">🔒</div>
+          <h3>Zero-Trace View &amp; Live Universal Clipboard</h3>
+          <p>Ephemeral view mode renders confidential images directly into volatile HTML5 canvas memory with right-click saves blocked. Live universal clipboard syncs text, links, and code with one click.</p>
         </div>
 
         <div class="feature-card">
-          <div class="feature-icon-box">📱</div>
-          <h3>One-Tap App Installation</h3>
-          <p>Add PinnPointt directly to your mobile home screen or computer dock. Opens instantly like a native app with zero storage overhead.</p>
+          <div class="feature-icon-box">⚡</div>
+          <h3>Hybrid Serverless Signaling</h3>
+          <p>High-speed WebSocket relay backed by automatic 2,500ms fallback to 100% serverless P2P Nostr signaling. Functions seamlessly on pure static web hosting with zero backend server dependencies.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">📷</div>
+          <h3>Instant Camera Pairing &amp; E2EE Chat</h3>
+          <p>Scan the on-screen QR code or enter a 6-letter room code to connect in seconds. Communicate through end-to-end encrypted (WebRTC DTLS) live chat while files transfer with SHA-256 verification.</p>
         </div>
       </div>
     </section>
@@ -698,7 +698,7 @@
         <!-- Phase 1 (Current) -->
         <div class="roadmap-card current">
           <div class="roadmap-meta">
-            <span class="roadmap-version">v0.0.1 – v0.0.52 beta</span>
+            <span class="roadmap-version">v0.0.1 – v0.0.57 beta</span>
             <span class="roadmap-status completed">✓ Shipped &amp; Live</span>
           </div>
           <div class="roadmap-details">
@@ -706,12 +706,14 @@
             <p>Direct device-to-device streaming, pairing, and visual experience.</p>
             <ul class="roadmap-items">
               <li>Direct peer-to-peer file streaming with zero cloud storage and large-file memory optimizations.</li>
-              <li>Instant camera pairing via dynamic on-screen QR codes.</li>
+              <li>P2P Virtual Drive: mount remote directories, on-demand byte-slice previews &amp; selective file pulls.</li>
+              <li>In-Flight Privacy Shield: in-memory EXIF, GPS &amp; metadata stripping before DataChannel transmission.</li>
+              <li>Zero-RAM disk streaming via OPFS &amp; FileSystemAccess with active Mobile Screen WakeLock.</li>
+              <li>Ephemeral Zero-Trace View mode via volatile canvas memory &amp; live universal clipboard sync.</li>
+              <li>Hybrid signaling engine: primary WebSocket relay with 2,500ms serverless Nostr P2P fallback.</li>
+              <li>Instant camera pairing via dynamic on-screen QR codes &amp; 6-letter room pairing.</li>
               <li>End-to-End Encrypted (E2EE) real-time live chat over WebRTC DTLS.</li>
-              <li>Interactive onboarding walkthrough &amp; mobile responsive layout.</li>
               <li>Client-side file safety triage, executable quarantining &amp; SHA-256 pre-verification.</li>
-              <li>Distraction-free dual-theme design (Dark &amp; Light modes).</li>
-              <li>Privacy Policy, Fair Usage, and in-app developer contact channel.</li>
             </ul>
           </div>
         </div>
@@ -806,7 +808,7 @@
             <div class="nav-logo"></div>
             <div class="nav-title-wrap">
               <span class="nav-title">PinnPointt</span>
-              <span class="nav-badge">v0.0.52-beta</span>
+              <span class="nav-badge">v0.0.57-beta</span>
             </div>
           </div>
           <p class="footer-tagline">
@@ -848,7 +850,7 @@
 
         <div class="footer-meta">
           <span class="footer-subtitle">Direct device-to-device transfers • Zero cloud storage • 100% private</span>
-          <span class="footer-version">v0.0.52-beta</span>
+          <span class="footer-version">v0.0.57-beta</span>
         </div>
       </div>
     </footer>

@@ -467,6 +467,40 @@ export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
     container.append(previewBtn);
   }
 
+  // Capability highlights strip
+  const highlights = el('div', { className: 'landing-highlights' });
+  highlights.innerHTML = `
+    <div class="landing-highlight-item" title="Mount files or folders as a remote drive with instant byte-slice preview">
+      <span class="highlight-icon">💽</span>
+      <div class="highlight-text">
+        <span class="highlight-title">P2P Virtual Drive</span>
+        <span class="highlight-sub">Browse &amp; preview remote folders</span>
+      </div>
+    </div>
+    <div class="landing-highlight-item" title="Losslessly strip EXIF &amp; GPS metadata in-memory before sending">
+      <span class="highlight-icon">🛡️</span>
+      <div class="highlight-text">
+        <span class="highlight-title">In-Flight Privacy Shield</span>
+        <span class="highlight-sub">Auto EXIF &amp; GPS stripping</span>
+      </div>
+    </div>
+    <div class="landing-highlight-item" title="Stream multi-GB files directly to OPFS / disk with active screen wake lock">
+      <span class="highlight-icon">💾</span>
+      <div class="highlight-text">
+        <span class="highlight-title">Zero-RAM Disk Streaming</span>
+        <span class="highlight-sub">OPFS multi-GB &amp; Screen Awake</span>
+      </div>
+    </div>
+    <div class="landing-highlight-item" title="Ephemeral in-memory canvas viewing &amp; real-time clipboard sync">
+      <span class="highlight-icon">🔒</span>
+      <div class="highlight-text">
+        <span class="highlight-title">Zero-Trace &amp; Clipboard</span>
+        <span class="highlight-sub">Memory canvas &amp; live sync</span>
+      </div>
+    </div>
+  `;
+  container.append(highlights);
+
   return container;
 }
 

@@ -10,6 +10,12 @@
  */
 
 import { generateRoomCode } from '../crypto';
+import {
+  type SignalingAdapter,
+  type SignalingMessage,
+  type SignalingMode,
+  HybridSignalingAdapter,
+} from './signalingAdapter';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -21,15 +27,6 @@ export interface PeerEvents {
   onConnected?: () => void;
   onDisconnected?: () => void;
   onError?: (error: Error) => void;
-}
-
-/** Messages sent / received over the signaling WebSocket. */
-interface SignalingMessage {
-  type: string;
-  room?: string;
-  sdp?: string;
-  candidate?: RTCIceCandidateInit;
-  message?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,8 +50,7 @@ export class PeerManager {
   private readonly signalingUrl: string;
   private roomCode: string = '';
 
-  private ws: WebSocket | null = null;
-  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private adapter: SignalingAdapter | null = null;
   private pc: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
   public role: PeerRole | null = null;
@@ -68,10 +64,13 @@ export class PeerManager {
   private isClosedManually = false;
   private disconnectGraceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(signalingUrl: string, events?: PeerEvents) {
+  constructor(signalingUrl: string, events?: PeerEvents, adapter?: SignalingAdapter) {
     this.signalingUrl = signalingUrl;
     if (events) {
       this.events = events;
+    }
+    if (adapter) {
+      this.adapter = adapter;
     }
   }
 
@@ -82,6 +81,11 @@ export class PeerManager {
   /** Sets or updates event callbacks. */
   setEvents(events: PeerEvents): void {
     this.events = { ...this.events, ...events };
+  }
+
+  /** Gets active signaling mode ('websocket' or 'serverless'). */
+  getSignalingMode(): SignalingMode | null {
+    return this.adapter?.mode ?? null;
   }
 
   /** Register a handler for when the data channel is established. */
@@ -103,7 +107,7 @@ export class PeerManager {
   }
 
   /**
-   * Creates a room on the signaling server.
+   * Creates a room on the signaling adapter.
    * The caller becomes the **offerer** — they will create the SDP offer once a
    * peer joins.
    */
@@ -113,13 +117,7 @@ export class PeerManager {
     this.isClosedManually = false;
 
     return new Promise<string>((resolve, reject) => {
-      this.connectSignaling(
-        () => {
-          this.send({ type: 'create', room: this.roomCode });
-        },
-        resolve,
-        reject,
-      );
+      this.setupSignaling(true, resolve, reject);
     });
   }
 
@@ -134,14 +132,7 @@ export class PeerManager {
     this.isClosedManually = false;
 
     return new Promise<void>((resolve, reject) => {
-      this.connectSignaling(
-        () => {
-          this.send({ type: 'join', room: this.roomCode });
-          resolve();
-        },
-        () => resolve(),
-        reject,
-      );
+      this.setupSignaling(false, () => resolve(), reject);
     });
   }
 
@@ -149,11 +140,6 @@ export class PeerManager {
   close(): void {
     this.isClosedManually = true;
     this.events = {}; // Detach event callbacks to prevent error transitions on intentional closure
-
-    if (this.heartbeatTimer) {
-      clearInterval(this.heartbeatTimer);
-      this.heartbeatTimer = null;
-    }
 
     if (this.disconnectGraceTimer) {
       clearTimeout(this.disconnectGraceTimer);
@@ -166,10 +152,12 @@ export class PeerManager {
     this.pc?.close();
     this.pc = null;
 
-    if (this.ws && this.ws.readyState <= WebSocket.OPEN) {
-      this.ws.close();
+    if (this.adapter) {
+      try {
+        this.adapter.close();
+      } catch {}
+      this.adapter = null;
     }
-    this.ws = null;
 
     this.remoteDescriptionSet = false;
     this.pendingCandidates = [];
@@ -179,84 +167,44 @@ export class PeerManager {
   // Signaling
   // -----------------------------------------------------------------------
 
-  private connectSignaling(
-    onOpen: () => void,
+  private setupSignaling(
+    isCreate: boolean,
     onRoomReady: (code: string) => void,
     onFail: (err: Error) => void,
   ): void {
-    console.log(`[PeerConnection] Connecting to signaling server at ${this.signalingUrl}`);
-    const ws = new WebSocket(this.signalingUrl);
-    this.ws = ws;
+    if (!this.adapter) {
+      this.adapter = new HybridSignalingAdapter(this.signalingUrl, {
+        onMessage: (msg: SignalingMessage) => {
+          this.handleSignalingMessage(msg, onRoomReady, onFail);
+        },
+        onError: (err: Error) => {
+          if (this.dataChannel && this.dataChannel.readyState === 'open') {
+            console.log('[PeerConnection] Signaling error, but P2P WebRTC DataChannel is active.');
+            return;
+          }
+          this.events.onError?.(err);
+          onFail(err);
+        },
+        onClose: () => {
+          if (this.dataChannel && this.dataChannel.readyState === 'open') {
+            console.log('[PeerConnection] Signaling closed, but P2P WebRTC DataChannel is active.');
+            return;
+          }
+          if (!this.isClosedManually) {
+            this.events.onDisconnected?.();
+          }
+        },
+        onFallback: (reason, mode) => {
+          console.log(`[PeerConnection] Hybrid signaling fallback: ${reason} (mode: ${mode})`);
+        },
+      });
+    }
 
-    let isConnected = false;
-    const connectTimeoutTimer = setTimeout(() => {
-      if (!isConnected && ws.readyState !== WebSocket.OPEN) {
-        console.warn(`[PeerConnection] WebSocket connection timed out after 12s`);
-        try { ws.close(); } catch {}
-        const err = new Error('Signaling server connection timed out. Please check your network connection.');
-        this.events.onError?.(err);
-        onFail(err);
-      }
-    }, 12_000);
-
-    ws.addEventListener('open', () => {
-      isConnected = true;
-      clearTimeout(connectTimeoutTimer);
-      console.log(`[PeerConnection] WebSocket open`);
-      // Start client heartbeat ping every 20 seconds to keep connection active
-      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-      this.heartbeatTimer = setInterval(() => {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.send({ type: 'ping' });
-        }
-      }, 20_000);
-      onOpen();
-    });
-
-    ws.addEventListener('message', (event: MessageEvent) => {
-      let msg: SignalingMessage;
-      try {
-        msg = JSON.parse(event.data as string) as SignalingMessage;
-        if (msg.type !== 'pong') {
-          console.log(`[PeerConnection] Received signaling message:`, msg.type);
-        }
-      } catch {
-        return; // ignore non-JSON
-      }
-      this.handleSignalingMessage(msg, onRoomReady, onFail);
-    });
-
-    ws.addEventListener('close', () => {
-      clearTimeout(connectTimeoutTimer);
-      console.log(`[PeerConnection] WebSocket closed`);
-      if (this.heartbeatTimer) {
-        clearInterval(this.heartbeatTimer);
-        this.heartbeatTimer = null;
-      }
-      // CRITICAL: If WebRTC DataChannel is connected directly peer-to-peer,
-      // a signaling socket closure must NOT abort the active transfer!
-      if (this.dataChannel && this.dataChannel.readyState === 'open') {
-        console.log('[PeerConnection] Signaling disconnected, but P2P WebRTC DataChannel is active.');
-        return;
-      }
-      if (!this.isClosedManually) {
-        this.events.onDisconnected?.();
-      }
-    });
-
-    ws.addEventListener('error', (e) => {
-      clearTimeout(connectTimeoutTimer);
-      console.warn(`[PeerConnection] WebSocket error`, e);
-      // CRITICAL: If WebRTC DataChannel is already connected directly peer-to-peer,
-      // a signaling socket error must NOT abort the active transfer!
-      if (this.dataChannel && this.dataChannel.readyState === 'open') {
-        console.log('[PeerConnection] Signaling socket error, but P2P WebRTC DataChannel is active.');
-        return;
-      }
-      const err = new Error('WebSocket connection to signaling server failed');
-      this.events.onError?.(err);
-      onFail(err);
-    });
+    this.adapter
+      .connect(this.roomCode, isCreate)
+      .catch((err) => {
+        onFail(err instanceof Error ? err : new Error(String(err)));
+      });
   }
 
   private handleSignalingMessage(
@@ -489,8 +437,8 @@ export class PeerManager {
   // -----------------------------------------------------------------------
 
   private send(msg: SignalingMessage): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(msg));
+    if (this.adapter) {
+      this.adapter.send(msg);
     }
   }
 }
