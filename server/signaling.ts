@@ -433,4 +433,23 @@ wss.on('close', () => {
 
 server.listen(PORT, '0.0.0.0', () => {
   log(`Signaling server listening on ws://localhost:${PORT} (HTTP health checks enabled on port ${PORT})`);
+
+  // -------------------------------------------------------------------------
+  // Render Free-Tier Auto Keep-Alive (Prevents 15-Minute Inactivity Sleep)
+  // -------------------------------------------------------------------------
+  const externalUrl = process.env['RENDER_EXTERNAL_URL'] || process.env['KEEP_ALIVE_URL'];
+  if (externalUrl) {
+    const pingIntervalMs = 12 * 60 * 1000; // 12 minutes (safely inside Render's 15-min idle window)
+    const cleanUrl = externalUrl.replace(/\/+$/, '');
+    log(`[Keep-Alive] Armed automatic keep-alive for ${cleanUrl}/health every 12 minutes`);
+
+    setInterval(async () => {
+      try {
+        const res = await fetch(`${cleanUrl}/health`);
+        log(`[Keep-Alive] Heartbeat ping dispatched to ${cleanUrl}/health — Status: ${res.status}`);
+      } catch (err) {
+        log(`[Keep-Alive] Heartbeat ping notice: ${(err as Error).message}`);
+      }
+    }, pingIntervalMs);
+  }
 });
