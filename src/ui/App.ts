@@ -48,6 +48,18 @@ import {
   type VfsFileEntry,
 } from '../lib/webrtc/virtualDrive';
 import { openVfsPreviewModal } from './vfsPreviewModal';
+import {
+  stripImageMetadata,
+  isMetadataStrippable,
+} from '../lib/privacyShield';
+import {
+  detectClipboardContentType,
+  isClipboardSyncMessage,
+  readSystemClipboard,
+  type ClipboardItemData,
+} from '../lib/clipboardSync';
+import { openZeroTraceViewer } from './zeroTraceViewer';
+import { showToast } from './components';
 
 type AppState =
   | 'idle'
@@ -482,6 +494,9 @@ export class App {
             });
           }
         },
+        onSendClipboard: () => {
+          void this.handleSendClipboard();
+        },
         onDisconnect: () => {
           this.cleanup();
           this.transition('idle');
@@ -635,6 +650,7 @@ export class App {
     });
 
     // 2. Attach chat and protocol message listener
+    window.addEventListener('paste', this.handleGlobalPaste);
     channel.addEventListener('message', (event: MessageEvent) => {
       if (typeof event.data !== 'string') return; // Binary messages handled by stream receiver
 
@@ -643,6 +659,12 @@ export class App {
 
         // Route Virtual Drive (Live Remote Mount) messages
         if (this.virtualDrive?.handleMessage(msg)) {
+          return;
+        }
+
+        // Route Instant Universal Clipboard messages
+        if (isClipboardSyncMessage(msg)) {
+          this.workspace?.addClipboardItem(msg.item, false);
           return;
         }
 
@@ -753,18 +775,141 @@ export class App {
     }
   }
 
+  // ── Universal Clipboard Sync ──────────────────────
+
+  private handleGlobalPaste = (e: ClipboardEvent): void => {
+    if (this.state !== 'connected' && !this.isPreviewMode) return;
+
+    // Check for clipboard files (e.g. screenshot image pasted)
+    const items = e.clipboardData?.items;
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            this.workspace?.addSystemNotice(`Pasted image from clipboard (${file.type})`);
+            void this.handleSendSingleFile(file);
+            return;
+          }
+        }
+      }
+    }
+
+    // Check if user is typing in an active text input or textarea
+    const target = e.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable)
+    ) {
+      // Allow normal typing / paste inside text inputs
+      return;
+    }
+
+    // User pressed Ctrl+V / Cmd+V in the room outside of an input: sync text
+    const text = e.clipboardData?.getData('text') || '';
+    if (text.trim()) {
+      e.preventDefault();
+      this.dispatchClipboardSync(text);
+    }
+  };
+
+  private async handleSendClipboard(): Promise<void> {
+    try {
+      const data = await readSystemClipboard();
+      if (!data) {
+        showToast('Clipboard is empty or access was denied');
+        return;
+      }
+
+      if (data.file) {
+        this.workspace?.addSystemNotice(`Sending clipboard image (${data.file.name})`);
+        void this.handleSendSingleFile(data.file);
+        return;
+      }
+
+      if (data.content) {
+        this.dispatchClipboardSync(data.content, data.type);
+      }
+    } catch (err) {
+      console.warn('[Clipboard] Failed to read clipboard:', err);
+      showToast('Could not access device clipboard');
+    }
+  }
+
+  private dispatchClipboardSync(text: string, overrideType?: 'text' | 'url' | 'code' | 'image'): void {
+    const type = overrideType || detectClipboardContentType(text);
+    const item: ClipboardItemData = {
+      id: Math.random().toString(36).slice(2),
+      type,
+      content: text,
+      timestamp: Date.now(),
+      sender: this.myUsername,
+    };
+
+    if (this.isPreviewMode) {
+      this.workspace?.addClipboardItem(item, true);
+      showToast('Copied to live scratchpad');
+      return;
+    }
+
+    if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
+
+    this.sendJSON({
+      type: 'clipboard-sync',
+      item,
+    });
+
+    this.workspace?.addClipboardItem(item, true);
+    showToast('Clipboard synced to peer!');
+  }
+
   // ── File Streaming & Transfers ───────────────────
+
+  private async processFileToSend(rawFile: File): Promise<{
+    file: File;
+    isMetadataStripped: boolean;
+    isZeroTrace: boolean;
+  }> {
+    const privacyEnabled = this.workspace?.getPrivacyShieldEnabled() ?? true;
+    const zeroTraceEnabled = this.workspace?.getZeroTraceEnabled() ?? false;
+
+    let fileToSend = rawFile;
+    let isMetadataStripped = false;
+    let isZeroTrace = false;
+
+    if (privacyEnabled && isMetadataStrippable(rawFile)) {
+      const stripResult = await stripImageMetadata(rawFile);
+      if (stripResult.stripped) {
+        fileToSend = stripResult.file;
+        isMetadataStripped = true;
+      }
+    }
+
+    if (zeroTraceEnabled && (rawFile.type.startsWith('image/') || isMetadataStrippable(rawFile))) {
+      isZeroTrace = true;
+    }
+
+    return { file: fileToSend, isMetadataStripped, isZeroTrace };
+  }
 
   private async handleSendFiles(files: FileList): Promise<void> {
     if (this.isPreviewMode) {
       void wakeLock.acquire('transfer');
       try {
         for (let i = 0; i < files.length; i++) {
-          const file = files[i];
+          const rawFile = files[i];
+          const { file, isMetadataStripped, isZeroTrace } = await this.processFileToSend(rawFile);
+
           const card = this.workspace?.addFileTransfer({
             fileName: file.name,
             fileSize: file.size,
             isMine: true,
+            isMetadataStripped,
+            isZeroTrace,
           });
 
           // Read and compute real SHA-256
@@ -786,10 +931,25 @@ export class App {
             });
           }
 
-          card?.complete({
-            sha256,
-            onDownload: () => downloadFile(new Blob([buf]), file.name),
-          });
+          if (isZeroTrace) {
+            card?.complete({
+              sha256,
+              isZeroTrace: true,
+              isMetadataStripped,
+              onZeroTraceView: () => {
+                void openZeroTraceViewer({
+                  blob: new Blob([buf], { type: file.type }),
+                  fileName: file.name,
+                });
+              },
+            });
+          } else {
+            card?.complete({
+              sha256,
+              isMetadataStripped,
+              onDownload: () => downloadFile(new Blob([buf], { type: file.type }), file.name),
+            });
+          }
         }
       } finally {
         void wakeLock.release('transfer');
@@ -808,18 +968,31 @@ export class App {
 
     try {
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const rawFile = files[i];
+        const { file, isMetadataStripped, isZeroTrace } = await this.processFileToSend(rawFile);
+
         const card = this.workspace?.addFileTransfer({
           fileName: file.name,
           fileSize: file.size,
           isMine: true,
+          isMetadataStripped,
+          isZeroTrace,
         });
 
         try {
-          const result = await sendFile(this.dataChannel, file, (progress: TransferProgress) => {
-            card?.updateProgress(progress);
+          const result = await sendFile(
+            this.dataChannel,
+            file,
+            (progress: TransferProgress) => {
+              card?.updateProgress(progress);
+            },
+            { isMetadataStripped, isZeroTrace },
+          );
+          card?.complete({
+            sha256: result.sha256,
+            isMetadataStripped,
+            isZeroTrace,
           });
-          card?.complete({ sha256: result.sha256 });
         } catch (err) {
           card?.fail(err instanceof Error ? err.message : 'Send failed');
         }
@@ -830,21 +1003,34 @@ export class App {
     }
   }
 
-  private async handleSendSingleFile(file: File): Promise<void> {
+  private async handleSendSingleFile(rawFile: File): Promise<void> {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
+
+    const { file, isMetadataStripped, isZeroTrace } = await this.processFileToSend(rawFile);
 
     const card = this.workspace?.addFileTransfer({
       fileName: file.name,
       fileSize: file.size,
       isMine: true,
+      isMetadataStripped,
+      isZeroTrace,
     });
 
     void wakeLock.acquire('transfer');
     try {
-      const result = await sendFile(this.dataChannel, file, (progress: TransferProgress) => {
-        card?.updateProgress(progress);
+      const result = await sendFile(
+        this.dataChannel,
+        file,
+        (progress: TransferProgress) => {
+          card?.updateProgress(progress);
+        },
+        { isMetadataStripped, isZeroTrace },
+      );
+      card?.complete({
+        sha256: result.sha256,
+        isMetadataStripped,
+        isZeroTrace,
       });
-      card?.complete({ sha256: result.sha256 });
     } catch (err) {
       card?.fail(err instanceof Error ? err.message : 'Send failed');
     } finally {
@@ -877,6 +1063,8 @@ export class App {
               fileName: meta.name,
               fileSize: meta.size,
               isMine: false,
+              isMetadataStripped: meta.isMetadataStripped,
+              isZeroTrace: meta.isZeroTrace,
             });
           }
         },
@@ -888,6 +1076,8 @@ export class App {
               fileName: received.name,
               fileSize: received.size,
               isMine: false,
+              isMetadataStripped: received.isMetadataStripped,
+              isZeroTrace: received.isZeroTrace,
             });
           }
 
@@ -895,20 +1085,40 @@ export class App {
             this.pendingFileCleanups.push(received.cleanup);
           }
 
-          card?.complete({
-            sha256: received.sha256,
-            isDirectDiskSave: received.isDirectDiskSave,
-            onDownload: received.isDirectDiskSave
-              ? undefined
-              : () => {
-                  downloadFile(received.blob, received.name);
-                  if (received.cleanup) {
-                    setTimeout(() => {
-                      void received.cleanup?.();
-                    }, 2500);
-                  }
-                },
-          });
+          if (received.isZeroTrace) {
+            card?.complete({
+              sha256: received.sha256,
+              isZeroTrace: true,
+              isMetadataStripped: received.isMetadataStripped,
+              onZeroTraceView: () => {
+                void openZeroTraceViewer({
+                  blob: received.blob,
+                  fileName: received.name,
+                  onClose: () => {
+                    if (received.cleanup) {
+                      void received.cleanup();
+                    }
+                  },
+                });
+              },
+            });
+          } else {
+            card?.complete({
+              sha256: received.sha256,
+              isDirectDiskSave: received.isDirectDiskSave,
+              isMetadataStripped: received.isMetadataStripped,
+              onDownload: received.isDirectDiskSave
+                ? undefined
+                : () => {
+                    downloadFile(received.blob, received.name);
+                    if (received.cleanup) {
+                      setTimeout(() => {
+                        void received.cleanup?.();
+                      }, 2500);
+                    }
+                  },
+            });
+          }
           // Immediately listen for the next file
           listenNext();
         })
@@ -934,6 +1144,8 @@ export class App {
   // ── Cleanup ──────────────────────────────────────
 
   private cleanup(): void {
+    window.removeEventListener('paste', this.handleGlobalPaste);
+
     if (this.wakeLockUnsub) {
       this.wakeLockUnsub();
       this.wakeLockUnsub = null;

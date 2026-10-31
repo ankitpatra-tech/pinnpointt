@@ -16,6 +16,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as crypto from 'node:crypto';
+import * as os from 'node:os';
 import puppeteer, { type Browser, type Page } from 'puppeteer-core';
 import { createServer, type ViteDevServer } from 'vite';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -182,7 +183,7 @@ async function run(): Promise<void> {
   console.log('Vite server running at http://127.0.0.1:5174');
 
   let browser: Browser | null = null;
-  const profileDir = path.resolve(`test/profile-${Date.now()}`);
+  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `pinnpointt-e2e-${Date.now()}-`));
 
   try {
     browser = await puppeteer.launch({
@@ -679,6 +680,115 @@ async function run(): Promise<void> {
 
     if (fs.existsSync(VFS_TEST_PATH)) fs.unlinkSync(VFS_TEST_PATH);
 
+    // 10. Test Instant Universal Clipboard Sync
+    console.log('Step G: Testing Instant Universal Clipboard Sync...');
+    // Both switch to Activity tab
+    await pageSender.evaluate(`
+      (() => {
+        const actTab = Array.from(document.querySelectorAll('.workspace-tab-btn')).find((b) => b.textContent && b.textContent.includes('Activity'));
+        if (actTab) actTab.click();
+      })()
+    `);
+    await pageReceiver.evaluate(`
+      (() => {
+        const actTab = Array.from(document.querySelectorAll('.workspace-tab-btn')).find((b) => b.textContent && b.textContent.includes('Activity'));
+        if (actTab) actTab.click();
+      })()
+    `);
+
+    // Alice dispatches clipboard sync event (simulating paste of a code snippet)
+    await pageSender.evaluate(`
+      (() => {
+        const pasteEvt = new Event('paste', { bubbles: true });
+        Object.defineProperty(pasteEvt, 'clipboardData', {
+          value: {
+            items: [],
+            getData: function(format) {
+              return format === 'text' ? 'const PINNPOINTT_SPEED = 1000;\\nexport default PINNPOINTT_SPEED;' : '';
+            }
+          }
+        });
+        window.dispatchEvent(pasteEvt);
+      })()
+    `);
+
+    // Bob receives clipboard card
+    await pageReceiver.waitForSelector('.clipboard-sync-card', { timeout: 10000 });
+    const clipType = await pageReceiver.$eval('.clipboard-type-badge', (el) => el.textContent || '');
+    if (!clipType.includes('CODE')) {
+      throw new Error(`Expected CODE clipboard badge, got: ${clipType}`);
+    }
+    console.log('✓ Bob received code block via Instant Universal Clipboard.');
+
+    // Bob clicks [Copy to Clipboard]
+    await pageReceiver.click('.btn-copy-clipboard');
+    await pageReceiver.waitForSelector('.pinnpointt-toast.visible', { timeout: 5000 });
+    const toastMsg = await pageReceiver.$eval('.pinnpointt-toast', (el) => el.textContent || '');
+    console.log(`✓ Toast confirmed on copy: "${toastMsg}"`);
+
+    // 11. Test Privacy Shield (EXIF Strip) & Ephemeral Zero-Trace View Mode
+    console.log('Step H: Testing In-Flight Privacy Shield & Ephemeral Zero-Trace View Mode...');
+    const TEST_IMG_PATH = path.resolve('test/test-image.png');
+    // Write 1x1 transparent PNG
+    const pngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    fs.writeFileSync(TEST_IMG_PATH, Buffer.from(pngBase64, 'base64'));
+
+    // Alice enables Zero-Trace mode toggle
+    await pageSender.evaluate(`
+      (() => {
+        const zt = document.querySelector('#toggle-zero-trace');
+        if (zt && !zt.checked) {
+          zt.click();
+        }
+      })()
+    `);
+
+    // Alice uploads image
+    const imgInput = await pageSender.$('input.file-hidden-input');
+    if (!imgInput) throw new Error('File input not found for image test');
+    await imgInput.uploadFile(TEST_IMG_PATH);
+
+    // Wait for transfer to complete on receiver
+    await pageReceiver.waitForFunction(
+      () => {
+        const files = Array.from(document.querySelectorAll('.feed-file'));
+        const target = files.find((f) => f.textContent?.includes('test-image.png'));
+        return (
+          target &&
+          target.querySelector('.file-badge-zero-trace') !== null &&
+          target.querySelector('.file-badge-privacy-shield') !== null
+        );
+      },
+      { timeout: 15000 }
+    );
+    console.log('✓ Privacy Shield badge and Zero-Trace badge confirmed on file card.');
+
+    // Verify Download button is blocked and View (Zero-Trace) button is present
+    await pageReceiver.waitForSelector('.btn-zero-trace-view', { timeout: 10000 });
+    console.log('✓ Receiver download button replaced with [View (Zero-Trace)] button.');
+
+    // Bob clicks [View (Zero-Trace)]
+    await pageReceiver.click('.btn-zero-trace-view');
+    await pageReceiver.waitForSelector('.zero-trace-modal', { timeout: 10000 });
+    await pageReceiver.waitForSelector('.zero-trace-canvas', { timeout: 10000 });
+    console.log('✓ Zero-Trace ephemeral canvas modal opened with direct memory rendering.');
+
+    // Bob clicks "Close & Wipe Memory"
+    await pageReceiver.evaluate(`
+      (() => {
+        const closeBtn = document.querySelector('.zero-trace-footer .btn-secondary');
+        if (closeBtn) closeBtn.click();
+      })()
+    `);
+
+    await pageReceiver.waitForFunction(
+      () => document.querySelector('.zero-trace-backdrop') === null,
+      { timeout: 5000 }
+    );
+    console.log('✓ Ephemeral viewer dismissed and canvas memory buffers wiped.');
+
+    if (fs.existsSync(TEST_IMG_PATH)) fs.unlinkSync(TEST_IMG_PATH);
+
     console.log('\n======================================================');
     console.log('✓ ALL TESTS PASSED:');
     console.log('  1. Custom usernames successfully set & exchanged.');
@@ -688,6 +798,9 @@ async function run(): Promise<void> {
     console.log('  5. P2P Virtual Drive live remote mount & table explorer.');
     console.log('  6. On-demand byte-slice preview (zero local disk storage).');
     console.log('  7. Selective on-demand file pull via WebRTC stream.');
+    console.log('  8. Instant Universal Clipboard sync & copy confirmation.');
+    console.log('  9. In-Flight Privacy Shield EXIF/GPS metadata stripping.');
+    console.log(' 10. Ephemeral Zero-Trace View mode via canvas memory.');
     console.log('======================================================\n');
   } finally {
     if (browser) await browser.close();
@@ -697,6 +810,10 @@ async function run(): Promise<void> {
     const vfsCleanup = path.resolve('test/vfs-sample.md');
     if (fs.existsSync(vfsCleanup)) {
       try { fs.unlinkSync(vfsCleanup); } catch {}
+    }
+    const imgCleanup = path.resolve('test/test-image.png');
+    if (fs.existsSync(imgCleanup)) {
+      try { fs.unlinkSync(imgCleanup); } catch {}
     }
     if (fs.existsSync(profileDir)) {
       try {

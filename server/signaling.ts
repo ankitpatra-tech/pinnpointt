@@ -352,7 +352,7 @@ const server = http.createServer((req, res) => {
       JSON.stringify({
         status: 'healthy',
         service: 'pinnpointt',
-        version: '0.0.56-beta',
+        version: '0.0.57-beta',
         activeRooms: rooms.size,
         uptimeSeconds: Math.floor(process.uptime()),
       })
@@ -371,7 +371,7 @@ const server = http.createServer((req, res) => {
       JSON.stringify({
         status: 'healthy',
         service: 'pinnpointt-signaling',
-        version: '0.0.56-beta',
+        version: '0.0.57-beta',
         activeRooms: rooms.size,
         uptimeSeconds: Math.floor(process.uptime()),
       })

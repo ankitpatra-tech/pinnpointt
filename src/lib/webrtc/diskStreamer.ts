@@ -19,6 +19,8 @@ export interface FileMetadata {
   size: number;
   totalChunks: number;
   sha256: string;
+  isMetadataStripped?: boolean;
+  isZeroTrace?: boolean;
 }
 
 /** Standard chunk payload size: 32,768 bytes total - 8 bytes header = 32,760 bytes */

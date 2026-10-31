@@ -5,6 +5,7 @@ import type { ThemeMode } from './theme';
 import { openDocModal, type DocTab } from './legalModal';
 import { inspectFileSafety } from '../lib/safety';
 import { type VfsFileEntry, isPreviewable } from '../lib/webrtc/virtualDrive';
+import { copyTextToClipboard, type ClipboardItemData } from '../lib/clipboardSync';
 
 // ─── Helpers ────────────────────────────────────────
 
@@ -25,6 +26,31 @@ function el<K extends keyof HTMLElementTagNameMap>(
     node.append(typeof child === 'string' ? document.createTextNode(child) : child);
   }
   return node;
+}
+
+/**
+ * Utilitarian, accessible toast feedback for clipboard copies and state actions.
+ */
+export function showToast(message: string, durationMs = 2400): void {
+  const existing = document.querySelector('.pinnpointt-toast');
+  if (existing) existing.remove();
+
+  const toast = el('div', {
+    className: 'pinnpointt-toast mono text-xs',
+    textContent: message,
+  });
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.classList.add('visible');
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 250);
+  }, durationMs);
 }
 
 export function formatBytes(bytes: number): string {
@@ -208,8 +234,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.56-beta',
-    title: 'PinnPointt Version 0.0.56 Beta',
+    textContent: 'v0.0.57-beta',
+    title: 'PinnPointt Version 0.0.57 Beta',
   });
   meta.append(subtitle, version);
 
@@ -644,12 +670,22 @@ export interface WorkspaceCallbacks {
   onUnmountDrive?: () => void;
   onPullRemoteFile?: (fileId: string) => void;
   onPreviewRemoteFile?: (file: VfsFileEntry) => void;
+  onSendClipboard?: () => void;
   onDisconnect: () => void;
 }
 
 export interface FileCardController {
   updateProgress: (p: TransferProgress) => void;
-  complete: (info: { sha256: string; onDownload?: () => void; isDirectDiskSave?: boolean }) => void;
+  setMetadataStripped?: (stripped: boolean) => void;
+  setZeroTrace?: (zeroTrace: boolean) => void;
+  complete: (info: {
+    sha256: string;
+    onDownload?: () => void;
+    isDirectDiskSave?: boolean;
+    isMetadataStripped?: boolean;
+    isZeroTrace?: boolean;
+    onZeroTraceView?: () => void;
+  }) => void;
   fail: (err: string) => void;
 }
 
@@ -659,7 +695,16 @@ export interface WorkspaceController {
   setWakeLockActive: (active: boolean) => void;
   addSystemNotice: (text: string) => void;
   addChatMessage: (msg: { sender: string; text: string; timestamp: number; isMine: boolean }) => void;
-  addFileTransfer: (opts: { fileName: string; fileSize: number; isMine: boolean }) => FileCardController;
+  addClipboardItem: (item: ClipboardItemData, isMine: boolean) => void;
+  addFileTransfer: (opts: {
+    fileName: string;
+    fileSize: number;
+    isMine: boolean;
+    isMetadataStripped?: boolean;
+    isZeroTrace?: boolean;
+  }) => FileCardController;
+  getPrivacyShieldEnabled: () => boolean;
+  getZeroTraceEnabled: () => boolean;
   setLocalVfsEntries: (entries: VfsFileEntry[]) => void;
   setRemoteVfsEntries: (entries: VfsFileEntry[]) => void;
   switchTab: (tab: 'activity' | 'drive') => void;
@@ -1009,8 +1054,63 @@ export function createConnectedWorkspace(
     }
   });
 
+  // 4b. Live Clipboard / Scratchpad Toolbar & Sender Toggles
+  const toolsBar = el('div', { className: 'workspace-tools-bar row-between' });
+
+  // Clipboard sync trigger button
+  const clipboardBtn = el('button', {
+    type: 'button',
+    className: 'btn-clipboard-sync',
+    title: 'Send device clipboard content to peer (or press Ctrl+V / Cmd+V anywhere)',
+  });
+  clipboardBtn.innerHTML = `<span>📋</span> <span class="tools-btn-label">Send Clipboard</span>`;
+  clipboardBtn.addEventListener('click', () => {
+    callbacks.onSendClipboard?.();
+  });
+
+  const toolsHint = el('span', {
+    className: 'tools-hint mono text-xs muted',
+    textContent: 'Ctrl+V anywhere to sync clipboard',
+  });
+
+  const toolsLeft = el('div', { className: 'tools-left' });
+  toolsLeft.append(clipboardBtn, toolsHint);
+
+  // Sender privacy & view mode toggles
+  const togglesWrap = el('div', { className: 'sender-toggles' });
+
+  const privacyCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'toggle-privacy-shield',
+    className: 'toggle-checkbox',
+  }) as HTMLInputElement;
+  privacyCheckbox.checked = true; // Enabled by default for privacy
+
+  const privacyLabel = el('label', {
+    className: 'toggle-control',
+    title: 'In-Flight Privacy Shield: losslessly strip EXIF/GPS, camera serials, and timestamps from images before transmission',
+  });
+  const privacyText = el('span', { className: 'toggle-label mono text-xs', textContent: '🛡️ Strip EXIF' });
+  privacyLabel.append(privacyCheckbox, privacyText);
+
+  const zeroTraceCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'toggle-zero-trace',
+    className: 'toggle-checkbox',
+  }) as HTMLInputElement;
+
+  const zeroTraceLabel = el('label', {
+    className: 'toggle-control',
+    title: 'Zero-Trace View Only: receiver views image in ephemeral canvas memory with download disabled',
+  });
+  const zeroTraceText = el('span', { className: 'toggle-label mono text-xs', textContent: '🔒 Zero-Trace' });
+  zeroTraceLabel.append(zeroTraceCheckbox, zeroTraceText);
+
+  togglesWrap.append(privacyLabel, zeroTraceLabel);
+  toolsBar.append(toolsLeft, togglesWrap);
+
   inputRow.append(fileInput, attachBtn, modeBtn, textInput, sendBtn);
-  activityPanel.append(feed, inputRow);
+  activityPanel.append(feed, toolsBar, inputRow);
 
   // 5. Virtual Drive Panel Layout
   const driveTopBar = el('div', { className: 'vfs-top-bar row-between' });
@@ -1140,7 +1240,66 @@ export function createConnectedWorkspace(
       feed.append(row);
       scrollToBottom();
     },
-    addFileTransfer(opts: { fileName: string; fileSize: number; isMine: boolean }): FileCardController {
+    getPrivacyShieldEnabled() {
+      return privacyCheckbox.checked;
+    },
+    getZeroTraceEnabled() {
+      return zeroTraceCheckbox.checked;
+    },
+    addClipboardItem(item: ClipboardItemData, isMine: boolean) {
+      const row = el('div', { className: `chat-msg ${isMine ? 'mine' : 'peer'}` });
+
+      const meta = el('div', { className: 'chat-meta' });
+      const sender = el('span', { className: 'chat-sender', textContent: item.sender });
+      const time = el('span', { className: 'chat-time', textContent: formatTime(item.timestamp) });
+      meta.append(sender, time);
+
+      const card = el('div', { className: 'clipboard-sync-card' });
+
+      const header = el('div', { className: 'clipboard-card-head row-between' });
+      const typeBadge = el('span', {
+        className: `clipboard-type-badge ${item.type}`,
+        textContent: item.type === 'url' ? '🔗 URL' : item.type === 'code' ? '💻 CODE' : item.type === 'image' ? '🖼️ IMAGE' : '📋 TEXT',
+      });
+      header.append(typeBadge);
+
+      const content = el('div', {
+        className: 'clipboard-card-content mono text-xs',
+        textContent: item.content,
+      });
+
+      const actions = el('div', { className: 'clipboard-card-actions' });
+      const copyBtn = el('button', {
+        type: 'button',
+        className: 'btn btn-secondary btn-sm btn-copy-clipboard',
+      });
+      copyBtn.innerHTML = `<span>📋</span> <span>Copy to Clipboard</span>`;
+      copyBtn.addEventListener('click', async () => {
+        const ok = await copyTextToClipboard(item.content);
+        if (ok) {
+          showToast('Copied to clipboard!');
+        } else {
+          showToast('Failed to copy to clipboard.');
+        }
+      });
+
+      actions.append(copyBtn);
+      card.append(header, content, actions);
+      row.append(meta, card);
+
+      feed.append(row);
+      scrollToBottom();
+    },
+    addFileTransfer(opts: {
+      fileName: string;
+      fileSize: number;
+      isMine: boolean;
+      isMetadataStripped?: boolean;
+      isZeroTrace?: boolean;
+    }): FileCardController {
+      let isMetadataStripped = !!opts.isMetadataStripped;
+      let isZeroTrace = !!opts.isZeroTrace;
+
       const row = el('div', { className: `chat-msg ${opts.isMine ? 'mine' : 'peer'}` });
 
       const card = el('div', { className: 'feed-file' });
@@ -1162,6 +1321,21 @@ export function createConnectedWorkspace(
         info.append(badge);
       }
 
+      const privacyBadge = el('span', {
+        className: 'safety-badge safe file-badge-privacy-shield',
+        textContent: '🛡️ Metadata Stripped',
+        title: 'GPS, EXIF, and camera serial numbers were removed in-memory before transmission.',
+      });
+      privacyBadge.style.display = isMetadataStripped ? 'inline-flex' : 'none';
+
+      const zeroTraceBadge = el('span', {
+        className: 'safety-badge warning file-badge-zero-trace',
+        textContent: '🔒 Zero-Trace',
+        title: 'Ephemeral canvas view mode. Download disabled and auto-wiped on close.',
+      });
+      zeroTraceBadge.style.display = isZeroTrace ? 'inline-flex' : 'none';
+
+      info.append(privacyBadge, zeroTraceBadge);
       head.append(icon, info);
 
       // Progress bar
@@ -1191,8 +1365,32 @@ export function createConnectedWorkspace(
           speedEl.textContent = formatSpeed(p.speedBps);
           etaEl.textContent = formatETA(p.etaSeconds);
         },
-        complete(info: { sha256: string; onDownload?: () => void; isDirectDiskSave?: boolean }) {
+        setMetadataStripped(stripped: boolean) {
+          isMetadataStripped = stripped;
+          privacyBadge.style.display = stripped ? 'inline-flex' : 'none';
+        },
+        setZeroTrace(zt: boolean) {
+          isZeroTrace = zt;
+          zeroTraceBadge.style.display = zt ? 'inline-flex' : 'none';
+        },
+        complete(info: {
+          sha256: string;
+          onDownload?: () => void;
+          isDirectDiskSave?: boolean;
+          isMetadataStripped?: boolean;
+          isZeroTrace?: boolean;
+          onZeroTraceView?: () => void;
+        }) {
           progWrap.remove();
+
+          if (info.isMetadataStripped) {
+            isMetadataStripped = true;
+            privacyBadge.style.display = 'inline-flex';
+          }
+          if (info.isZeroTrace) {
+            isZeroTrace = true;
+            zeroTraceBadge.style.display = 'inline-flex';
+          }
 
           const doneRow = el('div', { className: 'feed-file-done' });
           const safety = inspectFileSafety(opts.fileName, opts.fileSize, info.sha256);
@@ -1208,7 +1406,19 @@ export function createConnectedWorkspace(
             verified.title = `SHA-256: ${info.sha256}`;
             doneRow.append(verified);
 
-            if (info.isDirectDiskSave) {
+            if (isZeroTrace || info.isZeroTrace) {
+              if (info.onZeroTraceView) {
+                const viewBtn = el('button', {
+                  type: 'button',
+                  className: 'btn btn-primary btn-sm btn-zero-trace-view',
+                  textContent: 'View (Zero-Trace)',
+                });
+                viewBtn.style.padding = '4px 10px';
+                viewBtn.style.fontSize = '11px';
+                viewBtn.addEventListener('click', info.onZeroTraceView);
+                doneRow.append(viewBtn);
+              }
+            } else if (info.isDirectDiskSave) {
               const savedBadge = el('div', {
                 className: 'feed-file-disk-saved',
                 title: 'File streamed directly to selected disk folder without RAM usage',

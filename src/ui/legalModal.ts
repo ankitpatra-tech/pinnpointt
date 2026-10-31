@@ -251,8 +251,21 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.56-beta</span>
+            <span class="changelog-version">v0.0.57-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>In-Flight Privacy Shield:</strong> In-memory metadata stripper that losslessly omits APP1/EXIF/GPS, APP2, APP13, and comment markers from JPEG byte streams before entering WebRTC DataChannel without re-encoding or compression loss, with automated canvas strip fallback for PNG and WebP images.</li>
+            <li><strong>Instant Universal Clipboard Sync:</strong> Real-time cross-device scratchpad. Intercepts <code>Ctrl+V</code> / <code>Cmd+V</code> anywhere in the room (or tap "Send Clipboard") to sync text, URLs, code snippets, or screenshot images over the direct peer DataChannel. Features one-click copy with instant toast confirmation.</li>
+            <li><strong>Ephemeral Zero-Trace View Mode:</strong> Ephemeral image view mode rendering raw bytes directly onto an HTML5 <code>&lt;canvas&gt;</code> with context-menu disabled, dragging blocked, and no download trigger. Volatile bitmap memory is wiped and buffers are revoked immediately upon exit.</li>
+            <li><strong>Workspace Tools Bar & Sender Toggles:</strong> Utilitarian toolbar above chat input offering quick toggles for metadata stripping and zero-trace view, alongside live clipboard synchronization.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.56-beta</span>
+            <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>P2P Virtual Drive (Live Remote Mount):</strong> Senders can mount files or entire folder trees (<code>webkitdirectory</code>) as a browsable Virtual Drive without pushing gigabytes over the wire upfront. Senders transmit a lightweight JSON manifest (<code>VFS_MANIFEST</code>).</li>
@@ -566,7 +579,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.56-beta\n` +
+            `App Version:   v0.0.57-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

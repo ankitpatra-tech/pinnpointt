@@ -77,7 +77,15 @@ export interface ReceivedFile {
   sha256: string;
   verified: boolean;
   isDirectDiskSave?: boolean;
+  isMetadataStripped?: boolean;
+  isZeroTrace?: boolean;
   cleanup?: () => Promise<void>;
+}
+
+/** Options for sending a file over DataChannel */
+export interface SendFileOptions {
+  isMetadataStripped?: boolean;
+  isZeroTrace?: boolean;
 }
 
 /** JSON shape of the metadata message sent before chunks. */
@@ -87,6 +95,8 @@ interface FileMetadata {
   size: number;
   totalChunks: number;
   sha256: string;
+  isMetadataStripped?: boolean;
+  isZeroTrace?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,12 +109,14 @@ interface FileMetadata {
  * @param channel - An open, reliable RTCDataChannel.
  * @param file    - The File object to transmit.
  * @param onProgress - Optional progress callback.
+ * @param options - Optional privacy shield / zero-trace options.
  * @returns A promise that resolves when the entire file has been sent.
  */
 export async function sendFile(
   channel: RTCDataChannel,
   file: File,
   onProgress?: (progress: TransferProgress) => void,
+  options?: SendFileOptions,
 ): Promise<TransferResult> {
   // 1. Calculate file integrity hash or token
   // For files <= 32MB: perform cryptographic SHA-256
@@ -130,6 +142,8 @@ export async function sendFile(
     size: file.size,
     totalChunks,
     sha256,
+    isMetadataStripped: options?.isMetadataStripped,
+    isZeroTrace: options?.isZeroTrace,
   };
   channel.send(JSON.stringify(meta));
 
@@ -252,7 +266,12 @@ function waitForBufferDrain(channel: RTCDataChannel): Promise<void> {
 export function receiveFile(
   channel: RTCDataChannel,
   onProgress?: (progress: TransferProgress) => void,
-  onMeta?: (meta: { name: string; size: number }) => void,
+  onMeta?: (meta: {
+    name: string;
+    size: number;
+    isMetadataStripped?: boolean;
+    isZeroTrace?: boolean;
+  }) => void,
   options?: CreateWriterOptions,
 ): Promise<ReceivedFile> {
   return new Promise<ReceivedFile>((resolve, reject) => {
@@ -319,7 +338,9 @@ export function receiveFile(
           size: result.size,
           sha256: result.sha256,
           verified: result.verified,
-          isDirectDiskSave: result.isDirectDiskSave,
+          isDirectDiskSave: meta.isZeroTrace ? false : result.isDirectDiskSave,
+          isMetadataStripped: meta.isMetadataStripped,
+          isZeroTrace: meta.isZeroTrace,
           cleanup: result.cleanup,
         });
       }
@@ -347,11 +368,20 @@ export function receiveFile(
 
           if (parsed.type === 'file-meta') {
             meta = parsed as unknown as FileMetadata;
-            onMeta?.({ name: meta.name, size: meta.size });
+            onMeta?.({
+              name: meta.name,
+              size: meta.size,
+              isMetadataStripped: meta.isMetadataStripped,
+              isZeroTrace: meta.isZeroTrace,
+            });
 
             isInitializingWriter = true;
             try {
-              writer = await createDiskWriter(meta, options);
+              const writerOptions: CreateWriterOptions = {
+                ...options,
+                forceMemory: meta.isZeroTrace ? true : options?.forceMemory,
+              };
+              writer = await createDiskWriter(meta, writerOptions);
             } finally {
               isInitializingWriter = false;
             }
