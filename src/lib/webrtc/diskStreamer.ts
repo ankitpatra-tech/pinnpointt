@@ -19,12 +19,14 @@ export interface FileMetadata {
   size: number;
   totalChunks: number;
   sha256: string;
+  fileIdHash?: number;
+  chunkSize?: number;
   isMetadataStripped?: boolean;
   isZeroTrace?: boolean;
 }
 
-/** Standard chunk payload size: 32,768 bytes total - 8 bytes header = 32,760 bytes */
-export const CHUNK_PAYLOAD_SIZE = 32_768 - 8;
+/** Standard chunk payload size: 65,536 bytes (64 KB) */
+export const CHUNK_PAYLOAD_SIZE = 65_536;
 
 export interface DiskStreamResult {
   file: File | Blob;
@@ -38,7 +40,7 @@ export interface DiskStreamResult {
 
 export interface DiskWriter {
   readonly tierName: 'Direct Disk' | 'OPFS' | 'Memory';
-  writeChunk(chunkIndex: number, data: Uint8Array): Promise<void>;
+  writeChunk(chunkIndex: number, data: Uint8Array, chunkSize?: number): Promise<void>;
   finalize(): Promise<DiskStreamResult>;
   abort(): Promise<void>;
 }
@@ -62,14 +64,15 @@ class DirectDiskWriter implements DiskWriter {
     this.writable = await this.handle.createWritable({ keepExistingData: false });
   }
 
-  async writeChunk(chunkIndex: number, data: Uint8Array): Promise<void> {
+  async writeChunk(chunkIndex: number, data: Uint8Array, chunkSize?: number): Promise<void> {
+    const stride = chunkSize ?? this.meta.chunkSize ?? CHUNK_PAYLOAD_SIZE;
     this.writeQueue = this.writeQueue.then(async () => {
       if (!this.writable) {
         throw new Error('DirectDiskWriter is not initialized');
       }
       await this.writable.write({
         type: 'write',
-        position: chunkIndex * CHUNK_PAYLOAD_SIZE,
+        position: chunkIndex * stride,
         data: data as unknown as BufferSource,
       });
       this.bytesWritten += data.byteLength;
@@ -148,14 +151,15 @@ class OPFSWriter implements DiskWriter {
     this.writable = await this.fileHandle.createWritable({ keepExistingData: false });
   }
 
-  async writeChunk(chunkIndex: number, data: Uint8Array): Promise<void> {
+  async writeChunk(chunkIndex: number, data: Uint8Array, chunkSize?: number): Promise<void> {
+    const stride = chunkSize ?? this.meta.chunkSize ?? CHUNK_PAYLOAD_SIZE;
     this.writeQueue = this.writeQueue.then(async () => {
       if (!this.writable) {
         throw new Error('OPFSWriter is not initialized');
       }
       await this.writable.write({
         type: 'write',
-        position: chunkIndex * CHUNK_PAYLOAD_SIZE,
+        position: chunkIndex * stride,
         data: data as unknown as BufferSource,
       });
       this.bytesWritten += data.byteLength;

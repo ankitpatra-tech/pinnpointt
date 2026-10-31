@@ -1,19 +1,23 @@
 /**
- * Zero-RAM Disk Streaming & High-Performance Chunked Binary File Transfer.
+ * Zero-RAM Disk Streaming & High-Throughput Parallel WebRTC Binary File Transfer.
  *
  * Protocol:
- *   1. Sender transmits a JSON metadata message (string):
- *      { type: 'file-meta', name: string, size: number, totalChunks: number, sha256: string }
- *   2. Sender transmits N binary chunks, each prefixed with an 8-byte header:
- *        bytes 0–3  → chunk index   (uint32 big-endian)
- *        bytes 4–7  → total chunks  (uint32 big-endian)
- *        bytes 8+   → binary payload (<= 32 KB)
- *   3. Receiver streams incoming chunks sequentially into disk storage (Tier A: Direct FileSystemAccess,
- *      Tier B: Origin Private File System OPFS, Tier C: Memory fallback).
+ *   1. Sender transmits JSON metadata message (string):
+ *      { type: 'file-meta', name, size, totalChunks, sha256, fileIdHash, chunkSize }
+ *   2. Sender transmits 64 KB binary chunks across a 4-channel parallel pool
+ *      (pinnpointt-data-0..3) with 12-byte binary framing:
+ *        Bytes 0–3  → numeric fileIdHash       (uint32 big-endian)
+ *        Bytes 4–7  → chunk index              (uint32 big-endian)
+ *        Bytes 8–11 → payload byte length      (uint32 big-endian)
+ *        Bytes 12+  → raw binary payload (<= 64 KB)
+ *   3. Receiver streams chunks directly into disk storage via random-access offset writes:
+ *      writable.write({ type: 'write', position: chunkIndex * 65536, data: payload })
+ *      (Tier A: Direct FileSystemAccess, Tier B: OPFS, Tier C: Memory fallback).
  *
  * Backpressure:
- *   - dataChannel.bufferedAmountLowThreshold = 65,536 (64 KB)
- *   - pause chunk reading when bufferedAmount > 262,144 (256 KB)
+ *   - Pool: 512 KB low / 2 MB high watermark per channel with lowest-buffered distribution.
+ *   - Single channel fallback: 64 KB low / 256 KB high watermark.
+ *   - Live speed gauge uses a rolling 1.5-second moving average for rock-steady MB/s & ETA.
  */
 
 import { computeSHA256 } from '../crypto';
@@ -21,32 +25,38 @@ import {
   createDiskWriter,
   type DiskWriter,
   type CreateWriterOptions,
+  type FileMetadata,
 } from './diskStreamer';
+import {
+  FAST_CHUNK_SIZE,
+  BINARY_HEADER_SIZE,
+  createChunkFrame,
+  parseChunkFrame,
+  computeNumericFileIdHash,
+  RollingSpeedEstimator,
+} from './fastChunker';
+import { ParallelChannelPool } from './parallelChannelPool';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Length of the binary header prepended to each chunk (chunk index + total chunks). */
-export const HEADER_SIZE = 8;
+/** Length of the binary header prepended to each chunk (12 bytes). */
+export const HEADER_SIZE = BINARY_HEADER_SIZE;
 
-/**
- * Size of each file chunk payload.
- * 32,760 bytes payload + 8 bytes header = exactly 32,768 bytes (32 KB total per frame).
- * Guaranteed to never exceed SCTP 64KB limits or trigger cross-browser packet drops.
- */
-export const CHUNK_SIZE = 32_768 - HEADER_SIZE; // 32,760 bytes
+/** Default chunk payload size (65,536 bytes / 64 KB). */
+export const CHUNK_SIZE = FAST_CHUNK_SIZE;
 
-/** High watermark: pause chunk reading when bufferedAmount > 262,144 (256 KB). */
+/** Single channel fallback high watermark: pause when bufferedAmount > 256 KB. */
 export const BUFFERED_AMOUNT_HIGH = 262_144; // 256 KB
 
-/** Low watermark: resume sending only after bufferedAmount drains to 65,536 (64 KB). */
+/** Single channel fallback low watermark: resume when bufferedAmount <= 64 KB. */
 export const BUFFERED_AMOUNT_LOW = 65_536; // 64 KB
 
 /** Legacy compatibility alias */
 export const BUFFERED_AMOUNT_THRESHOLD = BUFFERED_AMOUNT_HIGH;
 
-/** Files larger than this threshold (32 MB) use streaming validation to avoid browser OOM. */
+/** Files larger than 32 MB use streaming validation to avoid browser OOM. */
 export const STREAM_VERIFY_THRESHOLD = 32 * 1024 * 1024; // 32 MB
 
 // ---------------------------------------------------------------------------
@@ -58,7 +68,7 @@ export interface TransferProgress {
   bytesTotal: number;
   chunksComplete: number;
   chunksTotal: number;
-  /** Instantaneous speed in bytes per second. */
+  /** Instantaneous / smoothed speed in bytes per second. */
   speedBps: number;
   /** Estimated time remaining in seconds. */
   etaSeconds: number;
@@ -88,39 +98,29 @@ export interface SendFileOptions {
   isZeroTrace?: boolean;
 }
 
-/** JSON shape of the metadata message sent before chunks. */
-interface FileMetadata {
-  type: 'file-meta';
-  name: string;
-  size: number;
-  totalChunks: number;
-  sha256: string;
-  isMetadataStripped?: boolean;
-  isZeroTrace?: boolean;
-}
-
 // ---------------------------------------------------------------------------
 // Sending
 // ---------------------------------------------------------------------------
 
 /**
- * Sends a file over an RTCDataChannel using chunked binary transfer with strict backpressure.
+ * Sends a file over WebRTC using chunked 64 KB binary transfer with parallel pool striping
+ * and strict backpressure.
  *
- * @param channel - An open, reliable RTCDataChannel.
- * @param file    - The File object to transmit.
+ * @param channel    - Primary reliable RTCDataChannel for control/metadata.
+ * @param file       - The File object to transmit.
  * @param onProgress - Optional progress callback.
- * @param options - Optional privacy shield / zero-trace options.
- * @returns A promise that resolves when the entire file has been sent.
+ * @param options    - Optional privacy shield / zero-trace options.
+ * @param pool       - Optional parallel multi-channel pool for 30-80+ MB/s throughput.
+ * @returns A promise that resolves when the entire file has been transmitted.
  */
 export async function sendFile(
   channel: RTCDataChannel,
   file: File,
   onProgress?: (progress: TransferProgress) => void,
   options?: SendFileOptions,
+  pool?: ParallelChannelPool,
 ): Promise<TransferResult> {
-  // 1. Calculate file integrity hash or token
-  // For files <= 32MB: perform cryptographic SHA-256
-  // For files > 32MB: use fast stream token to prevent freezing main thread or triggering OOM
+  // 1. Calculate file integrity token / hash
   let sha256 = '';
   if (file.size <= STREAM_VERIFY_THRESHOLD) {
     try {
@@ -133,36 +133,47 @@ export async function sendFile(
     sha256 = `stream-${file.name}-${file.size}-${file.lastModified}`;
   }
 
+  const fileIdHash = computeNumericFileIdHash(`${file.name}:${file.size}:${file.lastModified}`);
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE) || 1;
 
-  // 2. Send metadata as a JSON string message.
+  // 2. Transmit metadata as a JSON string message on primary channel
   const meta: FileMetadata = {
     type: 'file-meta',
     name: file.name,
     size: file.size,
     totalChunks,
     sha256,
+    fileIdHash,
+    chunkSize: CHUNK_SIZE,
     isMetadataStripped: options?.isMetadataStripped,
     isZeroTrace: options?.isZeroTrace,
   };
   channel.send(JSON.stringify(meta));
 
-  // 3. Set strict WebRTC backpressure threshold on data channel (64 KB)
-  channel.bufferedAmountLowThreshold = BUFFERED_AMOUNT_LOW;
+  // Determine whether to use 4-channel parallel pool or single channel fallback
+  const usePool = Boolean(pool && pool.isReady());
+  if (!usePool) {
+    channel.bufferedAmountLowThreshold = BUFFERED_AMOUNT_LOW;
+  }
 
-  const startTime = performance.now();
+  const speedEstimator = new RollingSpeedEstimator(1500);
   let bytesSent = 0;
   let lastProgressTime = 0;
   let lastYieldTime = performance.now();
 
   for (let i = 0; i < totalChunks; i++) {
-    // Strict Backpressure: pause if bufferedAmount > 262,144 (256 KB)
-    if (channel.bufferedAmount > BUFFERED_AMOUNT_HIGH) {
-      await waitForBufferDrain(channel);
-    }
+    let targetChannel: RTCDataChannel;
 
-    if (channel.readyState !== 'open') {
-      throw new Error('DataChannel closed unexpectedly during file transfer');
+    if (usePool && pool) {
+      targetChannel = await pool.getOptimalChannel();
+    } else {
+      if (channel.bufferedAmount > BUFFERED_AMOUNT_HIGH) {
+        await waitForBufferDrain(channel);
+      }
+      if (channel.readyState !== 'open') {
+        throw new Error('DataChannel closed unexpectedly during file transfer');
+      }
+      targetChannel = channel;
     }
 
     const offset = i * CHUNK_SIZE;
@@ -170,27 +181,21 @@ export async function sendFile(
     const sliceBlob = file.slice(offset, end);
     const sliceBuffer = await sliceBlob.arrayBuffer();
 
-    // Build chunk: [header (8 bytes)] + [payload]
-    const chunk = new ArrayBuffer(HEADER_SIZE + sliceBuffer.byteLength);
-    const view = new DataView(chunk);
-    view.setUint32(0, i, false);           // chunk index, big-endian
-    view.setUint32(4, totalChunks, false);  // total chunks, big-endian
+    // 12-byte zero-overhead binary framing:
+    // [0..3: fileIdHash] [4..7: chunkIndex] [8..11: payloadByteLength] [12..: payload]
+    const chunk = createChunkFrame(fileIdHash, i, sliceBuffer);
 
-    // Copy slice payload after the 8-byte header
-    new Uint8Array(chunk, HEADER_SIZE).set(new Uint8Array(sliceBuffer));
-
-    channel.send(chunk);
+    targetChannel.send(chunk);
     bytesSent += sliceBuffer.byteLength;
 
     const now = performance.now();
+    speedEstimator.record(sliceBuffer.byteLength, now);
 
-    // Report progress (throttled to at most once per 60ms or on final chunk to eliminate UI jitter)
+    // Report progress (throttled to at most once per 60ms or on final chunk)
     if (onProgress && (now - lastProgressTime >= 60 || i === totalChunks - 1)) {
       lastProgressTime = now;
-      const elapsed = (now - startTime) / 1000;
-      const speedBps = elapsed > 0 ? bytesSent / elapsed : 0;
       const remaining = file.size - bytesSent;
-      const etaSeconds = speedBps > 0 ? remaining / speedBps : 0;
+      const { speedBps, etaSeconds } = speedEstimator.getEstimate(remaining, now);
 
       onProgress({
         bytesSent,
@@ -202,7 +207,7 @@ export async function sendFile(
       });
     }
 
-    // Cooperative yielding: yield to browser macrotask loop every 16 chunks or every 20ms
+    // Cooperative yielding to browser macrotask loop every 16 chunks or 20ms
     if (i % 16 === 0 || now - lastYieldTime >= 20) {
       lastYieldTime = now;
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -213,8 +218,7 @@ export async function sendFile(
 }
 
 /**
- * Waits until the channel's bufferedAmount drops to or below the low watermark (64 KB).
- * Uses both the native 'bufferedamountlow' event and a polling fallback.
+ * Waits until single channel bufferedAmount drops below 64 KB.
  */
 function waitForBufferDrain(channel: RTCDataChannel): Promise<void> {
   if (channel.bufferedAmount <= BUFFERED_AMOUNT_LOW) {
@@ -236,7 +240,6 @@ function waitForBufferDrain(channel: RTCDataChannel): Promise<void> {
 
     channel.addEventListener('bufferedamountlow', onLow);
 
-    // Polling fallback checks low watermark (64 KB) with backoff
     timer = setInterval(() => {
       if (channel.readyState !== 'open') {
         cleanup();
@@ -250,17 +253,18 @@ function waitForBufferDrain(channel: RTCDataChannel): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Receiving (Tiered Zero-RAM Disk Streaming)
+// Receiving (Tiered Zero-RAM Random-Access Streaming)
 // ---------------------------------------------------------------------------
 
 /**
- * Listens on an RTCDataChannel for an incoming file transfer and streams chunks
- * directly into disk storage (Tier A: Direct FileSystemAccess, Tier B: OPFS, Tier C: Memory).
+ * Listens on WebRTC channels for an incoming file transfer and streams chunks
+ * directly into disk storage via random-access byte offset writes.
  *
- * @param channel    - An open, reliable RTCDataChannel.
+ * @param channel    - Primary reliable RTCDataChannel for control/metadata.
  * @param onProgress - Optional progress callback.
- * @param onMeta     - Optional callback invoked as soon as file metadata arrives.
- * @param options    - Optional storage writer preferences (e.g. direct save handle).
+ * @param onMeta     - Optional callback invoked when metadata arrives.
+ * @param options    - Optional storage writer preferences (direct handle / force memory).
+ * @param pool       - Optional parallel multi-channel pool for receiving chunks concurrently.
  * @returns A promise that resolves with the reassembled and verified file.
  */
 export function receiveFile(
@@ -273,50 +277,63 @@ export function receiveFile(
     isZeroTrace?: boolean;
   }) => void,
   options?: CreateWriterOptions,
+  pool?: ParallelChannelPool,
 ): Promise<ReceivedFile> {
   return new Promise<ReceivedFile>((resolve, reject) => {
     let meta: FileMetadata | null = null;
     let writer: DiskWriter | null = null;
     let isFinalized = false;
-    let receivedChunksCount = 0;
+    const receivedChunkIndices = new Set<number>();
     let bytesReceived = 0;
-    const startTime = performance.now();
+    const speedEstimator = new RollingSpeedEstimator(1500);
     let lastProgressTime = 0;
 
     // Buffer chunks that arrive while writer is asynchronously initializing
     const pendingChunks: Array<{ chunkIndex: number; payload: Uint8Array }> = [];
     let isInitializingWriter = false;
 
+    let unsubPool: (() => void) | null = null;
+
+    const cleanupListeners = () => {
+      channel.removeEventListener('message', onMessage);
+      if (unsubPool) {
+        unsubPool();
+        unsubPool = null;
+      }
+    };
+
     const processChunk = async (chunkIndex: number, payload: Uint8Array): Promise<void> => {
       if (!writer || !meta || isFinalized) return;
+      if (receivedChunkIndices.has(chunkIndex)) return; // Deduplicate
 
-      await writer.writeChunk(chunkIndex, payload);
-      receivedChunksCount++;
+      // Direct random-access offset write into disk stream: position = chunkIndex * 65536
+      await writer.writeChunk(chunkIndex, payload, meta.chunkSize || FAST_CHUNK_SIZE);
+      receivedChunkIndices.add(chunkIndex);
       bytesReceived += payload.byteLength;
 
-      // Report progress (throttled to at most once per 60ms or on completion)
       const now = performance.now();
-      if (onProgress && (now - lastProgressTime >= 60 || receivedChunksCount === meta.totalChunks)) {
+      speedEstimator.record(payload.byteLength, now);
+
+      // Report progress (throttled to at most once per 60ms or on completion)
+      if (onProgress && (now - lastProgressTime >= 60 || receivedChunkIndices.size === meta.totalChunks)) {
         lastProgressTime = now;
-        const elapsed = (now - startTime) / 1000;
-        const speedBps = elapsed > 0 ? bytesReceived / elapsed : 0;
         const remaining = meta.size - bytesReceived;
-        const etaSeconds = speedBps > 0 ? remaining / speedBps : 0;
+        const { speedBps, etaSeconds } = speedEstimator.getEstimate(remaining, now);
 
         onProgress({
           bytesSent: bytesReceived,
           bytesTotal: meta.size,
-          chunksComplete: receivedChunksCount,
+          chunksComplete: receivedChunkIndices.size,
           chunksTotal: meta.totalChunks,
           speedBps,
           etaSeconds,
         });
       }
 
-      // All chunks received — finalize tiered disk writer and verify
-      if (receivedChunksCount === meta.totalChunks && !isFinalized) {
+      // All chunks received across all parallel channels — finalize disk writer
+      if (receivedChunkIndices.size === meta.totalChunks && !isFinalized) {
         isFinalized = true;
-        channel.removeEventListener('message', onMessage);
+        cleanupListeners();
 
         const result = await writer.finalize();
 
@@ -355,9 +372,66 @@ export function receiveFile(
       }
     };
 
+    const handleBinaryBuffer = async (buffer: ArrayBuffer): Promise<void> => {
+      try {
+        // 1. Try zero-overhead 12-byte header parsing
+        const parsed = parseChunkFrame(buffer);
+        if (parsed) {
+          const { fileIdHash, chunkIndex, payload } = parsed;
+
+          if (meta && meta.fileIdHash !== undefined && meta.fileIdHash !== fileIdHash) {
+            return; // Ignore chunks belonging to a different file
+          }
+          if (meta && chunkIndex >= meta.totalChunks) {
+            return;
+          }
+
+          if (!writer || isInitializingWriter) {
+            pendingChunks.push({ chunkIndex, payload });
+            return;
+          }
+
+          await processChunk(chunkIndex, payload);
+          return;
+        }
+
+        // 2. Backward compatibility fallback for legacy 8-byte header
+        if (buffer.byteLength >= 8) {
+          const view = new DataView(buffer);
+          const chunkIndex = view.getUint32(0, false);
+          const totalChunks = view.getUint32(4, false);
+
+          if (meta && totalChunks !== meta.totalChunks) return;
+          if (meta && chunkIndex >= meta.totalChunks) return;
+
+          const payload = new Uint8Array(buffer, 8);
+
+          if (!writer || isInitializingWriter) {
+            pendingChunks.push({ chunkIndex, payload });
+            return;
+          }
+
+          await processChunk(chunkIndex, payload);
+        }
+      } catch (err) {
+        cleanupListeners();
+        if (writer) {
+          await writer.abort().catch(() => {});
+        }
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
+    };
+
+    // If parallel channel pool is supplied, listen for binary chunks across all pool channels
+    if (pool) {
+      unsubPool = pool.onMessage((buf) => {
+        void handleBinaryBuffer(buf);
+      });
+    }
+
     const onMessage = async (event: MessageEvent): Promise<void> => {
       try {
-        // --- Metadata (string message) ---
+        // --- Metadata (JSON string on control channel) ---
         if (typeof event.data === 'string') {
           let parsed: Record<string, unknown>;
           try {
@@ -386,13 +460,13 @@ export function receiveFile(
               isInitializingWriter = false;
             }
 
-            // Flush any chunks that arrived while writer was initializing
+            // Flush any chunks received during asynchronous writer setup
             await flushPending();
           }
           return;
         }
 
-        // --- Binary chunk ---
+        // --- Binary chunk arriving on primary channel ---
         let buffer: ArrayBuffer;
         if (event.data instanceof ArrayBuffer) {
           buffer = event.data;
@@ -402,27 +476,9 @@ export function receiveFile(
           return;
         }
 
-        if (buffer.byteLength < HEADER_SIZE) return;
-
-        const view = new DataView(buffer);
-        const chunkIndex = view.getUint32(0, false);
-        const totalChunks = view.getUint32(4, false);
-
-        // Validate header against metadata if already present
-        if (meta && totalChunks !== meta.totalChunks) return;
-        if (meta && chunkIndex >= meta.totalChunks) return;
-
-        const payload = new Uint8Array(buffer, HEADER_SIZE);
-
-        if (!writer || isInitializingWriter) {
-          // If metadata hasn't finished initializing writer, queue chunk safely
-          pendingChunks.push({ chunkIndex, payload });
-          return;
-        }
-
-        await processChunk(chunkIndex, payload);
+        await handleBinaryBuffer(buffer);
       } catch (err) {
-        channel.removeEventListener('message', onMessage);
+        cleanupListeners();
         if (writer) {
           await writer.abort().catch(() => {});
         }
@@ -440,13 +496,6 @@ export function receiveFile(
 
 /**
  * Triggers a browser file download from a Blob or OPFS File handle.
- *
- * Creates a temporary anchor element with the `download` attribute set so the
- * browser treats it as a file save rather than navigation. The object URL is
- * revoked after the download initiates.
- *
- * @param blob     - The file data.
- * @param filename - Suggested filename for the download.
  */
 export function downloadFile(blob: Blob | File, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -458,7 +507,6 @@ export function downloadFile(blob: Blob | File, filename: string): void {
   document.body.appendChild(anchor);
   anchor.click();
 
-  // Clean up after a short delay to ensure the download starts.
   setTimeout(() => {
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);

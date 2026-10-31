@@ -16,6 +16,7 @@ import {
   type SignalingMode,
   HybridSignalingAdapter,
 } from './signalingAdapter';
+import { ParallelChannelPool } from './parallelChannelPool';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -53,6 +54,7 @@ export class PeerManager {
   private adapter: SignalingAdapter | null = null;
   private pc: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
+  public readonly channelPool: ParallelChannelPool = new ParallelChannelPool();
   public role: PeerRole | null = null;
 
   private dataChannelCallback: ((channel: RTCDataChannel) => void) | null = null;
@@ -101,6 +103,11 @@ export class PeerManager {
     return this.dataChannel;
   }
 
+  /** Returns the parallel multi-channel pool for high-throughput binary transfers. */
+  getChannelPool(): ParallelChannelPool {
+    return this.channelPool;
+  }
+
   /** Returns the current room code. */
   getRoomCode(): string {
     return this.roomCode;
@@ -145,6 +152,8 @@ export class PeerManager {
       clearTimeout(this.disconnectGraceTimer);
       this.disconnectGraceTimer = null;
     }
+
+    this.channelPool.close();
 
     this.dataChannel?.close();
     this.dataChannel = null;
@@ -331,6 +340,16 @@ export class PeerManager {
       }
     });
 
+    // Initialize 4 negotiated binary data channels (pinnpointt-data-0..3)
+    this.channelPool.initNegotiated(pc);
+
+    // Also register any incoming data channel that matches the parallel pool prefix
+    pc.addEventListener('datachannel', (event) => {
+      if (event.channel.label.startsWith('pinnpointt-data-')) {
+        this.channelPool.registerChannel(event.channel);
+      }
+    });
+
     this.pc = pc;
     return pc;
   }
@@ -356,10 +375,12 @@ export class PeerManager {
   ): Promise<void> {
     const pc = this.createPeerConnection();
 
-    // Listen for the data channel the offerer created.
+    // Listen for the primary data channel the offerer created.
     pc.addEventListener('datachannel', (event) => {
-      this.setupDataChannel(event.channel);
-      onReady(this.roomCode);
+      if (event.channel.label === DATA_CHANNEL_LABEL) {
+        this.setupDataChannel(event.channel);
+        onReady(this.roomCode);
+      }
     });
 
     await pc.setRemoteDescription({ type: 'offer', sdp });

@@ -987,6 +987,7 @@ export class App {
               card?.updateProgress(progress);
             },
             { isMetadataStripped, isZeroTrace },
+            this.peer?.getChannelPool(),
           );
           card?.complete({
             sha256: result.sha256,
@@ -1025,6 +1026,7 @@ export class App {
           card?.updateProgress(progress);
         },
         { isMetadataStripped, isZeroTrace },
+        this.peer?.getChannelPool(),
       );
       card?.complete({
         sha256: result.sha256,
@@ -1068,6 +1070,8 @@ export class App {
             });
           }
         },
+        undefined,
+        this.peer?.getChannelPool(),
       )
         .then((received: ReceivedFile) => {
           void wakeLock.release('transfer');
