@@ -36,7 +36,7 @@ if (rootEl) {
   const roomCode = getRoomFromURL();
   if (roomCode) {
     // Clean URL without reload
-    window.history.replaceState({}, '', '/');
+    window.history.replaceState({}, '', window.location.pathname);
     app.joinWithCode(roomCode);
   }
 }

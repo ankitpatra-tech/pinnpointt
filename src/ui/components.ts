@@ -207,8 +207,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.53-beta',
-    title: 'PinnPointt Version 0.0.53 Beta',
+    textContent: 'v0.0.54-beta',
+    title: 'PinnPointt Version 0.0.54 Beta',
   });
   meta.append(subtitle, version);
 
@@ -479,7 +479,20 @@ export function createRoomDisplay(
     textContent: 'Scan with your camera or QR reader to connect instantly',
   });
 
+  const isLocalHost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  );
+
   qrWrap.append(canvasWrap, qrHint);
+
+  if (isLocalHost) {
+    const localTip = el('div', {
+      className: 'qr-local-tip',
+      textContent: '💡 Tip: To scan from another phone/device, open this site via your local Wi-Fi IP or live domain.',
+    });
+    qrWrap.append(localTip);
+  }
 
   // Separator
   const sep = el('div', { className: 'separator' });
@@ -495,20 +508,46 @@ export function createRoomDisplay(
   // Waiting status
   const status = el('div', { className: 'status-badge mt-md' });
   status.style.margin = '12px auto 0';
-  status.innerHTML = `<span class="status-dot"></span> Waiting for other device (code expires in 2m)`;
+  status.innerHTML = `<span class="status-dot"></span> Waiting for other device (code expires in 10m)`;
 
-  // One-click button to open a second tab for testing
+  // Action buttons: Copy Link & Open Peer Window
+  const linkRow = el('div', { className: 'room-actions-row' });
+
+  const copyLinkBtn = el('button', {
+    className: 'btn btn-secondary btn-sm',
+    type: 'button',
+    textContent: '🔗 Copy Invite Link',
+    title: 'Copies the deep-link URL to your clipboard',
+  });
+  copyLinkBtn.addEventListener('click', () => {
+    const url = `${window.location.origin}/app?room=${roomCode}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        copyLinkBtn.textContent = '✓ Link Copied!';
+        setTimeout(() => {
+          copyLinkBtn.textContent = '🔗 Copy Invite Link';
+        }, 2500);
+      }).catch(() => {
+        prompt('Copy invite link:', url);
+      });
+    } else {
+      prompt('Copy invite link:', url);
+    }
+  });
+
   const peerTabBtn = el('button', {
     className: 'btn-peer-tab',
     type: 'button',
-    textContent: '↗ Open Peer Window in New Tab to Test',
+    textContent: '↗ Open Peer in New Tab',
     title: 'Opens a second window that auto-joins this room to test device-to-device transfer',
   });
   peerTabBtn.addEventListener('click', () => {
     window.open(`${window.location.origin}/app?room=${roomCode}`, '_blank');
   });
 
-  container.append(qrWrap, sep, codeDisplay, status, peerTabBtn);
+  linkRow.append(copyLinkBtn, peerTabBtn);
+
+  container.append(qrWrap, sep, codeDisplay, status, linkRow);
 
   if (onBack) {
     const bottomBackBtn = el('button', {

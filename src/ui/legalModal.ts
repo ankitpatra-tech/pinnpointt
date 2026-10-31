@@ -251,8 +251,22 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.53-beta</span>
+            <span class="changelog-version">v0.0.54-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Auto-Connect QR Code (No App Required):</strong> Upgraded native QR generator to support auto-scaling (Versions 1–40), encoding full deep-link URLs (<code>/app?room=...</code>) so any smartphone camera opens the browser and connects immediately without saying "no app to connect".</li>
+            <li><strong>Answerer ICE Candidate Race Fix:</strong> Queued candidate arrivals until local SDP answers are set, eliminating discarded ICE candidates and connection timeouts.</li>
+            <li><strong>Multi-STUN &amp; Candidate Pre-gathering:</strong> Added Cloudflare and secondary Google STUN endpoints with <code>iceCandidatePoolSize</code> for sub-second P2P establishment across mobile and restrictive NATs.</li>
+            <li><strong>Signaling Connection Timeout &amp; Guard:</strong> Added a 12-second WebSocket connect timeout with informative diagnostics and state guards preventing workspace resets.</li>
+            <li><strong>One-Click Invite Link Sharing:</strong> Added a "Copy Invite Link" button alongside the peer window testing option.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.53-beta</span>
+            <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Large File (&gt; 100 MB) Connection Stability Fix:</strong> Standardized chunk framing to 32 KB, safely within SCTP 64 KB limits, eliminating packet fragmentation and association resets.</li>

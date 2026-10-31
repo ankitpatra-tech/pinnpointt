@@ -82,6 +82,18 @@ assert(matrix[6][9] === false, 'Horizontal timing at (6,9) is light (odd col)');
 assert(matrix[8][6] === true, 'Vertical timing at (8,6) is dark (even row)');
 assert(matrix[9][6] === false, 'Vertical timing at (9,6) is light (odd row)');
 
+// --- Multi-Version & Deep-link URL checks ---
+const testUrl = 'https://pinnpointt.onrender.com/app?room=ABC123';
+const urlMatrix = engine.encode(testUrl);
+assert(urlMatrix.length >= 33, 'URL matrix scales up dynamically (Version 4+ for deep links)');
+assert(urlMatrix[0][0] === true, 'Top-left finder exists for URL QR code');
+assert(urlMatrix[0][urlMatrix.length - 1] === true, 'Top-right finder exists for URL QR code');
+assert(urlMatrix[urlMatrix.length - 1][0] === true, 'Bottom-left finder exists for URL QR code');
+
+const longUrl = 'https://pinnpointt.onrender.com/app?room=ABC123&referrer=qrcode_mobile_camera_autojoin_test_payload';
+const longMatrix = engine.encode(longUrl);
+assert(longMatrix.length >= 41, 'Long URL matrix scales up cleanly without throwing');
+
 // Print ASCII representation
 console.log('\nQR Code for "HELLO" (V2-M):');
 for (const row of matrix) {

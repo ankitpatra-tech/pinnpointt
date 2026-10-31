@@ -104,6 +104,11 @@ export class App {
     this.handleJoinRoom(code);
   }
 
+  private getRoomJoinUrl(): string {
+    const origin = window.location.origin || 'http://localhost:5173';
+    return `${origin}/app?room=${this.roomCode}`;
+  }
+
   private handleToggleTheme(): void {
     this.currentTheme = toggleTheme();
     const themeBtn = this.root.querySelector('.btn-theme-toggle');
@@ -120,7 +125,7 @@ export class App {
       if (canvas) {
         try {
           const qrEngine = new QREngine();
-          const qrPayload = `ROOM:${this.roomCode}`;
+          const qrPayload = this.getRoomJoinUrl();
           const matrix = qrEngine.encode(qrPayload);
           const qrCanvas = new QRCanvas(canvas);
           qrCanvas.render(matrix, {
@@ -287,7 +292,7 @@ export class App {
 
     try {
       const qrEngine = new QREngine();
-      const qrPayload = `ROOM:${this.roomCode}`;
+      const qrPayload = this.getRoomJoinUrl();
       const matrix = qrEngine.encode(qrPayload);
       const qrCanvas = new QRCanvas(canvas);
       qrCanvas.render(matrix, {
@@ -402,7 +407,9 @@ export class App {
     try {
       const events: PeerEvents = {
         onConnected: () => {
-          this.transition('connected');
+          if (this.state !== 'connected') {
+            this.transition('connected');
+          }
         },
         onDisconnected: () => {
           this.errorMessage = 'Peer disconnected.';
@@ -437,7 +444,9 @@ export class App {
 
       const events: PeerEvents = {
         onConnected: () => {
-          this.transition('connected');
+          if (this.state !== 'connected') {
+            this.transition('connected');
+          }
         },
         onDisconnected: () => {
           this.errorMessage = 'Peer disconnected.';

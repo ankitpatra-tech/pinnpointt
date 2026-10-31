@@ -39,6 +39,8 @@ interface SignalingMessage {
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
 ];
 
 const DATA_CHANNEL_LABEL = 'pinnpointt-transfer';
@@ -186,7 +188,20 @@ export class PeerManager {
     const ws = new WebSocket(this.signalingUrl);
     this.ws = ws;
 
+    let isConnected = false;
+    const connectTimeoutTimer = setTimeout(() => {
+      if (!isConnected && ws.readyState !== WebSocket.OPEN) {
+        console.warn(`[PeerConnection] WebSocket connection timed out after 12s`);
+        try { ws.close(); } catch {}
+        const err = new Error('Signaling server connection timed out. Please check your network connection.');
+        this.events.onError?.(err);
+        onFail(err);
+      }
+    }, 12_000);
+
     ws.addEventListener('open', () => {
+      isConnected = true;
+      clearTimeout(connectTimeoutTimer);
       console.log(`[PeerConnection] WebSocket open`);
       // Start client heartbeat ping every 20 seconds to keep connection active
       if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
@@ -212,6 +227,7 @@ export class PeerManager {
     });
 
     ws.addEventListener('close', () => {
+      clearTimeout(connectTimeoutTimer);
       console.log(`[PeerConnection] WebSocket closed`);
       if (this.heartbeatTimer) {
         clearInterval(this.heartbeatTimer);
@@ -229,6 +245,7 @@ export class PeerManager {
     });
 
     ws.addEventListener('error', (e) => {
+      clearTimeout(connectTimeoutTimer);
       console.warn(`[PeerConnection] WebSocket error`, e);
       // CRITICAL: If WebRTC DataChannel is already connected directly peer-to-peer,
       // a signaling socket error must NOT abort the active transfer!
@@ -314,7 +331,10 @@ export class PeerManager {
   // -----------------------------------------------------------------------
 
   private createPeerConnection(): RTCPeerConnection {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({
+      iceServers: ICE_SERVERS,
+      iceCandidatePoolSize: 2,
+    });
 
     pc.addEventListener('icecandidate', (event) => {
       if (event.candidate) {
@@ -329,7 +349,9 @@ export class PeerManager {
             clearTimeout(this.disconnectGraceTimer);
             this.disconnectGraceTimer = null;
           }
-          this.events.onConnected?.();
+          if (this.dataChannel && this.dataChannel.readyState === 'open') {
+            this.events.onConnected?.();
+          }
           break;
         case 'disconnected':
           // Disconnected is transient in WebRTC during heavy bandwidth saturation or ICE re-checks.
@@ -394,10 +416,10 @@ export class PeerManager {
 
     await pc.setRemoteDescription({ type: 'offer', sdp });
     this.remoteDescriptionSet = true;
-    this.flushPendingCandidates();
 
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+    this.flushPendingCandidates();
 
     this.send({ type: 'answer', sdp: pc.localDescription!.sdp });
   }
@@ -415,7 +437,7 @@ export class PeerManager {
   // -----------------------------------------------------------------------
 
   private addIceCandidate(candidate: RTCIceCandidateInit): void {
-    if (!this.pc || !this.remoteDescriptionSet) {
+    if (!this.pc || !this.remoteDescriptionSet || (this.role === 'answerer' && !this.pc.localDescription)) {
       this.pendingCandidates.push(candidate);
       return;
     }
