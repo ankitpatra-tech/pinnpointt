@@ -560,8 +560,8 @@ async function run(): Promise<void> {
     await pageSender.evaluate(() => {
       const inp = document.querySelector('.chat-input') as HTMLInputElement;
       inp.value = 'Greetings from the Bauhaus host!';
-      const sendBtn = document.querySelectorAll('.chat-input-row button')[1] as HTMLElement;
-      sendBtn.click();
+      const sendBtn = document.querySelector('.chat-send-btn') as HTMLElement;
+      sendBtn?.click();
     });
 
     // Bob receives chat message
@@ -575,8 +575,8 @@ async function run(): Promise<void> {
     await pageReceiver.evaluate(() => {
       const inp = document.querySelector('.chat-input') as HTMLInputElement;
       inp.value = 'Acknowledged. Ready for binary payload transfer.';
-      const sendBtn = document.querySelectorAll('.chat-input-row button')[1] as HTMLElement;
-      sendBtn.click();
+      const sendBtn = document.querySelector('.chat-send-btn') as HTMLElement;
+      sendBtn?.click();
     });
 
     // Alice receives reply
@@ -612,18 +612,92 @@ async function run(): Promise<void> {
     }
     console.log('✓ Receiver download button confirmed ready in activity stream.');
 
+    // 9. Test P2P Virtual Drive (Live Remote Mount & Byte-Slice Preview)
+    console.log('Step F: Testing P2P Virtual Drive (Live Remote Mount & Byte-Slice Preview)...');
+    const VFS_TEST_PATH = path.resolve('test/vfs-sample.md');
+    fs.writeFileSync(VFS_TEST_PATH, '# Virtual Drive Specification\n\nLive on-demand byte-slice preview and selective pull.\n');
+
+    // Alice switches to Virtual Drive tab and mounts vfs-sample.md
+    console.log('Alice mounting file to Virtual Drive...');
+    await pageSender.evaluate(() => {
+      const driveTab = Array.from(document.querySelectorAll('.workspace-tab-btn')).find((b) => b.textContent?.includes('Virtual Drive')) as HTMLElement;
+      driveTab?.click();
+    });
+
+    const vfsFileInput = await pageSender.$('.vfs-mount-actions input[type="file"]');
+    if (!vfsFileInput) throw new Error('VFS file input not found');
+    await vfsFileInput.uploadFile(VFS_TEST_PATH);
+
+    // Verify Alice sees local mounted card
+    await pageSender.waitForSelector('.vfs-local-badge');
+    console.log('✓ Alice successfully mounted local file in Virtual Drive.');
+
+    // Bob switches to Virtual Drive tab and sees remote mounted table
+    console.log('Bob switching to Virtual Drive tab to inspect remote mount...');
+    await pageReceiver.evaluate(() => {
+      const driveTab = Array.from(document.querySelectorAll('.workspace-tab-btn')).find((b) => b.textContent?.includes('Virtual Drive')) as HTMLElement;
+      driveTab?.click();
+    });
+
+    await pageReceiver.waitForSelector('.vfs-table');
+    const tableText = await pageReceiver.$eval('.vfs-table', (el) => el.textContent || '');
+    if (!tableText.includes('vfs-sample.md')) {
+      throw new Error(`Remote Virtual Drive table missing vfs-sample.md: ${tableText}`);
+    }
+    console.log('✓ Bob sees Alice\'s mounted vfs-sample.md in remote drive table.');
+
+    // Bob clicks [Preview] button to request byte slice
+    console.log('Bob requesting live byte slice preview...');
+    const previewBtn = await pageReceiver.$('.vfs-btn-preview');
+    if (!previewBtn) throw new Error('Preview button not found in remote VFS table');
+    await previewBtn.click();
+
+    // Verify preview modal opens and renders sliced content
+    await pageReceiver.waitForSelector('.vfs-preview-modal', { timeout: 10000 });
+    await pageReceiver.waitForFunction(
+      () => document.querySelector('.vfs-preview-code')?.textContent?.includes('Virtual Drive Specification'),
+      { timeout: 10000 }
+    );
+    console.log('✓ On-demand byte-slice preview verified in modal (zero local disk allocation)!');
+
+    // Bob clicks [Pull Full File] in preview modal
+    console.log('Bob pulling full file from preview modal...');
+    const pullModalBtn = await pageReceiver.$('.vfs-preview-footer .btn-primary');
+    if (!pullModalBtn) throw new Error('Pull button in preview modal not found');
+    await pullModalBtn.click();
+
+    // Verify Bob received the pulled file in activity stream and verified
+    await pageReceiver.waitForFunction(
+      () => {
+        const files = Array.from(document.querySelectorAll('.feed-file'));
+        const target = files.find((f) => f.textContent?.includes('vfs-sample.md'));
+        return target && target.querySelector('.feed-file-verified') !== null;
+      },
+      { timeout: 20000 }
+    );
+    console.log('✓ On-demand selective file pull completed and verified!');
+
+    if (fs.existsSync(VFS_TEST_PATH)) fs.unlinkSync(VFS_TEST_PATH);
+
     console.log('\n======================================================');
     console.log('✓ ALL TESTS PASSED:');
     console.log('  1. Custom usernames successfully set & exchanged.');
     console.log('  2. Bi-directional real-time chat over DataChannel.');
     console.log('  3. 10 MB binary streaming with 100% SHA-256 verification.');
     console.log('  4. Single-canvas feed displays chat & files seamlessly.');
+    console.log('  5. P2P Virtual Drive live remote mount & table explorer.');
+    console.log('  6. On-demand byte-slice preview (zero local disk storage).');
+    console.log('  7. Selective on-demand file pull via WebRTC stream.');
     console.log('======================================================\n');
   } finally {
     if (browser) await browser.close();
     await viteServer.close();
     wss.close();
     if (fs.existsSync(TEST_FILE_PATH)) fs.unlinkSync(TEST_FILE_PATH);
+    const vfsCleanup = path.resolve('test/vfs-sample.md');
+    if (fs.existsSync(vfsCleanup)) {
+      try { fs.unlinkSync(vfsCleanup); } catch {}
+    }
     if (fs.existsSync(profileDir)) {
       try {
         fs.rmSync(profileDir, { recursive: true, force: true });

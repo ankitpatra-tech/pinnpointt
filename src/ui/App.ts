@@ -43,6 +43,11 @@ import {
 import { computeSHA256 } from '../lib/crypto';
 import { getSavedUsername, saveUsername } from '../lib/username';
 import { wakeLock } from '../lib/wakeLock';
+import {
+  VirtualDriveManager,
+  type VfsFileEntry,
+} from '../lib/webrtc/virtualDrive';
+import { openVfsPreviewModal } from './vfsPreviewModal';
 
 type AppState =
   | 'idle'
@@ -88,6 +93,7 @@ export class App {
   private dcKeepaliveTimer: ReturnType<typeof setInterval> | null = null;
   private wakeLockUnsub: (() => void) | null = null;
   private pendingFileCleanups: Array<() => Promise<void>> = [];
+  private virtualDrive: VirtualDriveManager | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -282,10 +288,38 @@ export class App {
     setTimeout(() => {
       this.workspace?.addChatMessage({
         sender: this.peerUsername,
-        text: `Hello ${this.myUsername}! Welcome to PinnPointt. Send a message to test live chat, or attach and drop files below to preview secure, direct streaming with instant verification.`,
+        text: `Hello ${this.myUsername}! Welcome to PinnPointt. Send a message to test live chat, or click the "Virtual Drive" tab above to explore remote files and test on-demand slice previews.`,
         timestamp: Date.now(),
         isMine: false,
       });
+
+      // Populate sample remote drive files in demo mode
+      this.workspace?.setRemoteVfsEntries([
+        {
+          id: 'demo_f1',
+          name: 'project_architecture.md',
+          relativePath: 'docs/project_architecture.md',
+          size: 4096,
+          mimeType: 'text/markdown',
+          lastModified: Date.now() - 3600000,
+        },
+        {
+          id: 'demo_f2',
+          name: 'pinnpointt_brand_spec.svg',
+          relativePath: 'assets/pinnpointt_brand_spec.svg',
+          size: 16384,
+          mimeType: 'image/svg+xml',
+          lastModified: Date.now() - 7200000,
+        },
+        {
+          id: 'demo_f3',
+          name: 'performance_benchmarks.csv',
+          relativePath: 'reports/performance_benchmarks.csv',
+          size: 102400,
+          mimeType: 'text/csv',
+          lastModified: Date.now() - 10800000,
+        },
+      ]);
     }, 150);
   }
 
@@ -373,6 +407,81 @@ export class App {
       {
         onSendMessage: (text: string) => this.handleSendChatMessage(text),
         onFilesSelected: (files: FileList) => this.handleSendFiles(files),
+        onMountFiles: (files: FileList | File[]) => {
+          if (this.virtualDrive) {
+            const mounted = this.virtualDrive.mountLocalFiles(files);
+            this.workspace?.setLocalVfsEntries(mounted);
+            this.workspace?.addSystemNotice(`Mounted ${mounted.length} file(s) to Virtual Drive for peer`);
+          } else if (this.isPreviewMode) {
+            const entries: VfsFileEntry[] = [];
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              entries.push({
+                id: `demo_${i}`,
+                name: file.name,
+                relativePath: (file as unknown as { webkitRelativePath?: string }).webkitRelativePath || file.name,
+                size: file.size,
+                mimeType: file.type || 'application/octet-stream',
+                lastModified: file.lastModified || Date.now(),
+              });
+            }
+            this.workspace?.setLocalVfsEntries(entries);
+            this.workspace?.addSystemNotice(`Demo: Mounted ${entries.length} file(s) to Virtual Drive`);
+          }
+        },
+        onUnmountDrive: () => {
+          if (this.virtualDrive) {
+            this.virtualDrive.unmountLocal();
+            this.workspace?.setLocalVfsEntries([]);
+            this.workspace?.addSystemNotice(`Unmounted local Virtual Drive`);
+          } else if (this.isPreviewMode) {
+            this.workspace?.setLocalVfsEntries([]);
+            this.workspace?.addSystemNotice(`Demo: Unmounted Virtual Drive`);
+          }
+        },
+        onPullRemoteFile: (fileId: string) => {
+          if (this.virtualDrive) {
+            this.virtualDrive.pullRemoteFile(fileId);
+            this.workspace?.addSystemNotice(`Requesting remote peer to stream file...`);
+            this.workspace?.switchTab('activity');
+          } else if (this.isPreviewMode) {
+            this.workspace?.addSystemNotice(`Demo: Pulled remote file (${fileId})`);
+            this.workspace?.switchTab('activity');
+          }
+        },
+        onPreviewRemoteFile: (entry: VfsFileEntry) => {
+          if (this.virtualDrive) {
+            const slicePromise = this.virtualDrive.requestSlice(entry.id, 0, 512 * 1024);
+            openVfsPreviewModal({
+              entry,
+              slicePromise,
+              onPullFile: (id) => {
+                this.virtualDrive?.pullRemoteFile(id);
+                this.workspace?.addSystemNotice(`Requesting remote peer to stream file "${entry.name}"...`);
+                this.workspace?.switchTab('activity');
+              },
+            });
+          } else if (this.isPreviewMode) {
+            const sampleText = `# PinnPointt Virtual Drive Preview\n\nLive on-demand byte slice streamed directly from peer memory with ZERO local disk allocation.\n\nFile Name: ${entry.name}\nPath:      ${entry.relativePath}\nMIME:      ${entry.mimeType}\nSize:      ${entry.size} bytes\n`;
+            const mockSlice = Promise.resolve({
+              fileId: entry.id,
+              offset: 0,
+              length: Math.min(entry.size, 1024),
+              totalSize: entry.size,
+              mimeType: entry.mimeType,
+              dataBase64: btoa(sampleText),
+              text: sampleText,
+            });
+            openVfsPreviewModal({
+              entry,
+              slicePromise: mockSlice,
+              onPullFile: () => {
+                this.workspace?.addSystemNotice(`Demo: Requested pull of file "${entry.name}"`);
+                this.workspace?.switchTab('activity');
+              },
+            });
+          }
+        },
         onDisconnect: () => {
           this.cleanup();
           this.transition('idle');
@@ -493,6 +602,32 @@ export class App {
     // Keep screen awake while direct peer connection is active
     void wakeLock.acquire('webrtc');
 
+    // Initialize Virtual Drive Manager for on-demand pull and byte-slice previews
+    this.virtualDrive = new VirtualDriveManager(
+      (data) => this.sendJSON(data),
+      {
+        onRemoteManifestUpdated: (files: VfsFileEntry[]) => {
+          this.workspace?.setRemoteVfsEntries(files);
+          this.workspace?.addSystemNotice(
+            files.length > 0
+              ? `${this.peerUsername} mounted ${files.length} item(s) in Virtual Drive`
+              : `${this.peerUsername} unmounted their Virtual Drive`
+          );
+        },
+        onRemoteUnmounted: () => {
+          this.workspace?.setRemoteVfsEntries([]);
+          this.workspace?.addSystemNotice(`${this.peerUsername} unmounted their Virtual Drive`);
+        },
+        onFilePullRequested: (file: File) => {
+          this.workspace?.addSystemNotice(`${this.peerUsername} requested on-demand pull of "${file.name}"`);
+          void this.handleSendSingleFile(file);
+        },
+        onNotice: (text: string) => {
+          this.workspace?.addSystemNotice(text);
+        },
+      }
+    );
+
     // 1. Send peer introduction with our username
     this.sendJSON({
       type: 'peer-intro',
@@ -505,6 +640,11 @@ export class App {
 
       try {
         const msg = JSON.parse(event.data) as Record<string, unknown>;
+
+        // Route Virtual Drive (Live Remote Mount) messages
+        if (this.virtualDrive?.handleMessage(msg)) {
+          return;
+        }
 
         if (msg.type === 'peer-intro') {
           const peerName = String(msg.username || 'Peer');
@@ -690,6 +830,28 @@ export class App {
     }
   }
 
+  private async handleSendSingleFile(file: File): Promise<void> {
+    if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
+
+    const card = this.workspace?.addFileTransfer({
+      fileName: file.name,
+      fileSize: file.size,
+      isMine: true,
+    });
+
+    void wakeLock.acquire('transfer');
+    try {
+      const result = await sendFile(this.dataChannel, file, (progress: TransferProgress) => {
+        card?.updateProgress(progress);
+      });
+      card?.complete({ sha256: result.sha256 });
+    } catch (err) {
+      card?.fail(err instanceof Error ? err.message : 'Send failed');
+    } finally {
+      void wakeLock.release('transfer');
+    }
+  }
+
   private listenForIncomingFiles(channel: RTCDataChannel): void {
     const listenNext = () => {
       if (channel.readyState !== 'open') return;
@@ -796,5 +958,9 @@ export class App {
     this.roomCode = '';
     this.isSendingFile = false;
     this.isPreviewMode = false;
+    if (this.virtualDrive) {
+      this.virtualDrive.cleanup();
+      this.virtualDrive = null;
+    }
   }
 }

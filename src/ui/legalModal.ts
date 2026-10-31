@@ -251,8 +251,22 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.55-beta</span>
+            <span class="changelog-version">v0.0.56-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>P2P Virtual Drive (Live Remote Mount):</strong> Senders can mount files or entire folder trees (<code>webkitdirectory</code>) as a browsable Virtual Drive without pushing gigabytes over the wire upfront. Senders transmit a lightweight JSON manifest (<code>VFS_MANIFEST</code>).</li>
+            <li><strong>Interactive Remote Explorer Table:</strong> Receivers explore remote directory structures with file names, relative paths, types, and exact sizes rendered with jitter-free tabular numbers.</li>
+            <li><strong>On-Demand Byte-Slice Previewing:</strong> Instant ephemeral modal preview for images, markdown/text, JSON, code, audio, and video via <code>VFS_SLICE_REQ</code> / <code>VFS_SLICE_RES</code> byte slicing from peer disk with zero permanent storage on receiver device.</li>
+            <li><strong>Selective On-Demand File Pulling:</strong> Receivers click [Pull File] to stream individual files on demand over the high-speed chunk streamer without needing a full bulk push.</li>
+            <li><strong>Seamless Mode Switching:</strong> Integrated dual-mode toggle ("Push Immediately" vs "Mount as Virtual Drive") into file drop zones and the workspace input row.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.55-beta</span>
+            <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Screen WakeLock Manager:</strong> Automatically keeps screen awake on mobile and desktop browsers during active peer connections and large file transfers via <code>navigator.wakeLock</code>, re-acquiring on visibility change and displaying a subtle "Screen Awake Active" status indicator.</li>
@@ -552,7 +566,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.55-beta\n` +
+            `App Version:   v0.0.56-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

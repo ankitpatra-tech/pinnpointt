@@ -4,6 +4,7 @@ import type { TransferProgress } from '../lib/webrtc/BinaryStreamer';
 import type { ThemeMode } from './theme';
 import { openDocModal, type DocTab } from './legalModal';
 import { inspectFileSafety } from '../lib/safety';
+import { type VfsFileEntry, isPreviewable } from '../lib/webrtc/virtualDrive';
 
 // ─── Helpers ────────────────────────────────────────
 
@@ -207,8 +208,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version',
-    textContent: 'v0.0.55-beta',
-    title: 'PinnPointt Version 0.0.55 Beta',
+    textContent: 'v0.0.56-beta',
+    title: 'PinnPointt Version 0.0.56 Beta',
   });
   meta.append(subtitle, version);
 
@@ -639,6 +640,10 @@ export function createJoinInputWithBack(onSubmit: (code: string) => void): JoinI
 export interface WorkspaceCallbacks {
   onSendMessage: (text: string) => void;
   onFilesSelected: (files: FileList) => void;
+  onMountFiles?: (files: FileList | File[]) => void;
+  onUnmountDrive?: () => void;
+  onPullRemoteFile?: (fileId: string) => void;
+  onPreviewRemoteFile?: (file: VfsFileEntry) => void;
   onDisconnect: () => void;
 }
 
@@ -655,6 +660,154 @@ export interface WorkspaceController {
   addSystemNotice: (text: string) => void;
   addChatMessage: (msg: { sender: string; text: string; timestamp: number; isMine: boolean }) => void;
   addFileTransfer: (opts: { fileName: string; fileSize: number; isMine: boolean }) => FileCardController;
+  setLocalVfsEntries: (entries: VfsFileEntry[]) => void;
+  setRemoteVfsEntries: (entries: VfsFileEntry[]) => void;
+  switchTab: (tab: 'activity' | 'drive') => void;
+}
+
+function inferShortType(mime: string, name: string): string {
+  const ext = name.toLowerCase().split('.').pop() || '';
+  if (mime.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return 'IMAGE';
+  if (mime.startsWith('video/') || ['mp4', 'webm', 'mov', 'mkv'].includes(ext)) return 'VIDEO';
+  if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'AUDIO';
+  if (mime === 'application/pdf' || ext === 'pdf') return 'PDF';
+  if (mime.includes('markdown') || ext === 'md') return 'MD';
+  if (mime.includes('json') || ext === 'json') return 'JSON';
+  if (mime.includes('csv') || ext === 'csv') return 'CSV';
+  if (['js', 'ts', 'jsx', 'tsx', 'py', 'rs', 'go', 'c', 'cpp', 'html', 'css'].includes(ext)) return ext.toUpperCase();
+  if (mime.startsWith('text/') || ext === 'txt') return 'TEXT';
+  if (['zip', 'tar', 'gz', '7z', 'rar'].includes(ext)) return 'ARCHIVE';
+  return ext ? ext.toUpperCase() : 'FILE';
+}
+
+function renderLocalVfsView(
+  container: HTMLElement,
+  entries: VfsFileEntry[],
+  onUnmount?: () => void,
+): void {
+  container.innerHTML = '';
+
+  if (entries.length === 0) {
+    const hint = el('div', {
+      className: 'vfs-local-empty mono text-xs muted',
+      textContent: 'No local files mounted. Use "Mount Files" or "Mount Folder" to share a virtual drive with your peer.',
+    });
+    container.append(hint);
+    return;
+  }
+
+  const totalBytes = entries.reduce((acc, f) => acc + f.size, 0);
+
+  const card = el('div', { className: 'vfs-local-card' });
+
+  const head = el('div', { className: 'row-between mb-xs' });
+  const badge = el('div', { className: 'vfs-local-badge mono text-xs' });
+  badge.innerHTML = `<span class="vfs-local-dot"></span> <span class="tabular-nums font-semibold">${entries.length} items live mounted (${formatBytes(totalBytes)})</span>`;
+
+  const unmountBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-ghost btn-xs',
+    textContent: '✕ Unmount All',
+  });
+  unmountBtn.addEventListener('click', () => onUnmount?.());
+  head.append(badge, unmountBtn);
+
+  const note = el('div', {
+    className: 'text-xs muted',
+    textContent: 'Live remote mount active. Remote peer can explore folders, preview slices, or pull items on demand.',
+  });
+
+  card.append(head, note);
+  container.append(card);
+}
+
+function renderRemoteVfsView(
+  container: HTMLElement,
+  entries: VfsFileEntry[],
+  peerName: string,
+  onPreview?: (f: VfsFileEntry) => void,
+  onPull?: (fileId: string) => void,
+): void {
+  container.innerHTML = '';
+
+  if (entries.length === 0) {
+    const empty = el('div', { className: 'vfs-empty-card' });
+    empty.innerHTML = `
+      <div class="vfs-empty-icon">💽</div>
+      <div class="vfs-empty-title font-semibold">No Remote Drive Mounted</div>
+      <div class="vfs-empty-desc text-xs muted">When ${peerName} mounts files or folders in Virtual Drive mode, you can explore them and selectively preview or pull items here.</div>
+    `;
+    container.append(empty);
+    return;
+  }
+
+  const totalBytes = entries.reduce((acc, f) => acc + f.size, 0);
+
+  const sectionHead = el('div', { className: 'row-between vfs-section-head' });
+  const title = el('div', { className: 'vfs-section-title font-semibold text-sm', textContent: `Remote Mounted Files (from ${peerName})` });
+  const stats = el('div', { className: 'mono text-xs muted tabular-nums', textContent: `${entries.length} items • ${formatBytes(totalBytes)}` });
+  sectionHead.append(title, stats);
+
+  const tableWrap = el('div', { className: 'vfs-table-wrap' });
+  const table = el('table', { className: 'vfs-table' });
+
+  const thead = el('thead');
+  thead.innerHTML = `
+    <tr>
+      <th>File / Relative Path</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th style="text-align: right;">Action</th>
+    </tr>
+  `;
+
+  const tbody = el('tbody');
+
+  for (const f of entries) {
+    const tr = el('tr');
+
+    // File name and relative path
+    const tdName = el('td');
+    const nameEl = el('div', { className: 'vfs-table-filename font-semibold', textContent: f.name });
+    const pathEl = el('div', { className: 'vfs-table-path mono text-xs muted', textContent: f.relativePath });
+    tdName.append(nameEl, pathEl);
+
+    // Type badge
+    const tdType = el('td');
+    const typeBadge = el('span', { className: 'vfs-type-tag mono text-xs', textContent: inferShortType(f.mimeType, f.name) });
+    tdType.append(typeBadge);
+
+    // Size
+    const tdSize = el('td', { className: 'mono text-xs tabular-nums', textContent: formatBytes(f.size) });
+
+    // Action buttons
+    const tdAction = el('td', { className: 'vfs-action-cell', style: 'text-align: right;' });
+    if (isPreviewable(f.mimeType, f.name)) {
+      const prevBtn = el('button', {
+        type: 'button',
+        className: 'btn btn-secondary btn-xs vfs-btn-preview mr-xs',
+        textContent: 'Preview',
+      });
+      prevBtn.style.marginRight = '6px';
+      prevBtn.addEventListener('click', () => onPreview?.(f));
+      tdAction.append(prevBtn);
+    }
+
+    const pullBtn = el('button', {
+      type: 'button',
+      className: 'btn btn-primary btn-xs vfs-btn-pull',
+      textContent: 'Pull File',
+    });
+    pullBtn.addEventListener('click', () => onPull?.(f.id));
+    tdAction.append(pullBtn);
+
+    tr.append(tdName, tdType, tdSize, tdAction);
+    tbody.append(tr);
+  }
+
+  table.append(thead, tbody);
+  tableWrap.append(table);
+  container.append(sectionHead, tableWrap);
 }
 
 export function createConnectedWorkspace(
@@ -705,8 +858,57 @@ export function createConnectedWorkspace(
 
   header.append(peerBadge, e2eBadge, wakeLockBadge, disconnectBtn);
 
-  // 2. Chat & File Activity Feed
+  // 2. Workspace Navigation Tabs
+  const tabRow = el('div', { className: 'workspace-tab-row' });
+  const activityTabBtn = el('button', {
+    type: 'button',
+    className: 'workspace-tab-btn active',
+    textContent: 'Activity & Feed',
+  });
+  const driveTabBtn = el('button', {
+    type: 'button',
+    className: 'workspace-tab-btn',
+  });
+  const driveTabTitle = el('span', {}, 'Virtual Drive ');
+  const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums' });
+  driveTabBadge.style.display = 'none';
+  driveTabBtn.append(driveTabTitle, driveTabBadge);
+  tabRow.append(activityTabBtn, driveTabBtn);
+
+  // Panels
+  const activityPanel = el('div', { className: 'workspace-panel activity-panel' });
+  const drivePanel = el('div', { className: 'workspace-panel drive-panel stack stack-md' });
+  drivePanel.style.display = 'none';
+
+  function switchTab(tab: 'activity' | 'drive') {
+    if (tab === 'activity') {
+      activityTabBtn.classList.add('active');
+      driveTabBtn.classList.remove('active');
+      activityPanel.style.display = 'block';
+      drivePanel.style.display = 'none';
+    } else {
+      driveTabBtn.classList.add('active');
+      activityTabBtn.classList.remove('active');
+      activityPanel.style.display = 'none';
+      drivePanel.style.display = 'block';
+    }
+  }
+
+  activityTabBtn.addEventListener('click', () => switchTab('activity'));
+  driveTabBtn.addEventListener('click', () => switchTab('drive'));
+
+  // 3. Chat & File Activity Feed
   const feed = el('div', { className: 'chat-feed' });
+
+  let isMountMode = false;
+  const handleIncomingFiles = (files: FileList) => {
+    if (isMountMode) {
+      callbacks.onMountFiles?.(files);
+      switchTab('drive');
+    } else {
+      callbacks.onFilesSelected(files);
+    }
+  };
 
   // Drag & drop directly onto feed
   feed.addEventListener('dragover', (e: DragEvent) => {
@@ -720,7 +922,7 @@ export function createConnectedWorkspace(
     e.preventDefault();
     feed.classList.remove('dragover');
     if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-      callbacks.onFilesSelected(e.dataTransfer.files);
+      handleIncomingFiles(e.dataTransfer.files);
     }
   });
 
@@ -730,7 +932,7 @@ export function createConnectedWorkspace(
     });
   };
 
-  // 3. Input Row
+  // 4. Input Row
   const inputRow = el('div', { className: 'chat-input-row' });
 
   // File attach button
@@ -742,7 +944,7 @@ export function createConnectedWorkspace(
 
   fileInput.addEventListener('change', () => {
     if (fileInput.files && fileInput.files.length > 0) {
-      callbacks.onFilesSelected(fileInput.files);
+      handleIncomingFiles(fileInput.files);
       fileInput.value = ''; // reset so same file can be selected again
     }
   });
@@ -754,6 +956,26 @@ export function createConnectedWorkspace(
   });
   attachBtn.innerHTML = `<span>📎</span> <span class="attach-label">File</span>`;
   attachBtn.addEventListener('click', () => fileInput.click());
+
+  // Mode Toggle Button: Push Immediately vs Mount to Virtual Drive
+  const modeBtn = el('button', {
+    type: 'button',
+    className: 'btn-mode-toggle push-active',
+    title: 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.',
+  });
+  modeBtn.innerHTML = `<span>⚡</span> <span class="mode-label">Push</span>`;
+  modeBtn.addEventListener('click', () => {
+    isMountMode = !isMountMode;
+    if (isMountMode) {
+      modeBtn.className = 'btn-mode-toggle mount-active';
+      modeBtn.innerHTML = `<span>💽</span> <span class="mode-label">Mount</span>`;
+      modeBtn.title = 'Mode: Mount as Virtual Drive. Click to toggle Push Immediately.';
+    } else {
+      modeBtn.className = 'btn-mode-toggle push-active';
+      modeBtn.innerHTML = `<span>⚡</span> <span class="mode-label">Push</span>`;
+      modeBtn.title = 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.';
+    }
+  });
 
   // Message text input
   const textInput = el('input', {
@@ -787,17 +1009,117 @@ export function createConnectedWorkspace(
     }
   });
 
-  inputRow.append(fileInput, attachBtn, textInput, sendBtn);
-  container.append(header, feed, inputRow);
+  inputRow.append(fileInput, attachBtn, modeBtn, textInput, sendBtn);
+  activityPanel.append(feed, inputRow);
+
+  // 5. Virtual Drive Panel Layout
+  const driveTopBar = el('div', { className: 'vfs-top-bar row-between' });
+  const driveBarLeft = el('div');
+  const driveBarTitle = el('div', { className: 'vfs-top-title font-semibold text-sm', textContent: 'Virtual Drive / Live Remote Mount' });
+  const driveBarSub = el('div', { className: 'text-xs muted', textContent: 'Mount local files or folders for peer browsing, slice previews, and on-demand pull.' });
+  driveBarLeft.append(driveBarTitle, driveBarSub);
+
+  const vfsFileInput = el('input', {
+    type: 'file',
+    multiple: '',
+    style: 'display: none;',
+  }) as HTMLInputElement;
+
+  const vfsFolderInput = el('input', {
+    type: 'file',
+    multiple: '',
+    style: 'display: none;',
+  }) as HTMLInputElement;
+  vfsFolderInput.setAttribute('webkitdirectory', '');
+  vfsFolderInput.setAttribute('directory', '');
+
+  vfsFileInput.addEventListener('change', () => {
+    if (vfsFileInput.files && vfsFileInput.files.length > 0) {
+      callbacks.onMountFiles?.(vfsFileInput.files);
+      vfsFileInput.value = '';
+    }
+  });
+
+  vfsFolderInput.addEventListener('change', () => {
+    if (vfsFolderInput.files && vfsFolderInput.files.length > 0) {
+      callbacks.onMountFiles?.(vfsFolderInput.files);
+      vfsFolderInput.value = '';
+    }
+  });
+
+  const mountActions = el('div', { className: 'vfs-mount-actions' });
+  const mountFilesBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-secondary btn-sm',
+  });
+  mountFilesBtn.innerHTML = `<span>📄</span> <span>Mount Files</span>`;
+  mountFilesBtn.addEventListener('click', () => vfsFileInput.click());
+
+  const mountFolderBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-secondary btn-sm',
+  });
+  mountFolderBtn.innerHTML = `<span>📁</span> <span>Mount Folder</span>`;
+  mountFolderBtn.addEventListener('click', () => vfsFolderInput.click());
+
+  mountActions.append(vfsFileInput, vfsFolderInput, mountFilesBtn, mountFolderBtn);
+  driveTopBar.append(driveBarLeft, mountActions);
+
+  const localVfsContainer = el('div', { className: 'vfs-local-container' });
+  const remoteVfsContainer = el('div', { className: 'vfs-remote-container' });
+
+  drivePanel.append(driveTopBar, localVfsContainer, remoteVfsContainer);
+
+  container.append(header, tabRow, activityPanel, drivePanel);
+
+  let localVfsList: VfsFileEntry[] = [];
+  let remoteVfsList: VfsFileEntry[] = [];
+  let currentPeerName = initialPeerName;
+
+  function updateLocalView() {
+    renderLocalVfsView(localVfsContainer, localVfsList, callbacks.onUnmountDrive);
+  }
+
+  function updateRemoteView() {
+    renderRemoteVfsView(
+      remoteVfsContainer,
+      remoteVfsList,
+      currentPeerName,
+      callbacks.onPreviewRemoteFile,
+      callbacks.onPullRemoteFile,
+    );
+    if (remoteVfsList.length > 0) {
+      driveTabBadge.textContent = String(remoteVfsList.length);
+      driveTabBadge.style.display = 'inline-flex';
+    } else {
+      driveTabBadge.style.display = 'none';
+    }
+  }
+
+  updateLocalView();
+  updateRemoteView();
 
   return {
     element: container,
     setPeerName(name: string, role: string) {
+      currentPeerName = name;
       peerNameEl.textContent = name;
       roleEl.textContent = `(${role})`;
+      updateRemoteView();
     },
     setWakeLockActive(active: boolean) {
       wakeLockBadge.style.display = active ? 'inline-flex' : 'none';
+    },
+    setLocalVfsEntries(entries: VfsFileEntry[]) {
+      localVfsList = entries;
+      updateLocalView();
+    },
+    setRemoteVfsEntries(entries: VfsFileEntry[]) {
+      remoteVfsList = entries;
+      updateRemoteView();
+    },
+    switchTab(tab: 'activity' | 'drive') {
+      switchTab(tab);
     },
     addSystemNotice(text: string) {
       const notice = el('div', { className: 'system-notice', textContent: text });
