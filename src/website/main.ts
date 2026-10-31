@@ -176,8 +176,31 @@ function setupThreatSandbox(): void {
       reason.textContent = data.reason;
       hash.textContent = data.hash;
       policy.textContent = data.policy;
+
+      const outputBox = document.getElementById('sandbox-output');
+      if (outputBox) {
+        outputBox.classList.remove('sandbox-animate');
+        void outputBox.offsetWidth; // trigger reflow
+        outputBox.classList.add('sandbox-animate');
+      }
     });
   });
+}
+
+function setupNavbarScroll(): void {
+  const navbar = document.querySelector('.site-navbar');
+  if (!navbar) return;
+
+  const onScroll = () => {
+    if (window.scrollY > 15) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }
 
 function setupMobileMenu(): void {
@@ -220,7 +243,7 @@ function setupMobileMenu(): void {
 
   // Close when expanding to desktop viewport
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 1024) {
+    if (window.innerWidth > 1060) {
       toggleMenu(false);
     }
   });
@@ -232,5 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPWAInstallation();
   setupModalTriggers();
   setupThreatSandbox();
+  setupNavbarScroll();
   setupMobileMenu();
 });
