@@ -1,13 +1,14 @@
 /**
  * Interactive Onboarding & Welcome Modal for PinnPointt.
- * Guides users through 3 simple steps:
- * 1. Setting a friendly name
- * 2. Pairing via 6-digit code or QR scan
+ * Swiss Architectural Daylight Guide:
+ * 1. Set display name
+ * 2. Pair via 6-digit code or QR scan
  * 3. Direct P2P transfer & End-to-End Encrypted chat (WebRTC DTLS)
  */
 
+import { iconZap, iconX } from './icons';
+
 export function openOnboardingModal(onStart?: () => void): void {
-  // Prevent duplicate modals
   if (document.getElementById('pinnpointt-onboarding-modal')) return;
 
   const overlay = document.createElement('div');
@@ -21,10 +22,10 @@ export function openOnboardingModal(onStart?: () => void): void {
 
   modal.innerHTML = `
     <div class="onboarding-modal-header">
-      <div class="onboarding-modal-badge">Welcome to PinnPointt</div>
-      <h2 id="onboarding-title" class="onboarding-modal-title">Fast, Private & Direct Device-to-Device Sharing</h2>
+      <div class="onboarding-modal-badge mono text-xs">PROTOCOL v0.1 • ZERO CLOUD</div>
+      <h2 id="onboarding-title" class="onboarding-modal-title">Fast, Private &amp; Direct Device-to-Device Sharing</h2>
       <p class="onboarding-modal-sub">Everything streams direct peer-to-peer. No cloud storage, no account needed, and no file size limits.</p>
-      <button class="onboarding-close-btn" type="button" aria-label="Close guide">&times;</button>
+      <button class="onboarding-close-btn" type="button" aria-label="Close guide">${iconX({ size: 16 })}</button>
     </div>
 
     <div class="onboarding-modal-steps">
@@ -51,7 +52,7 @@ export function openOnboardingModal(onStart?: () => void): void {
       <div class="onboarding-card-step">
         <div class="step-num-badge">3</div>
         <div class="step-details">
-          <div class="step-header-text">Stream Files & Chat (100% E2EE)</div>
+          <div class="step-header-text">Stream Files &amp; Chat (100% E2EE)</div>
           <div class="step-body-text">
             Send files of any size directly between browsers. All chat and files are <strong>End-to-End Encrypted (WebRTC DTLS)</strong> with zero server storage.
           </div>
@@ -65,7 +66,7 @@ export function openOnboardingModal(onStart?: () => void): void {
         <span>Don't show this guide on startup</span>
       </label>
       <button type="button" class="btn btn-primary onboarding-cta-btn">
-        <span>⚡</span> <span>Got It, Let's Transfer!</span>
+        ${iconZap({ size: 14 })} <span>Got It, Let's Transfer</span>
       </button>
     </div>
   `;
@@ -105,9 +106,5 @@ export function openOnboardingModal(onStart?: () => void): void {
 }
 
 export function shouldShowOnboardingOnStartup(): boolean {
-  try {
-    return localStorage.getItem('pinnpointt_onboarding_dismissed') !== '1';
-  } catch {
-    return true;
-  }
+  return localStorage.getItem('pinnpointt_onboarding_dismissed') !== '1';
 }

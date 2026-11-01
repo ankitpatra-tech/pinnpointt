@@ -1,34 +1,34 @@
 /**
- * Pinpoint Design Tokens & Theme Management
- * Industrial Bauhaus Editorial Palette (Dark & Light)
+ * PinnPointt Design System — Swiss Architectural Daylight & Refined Slate
+ * Zero orange, pure geometric utility.
  */
 
 export type ThemeMode = 'dark' | 'light';
 
 export const THEME_DARK = {
-  bg: '#121214',
-  surface: '#1A1A1E',
-  surfaceHover: '#232328',
-  border: '#26262A',
-  borderFocus: '#3E3E46',
-  text: '#EDEDED',
-  muted: '#8A8A93',
-  accent: '#F26419',
-  accentDim: 'rgba(242, 100, 25, 0.15)',
+  bg: '#111315',
+  surface: '#181A1D',
+  surfaceHover: '#1F2227',
+  border: '#26292E',
+  borderFocus: '#3A3F47',
+  text: '#F3F4F6',
+  muted: '#9CA3AF',
+  accent: '#3B82F6',
+  accentDim: 'rgba(59, 130, 246, 0.12)',
   danger: '#EF4444',
   success: '#10B981',
 } as const;
 
 export const THEME_LIGHT = {
-  bg: '#F5F4F0',
+  bg: '#F6F5F0',
   surface: '#FFFFFF',
-  surfaceHover: '#FAFAF8',
+  surfaceHover: '#EFECE6',
   border: '#E2E0D8',
-  borderFocus: '#CBC8BD',
-  text: '#18181B',
-  muted: '#71717A',
-  accent: '#E8590C',
-  accentDim: 'rgba(232, 89, 12, 0.12)',
+  borderFocus: '#C8C5BC',
+  text: '#111110',
+  muted: '#85837E',
+  accent: '#0047FF',
+  accentDim: 'rgba(0, 71, 255, 0.08)',
   danger: '#DC2626',
   success: '#059669',
 } as const;

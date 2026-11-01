@@ -6,6 +6,7 @@
  */
 
 import { formatBytes } from './components';
+import { iconX, iconZap, iconDownload, iconFolder } from './icons';
 import type { VfsFileEntry, VfsSliceResult } from '../lib/webrtc/virtualDrive';
 
 export interface VfsPreviewModalOptions {
@@ -21,7 +22,6 @@ export function openVfsPreviewModal(options: {
   onPullFile: (fileId: string) => void;
   onClose?: () => void;
 }): void {
-  // Remove any existing preview modal
   const existing = document.querySelector('.vfs-preview-backdrop');
   if (existing) existing.remove();
 
@@ -51,7 +51,7 @@ export function openVfsPreviewModal(options: {
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'btn-icon modal-close-btn';
-  closeBtn.innerHTML = '✕';
+  closeBtn.innerHTML = iconX({ size: 16 });
   closeBtn.title = 'Close preview';
 
   header.append(titleWrap, closeBtn);
@@ -71,7 +71,7 @@ export function openVfsPreviewModal(options: {
   // 3. Notice badge
   const notice = document.createElement('div');
   notice.className = 'vfs-preview-notice mono text-xs';
-  notice.innerHTML = `<span>⚡</span> <span>Live P2P Byte-Slice Preview • Zero Local Disk Allocation</span>`;
+  notice.innerHTML = `${iconZap({ size: 14 })} <span>Live P2P Byte-Slice Preview • Zero Local Disk Allocation</span>`;
 
   // 4. Footer
   const footer = document.createElement('div');
@@ -85,7 +85,7 @@ export function openVfsPreviewModal(options: {
   const pullBtn = document.createElement('button');
   pullBtn.type = 'button';
   pullBtn.className = 'btn btn-primary btn-sm';
-  pullBtn.innerHTML = `<span>⬇</span> <span>Pull Full File (${formatBytes(options.entry.size)})</span>`;
+  pullBtn.innerHTML = `${iconDownload({ size: 14 })} <span>Pull Full File (${formatBytes(options.entry.size)})</span>`;
 
   footer.append(dismissBtn, pullBtn);
 
@@ -191,7 +191,7 @@ function renderSliceContent(
   const binWrap = document.createElement('div');
   binWrap.className = 'vfs-preview-bin mono text-xs';
   binWrap.innerHTML = `
-    <div style="font-size: 24px; margin-bottom: 8px;">📦</div>
+    <div style="margin-bottom: 8px;">${iconFolder({ size: 28 })}</div>
     <div style="font-weight: 600;">${entry.name}</div>
     <div class="muted mt-xs">Binary file (${mime}) • ${formatBytes(entry.size)}</div>
     <div class="muted mt-sm">Binary slice loaded (${slice.length} bytes). Click "Pull Full File" to save locally.</div>

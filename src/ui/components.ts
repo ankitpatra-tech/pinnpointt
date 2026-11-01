@@ -1,4 +1,7 @@
-/** Pinpoint — DOM component factory functions */
+/**
+ * PinnPointt — Swiss Architectural DOM Component System
+ * Clean Daylight Default + Refined Slate Mode, Zero Orange, Zero Emojis.
+ */
 
 import type { TransferProgress } from '../lib/webrtc/BinaryStreamer';
 import type { ThemeMode } from './theme';
@@ -6,8 +9,38 @@ import { openDocModal, type DocTab } from './legalModal';
 import { inspectFileSafety } from '../lib/safety';
 import { type VfsFileEntry, isPreviewable } from '../lib/webrtc/virtualDrive';
 import { copyTextToClipboard, type ClipboardItemData } from '../lib/clipboardSync';
+import {
+  iconLogo,
+  iconSun,
+  iconMoon,
+  iconWifi,
+  iconLock,
+  iconShield,
+  iconCheck,
+  iconX,
+  iconPause,
+  iconPlay,
+  iconCopy,
+  iconPaperclip,
+  iconSend,
+  iconTerminal,
+  iconDownload,
+  iconEye,
+  iconFolder,
+  iconFileText,
+  iconFile,
+  iconAlertTriangle,
+  iconAlertCircle,
+  iconHelpCircle,
+  iconArrowRight,
+  iconHardDrive,
+  iconZap,
+  iconUsers,
+  iconActivity,
+  iconShare,
+} from './icons';
 
-// ─── Helpers ────────────────────────────────────────
+// ─── DOM Helper ─────────────────────────────────────
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -63,8 +96,6 @@ export function formatBytes(bytes: number): string {
 
 export function formatSpeed(bps: number): string {
   if (bps === 0) return '0 B/s';
-  const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
-  const i = Math.min(Math.floor(Math.log(bps) / Math.log(1024)), units.length - 1);
   const val = bytesToFormatted(bps);
   return `${val}/s`;
 }
@@ -93,6 +124,55 @@ function formatTime(timestamp: number): string {
   return `${hh}:${mm}:${ss}`;
 }
 
+// ─── Top Mode Bar (1-to-1, Broadcast, Virtual Drive) ──
+
+export type AppWorkspaceMode = 'direct' | 'broadcast' | 'drive';
+
+export function createModeBar(
+  activeMode: AppWorkspaceMode,
+  onSelect: (mode: AppWorkspaceMode) => void
+): HTMLElement {
+  const bar = el('div', { className: 'workspace-mode-bar' });
+  const modes: { id: AppWorkspaceMode; label: string; icon: string }[] = [
+    { id: 'direct', label: '1-to-1 Direct', icon: iconActivity({ size: 14 }) },
+    { id: 'broadcast', label: 'Broadcast Room (1-to-Many)', icon: iconUsers({ size: 14 }) },
+    { id: 'drive', label: 'Virtual Drive', icon: iconHardDrive({ size: 14 }) },
+  ];
+
+  modes.forEach(({ id, label, icon }) => {
+    const btn = el('button', {
+      type: 'button',
+      className: `mode-tab-btn ${activeMode === id ? 'active' : ''}`,
+    });
+    btn.innerHTML = `${icon} <span>${label}</span>`;
+    btn.addEventListener('click', () => onSelect(id));
+    bar.append(btn);
+  });
+
+  return bar;
+}
+
+// ─── Nearby Wi-Fi Radar Banner ───────────────────────
+
+export function createNearbyRadar(
+  deviceCount: number = 1,
+  onPair?: () => void
+): HTMLElement {
+  const banner = el('div', { className: 'wifi-radar-banner fade-in' });
+  banner.innerHTML = `
+    <div class="radar-pulse-dot"></div>
+    ${iconWifi({ size: 14, className: 'radar-wifi-icon' })}
+    <span class="radar-text"><strong class="tabular-nums">${deviceCount} device</strong> discovered on your Wi-Fi • Tap to pair instantly</span>
+  `;
+
+  if (onPair) {
+    banner.style.cursor = 'pointer';
+    banner.addEventListener('click', onPair);
+  }
+
+  return banner;
+}
+
 // ─── Desktop & Mobile Navigation Bar ────────────────
 
 export function createNavbar(
@@ -106,9 +186,10 @@ export function createNavbar(
 
   const brand = el('div', { className: 'nav-brand' });
   const logo = el('div', { className: 'nav-logo' });
+  logo.innerHTML = iconLogo(20);
   const titleWrap = el('div', { className: 'nav-title-wrap' });
   const title = el('span', { className: 'nav-title', textContent: 'PinnPointt' });
-  const badge = el('span', { className: 'nav-badge', textContent: statusLabel });
+  const badge = el('span', { className: 'nav-badge mono text-xs', textContent: statusLabel });
   titleWrap.append(title, badge);
   brand.append(logo, titleWrap);
 
@@ -120,19 +201,19 @@ export function createNavbar(
 
   if (onOpenGuide) {
     const guideBtn = el('button', {
-      className: 'btn-nav-guide',
+      className: 'btn-nav-guide mono text-xs',
       type: 'button',
-      title: 'How to use PinnPointt (Step-by-step onboarding guide)',
-      textContent: 'Guide ?',
+      title: 'How to use PinnPointt (Step-by-step guide)',
     });
+    guideBtn.innerHTML = `${iconHelpCircle({ size: 13 })} <span>Guide</span>`;
     guideBtn.addEventListener('click', onOpenGuide);
     actions.append(guideBtn);
   }
 
   const aboutLink = el('a', {
-    className: 'nav-website-link',
+    className: 'nav-website-link mono text-xs',
     href: '/',
-    textContent: 'Home & Roadmap ↗',
+    textContent: 'Specs & Roadmap ↗',
     title: 'Why PinnPointt, Features, PWA Install & Open Source Roadmap',
   });
 
@@ -142,9 +223,9 @@ export function createNavbar(
     title: `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`,
   });
 
-  const icon = theme === 'dark' ? '☀️' : '🌙';
-  const label = theme === 'dark' ? 'Light' : 'Dark';
-  themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span class="theme-label">${label}</span>`;
+  const themeIcon = theme === 'dark' ? iconSun({ size: 13 }) : iconMoon({ size: 13 });
+  const themeLabel = theme === 'dark' ? 'Light' : 'Dark';
+  themeBtn.innerHTML = `<span class="theme-icon">${themeIcon}</span> <span class="theme-label">${themeLabel}</span>`;
   themeBtn.addEventListener('click', onToggleTheme);
 
   actions.append(aboutLink, themeBtn);
@@ -152,32 +233,80 @@ export function createNavbar(
   return nav;
 }
 
-// ─── Header (backward compatibility) ────────────────
+// ─── PWA Install Banner ─────────────────────────────
 
-export function createHeader(): HTMLElement {
-  const header = el('div', { className: 'header' });
-  const logo = el('div', { className: 'header-logo' });
-  const text = el('div', { className: 'header-text' },
-    el('h1', {}, 'PinnPointt'),
-    el('span', {}, 'private & direct device-to-device transfers')
-  );
-  header.append(logo, text);
-  return header;
+import { promptPWAInstall, onInstallAvailabilityChange, isStandalone, isIOS } from '../lib/pwaInstaller';
+
+export function createInstallBanner(): HTMLElement {
+  const banner = el('div', { className: 'install-banner' });
+  banner.style.display = 'none';
+
+  const left = el('div', { className: 'install-banner-left' });
+  const icon = el('span', { className: 'install-icon' });
+  icon.innerHTML = iconDownload({ size: 15 });
+  const textWrap = el('div');
+  const title = el('div', { className: 'install-title', textContent: 'Install PinnPointt App' });
+  const desc = el('div', { className: 'install-desc', textContent: 'Launch full-screen from your desktop dock or home screen.' });
+  textWrap.append(title, desc);
+  left.append(icon, textWrap);
+
+  const actions = el('div', { className: 'install-actions' });
+  const installBtn = el('button', {
+    className: 'btn btn-primary btn-sm btn-install-app trigger-pwa-install',
+    type: 'button',
+    textContent: 'Install',
+  });
+  const dismissBtn = el('button', {
+    className: 'btn btn-ghost btn-sm',
+    type: 'button',
+    textContent: 'Not Now',
+  });
+
+  actions.append(installBtn, dismissBtn);
+  banner.append(left, actions);
+
+  const DISMISS_KEY = 'pinnpointt_install_dismissed';
+  const isDismissed = localStorage.getItem(DISMISS_KEY) === '1';
+
+  if (!isStandalone() && !isDismissed) {
+    onInstallAvailabilityChange((canInstall) => {
+      if (canInstall || isIOS()) {
+        banner.style.display = 'flex';
+      }
+    });
+  }
+
+  installBtn.addEventListener('click', async () => {
+    const outcome = await promptPWAInstall();
+    if (outcome === 'accepted') {
+      banner.style.display = 'none';
+    } else if (outcome === 'ios') {
+      alert(
+        'To install on iPhone/iPad:\n' +
+        '1. Tap the Share button in Safari (box with upward arrow).\n' +
+        '2. Scroll down and tap "Add to Home Screen".'
+      );
+    }
+  });
+
+  dismissBtn.addEventListener('click', () => {
+    banner.style.display = 'none';
+    localStorage.setItem(DISMISS_KEY, '1');
+  });
+
+  return banner;
 }
 
-// ─── Footer with Attribution & Policies ────────────
+// ─── Footer ─────────────────────────────────────────
 
 export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElement {
   const footer = el('footer', { className: 'app-footer' });
 
-  // Subtle, less prominent community credit
   const credit = el('div', { className: 'footer-credit' });
-  credit.innerHTML = `Developed by <span>Ankit Patra</span> for the community <span class="heart">❤️</span>`;
+  credit.innerHTML = `Developed by <span>Ankit Patra</span> for the community`;
 
-  // Legal and Documentation Navigation Links
   const linksRow = el('div', { className: 'footer-links' });
 
-  // Link to Showcase Website & Roadmap
   const siteLink = el('a', {
     className: 'footer-link',
     href: '/',
@@ -213,7 +342,6 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
     linksRow.append(sep);
   });
 
-  // Contact button opening the in-app form (email is hidden from view)
   const contactBtn = el('button', {
     className: 'footer-link',
     type: 'button',
@@ -226,14 +354,13 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   linksRow.append(contactBtn);
 
-  // Bottom Subtitle & Version Tag
   const meta = el('div', { className: 'footer-meta' });
   const subtitle = el('span', {
     className: 'footer-subtitle',
     textContent: 'Direct device-to-device transfers • Zero cloud storage • 100% private',
   });
   const version = el('span', {
-    className: 'footer-version',
+    className: 'footer-version mono tabular-nums',
     textContent: 'v0.0.57-beta',
     title: 'PinnPointt Version 0.0.57 Beta',
   });
@@ -262,11 +389,11 @@ export function createUsernameBar(
   const card = el('div', { className: 'identity-card' });
 
   const headerRow = el('div', { className: 'identity-card-header' });
-  const tag = el('div', { className: 'identity-tag', textContent: 'Your Device Name' });
+  const tag = el('div', { className: 'identity-tag mono text-xs', textContent: 'OPERATOR IDENTITY' });
   headerRow.append(tag);
 
   const bodyRow = el('div', { className: 'identity-body' });
-  const avatar = el('div', { className: 'avatar-monogram', textContent: getMonogram(username) });
+  const avatar = el('div', { className: 'avatar-monogram mono', textContent: getMonogram(username) });
 
   const inputWrap = el('div', { className: 'identity-input-wrap' });
   const input = el('input', {
@@ -279,7 +406,7 @@ export function createUsernameBar(
   }) as HTMLInputElement;
 
   const randBtn = el('button', {
-    className: 'btn-randomize',
+    className: 'btn-randomize mono',
     type: 'button',
     title: 'Generate random name',
     textContent: '↻',
@@ -311,15 +438,15 @@ export function createUsernameBar(
   bodyRow.append(avatar, inputWrap);
 
   const hint = el('div', {
-    className: 'identity-hint',
-    textContent: 'Your device name for this transfer session. Shared securely with your connected peer.',
+    className: 'identity-hint text-xs muted',
+    textContent: 'Your operator moniker for this transfer session. Shared securely with your connected peer.',
   });
 
   card.append(headerRow, bodyRow, hint);
   return card;
 }
 
-// ─── Simple & Intuitive Quick-Start Guide (Clickable Navigation) ───
+// ─── Simple Quick-Start Guide (Clickable Navigation) ─
 
 export function createOnboarding(
   activeStep: number,
@@ -329,16 +456,16 @@ export function createOnboarding(
   const wrap = el('div', { className: 'onboarding' });
 
   const headerRow = el('div', { className: 'onboarding-header' });
-  const titleSpan = el('span', { textContent: 'Quick Start (Click a step to navigate)' });
+  const titleSpan = el('span', { className: 'mono text-xs font-semibold', textContent: 'QUICK START (CLICK STEP TO NAVIGATE)' });
   const controls = el('div', { className: 'onboarding-controls' });
 
   if (onOpenTour) {
     const tourBtn = el('button', {
-      className: 'onboarding-guide-btn',
+      className: 'onboarding-guide-btn mono text-xs',
       type: 'button',
       title: 'Open step-by-step onboarding walkthrough',
-      textContent: 'Tour Guide 💡',
     });
+    tourBtn.innerHTML = `${iconHelpCircle({ size: 12 })} <span>Tour Guide</span>`;
     tourBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       onOpenTour();
@@ -347,7 +474,7 @@ export function createOnboarding(
   }
 
   const toggleBtn = el('button', {
-    className: 'onboarding-toggle',
+    className: 'onboarding-toggle mono text-xs',
     type: 'button',
     textContent: 'collapse',
   });
@@ -386,12 +513,12 @@ export function createOnboarding(
     }
     const step = el('div', stepAttrs);
     const badge = el('div', {
-      className: `step-badge ${isActive ? 'active' : ''}`,
+      className: `step-badge mono ${isActive ? 'active' : ''}`,
       textContent: String(num),
     });
     const content = el('div', { className: 'step-content' });
-    const titleEl = el('div', { className: 'step-title', textContent: title });
-    const descEl = el('div', { className: 'step-desc', textContent: desc });
+    const titleEl = el('div', { className: 'step-title font-semibold', textContent: title });
+    const descEl = el('div', { className: 'step-desc text-xs muted', textContent: desc });
     content.append(titleEl, descEl);
     step.append(badge, content);
 
@@ -439,17 +566,17 @@ export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
 
   const createOpt = el('div', { className: 'pair-option' });
   createOpt.innerHTML = `
-    <span class="pair-option-icon">◉</span>
+    <span class="pair-option-icon">${iconShare({ size: 18 })}</span>
     <span class="pair-option-label">Create a Room</span>
-    <span class="pair-option-desc">Get a QR code & code to connect a phone, tablet, or PC</span>
+    <span class="pair-option-desc">Get a QR code &amp; 6-letter room code to connect another device</span>
   `;
   createOpt.addEventListener('click', callbacks.onCreateRoom);
 
   const joinOpt = el('div', { className: 'pair-option' });
   joinOpt.innerHTML = `
-    <span class="pair-option-icon">⊕</span>
+    <span class="pair-option-icon">${iconTerminal({ size: 18 })}</span>
     <span class="pair-option-label">Join with Code</span>
-    <span class="pair-option-desc">Enter the 6-character code shown on another device</span>
+    <span class="pair-option-desc">Enter the 6-character room code displayed on your peer device</span>
   `;
   joinOpt.addEventListener('click', callbacks.onJoinRoom);
 
@@ -462,7 +589,7 @@ export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
       type: 'button',
       title: 'Preview the chat window, drag & drop, and transfers in demo mode',
     });
-    previewBtn.innerHTML = `<span>⚡</span> <span>Try Interactive Demo (Chat & File Sharing)</span>`;
+    previewBtn.innerHTML = `${iconPlay({ size: 14 })} <span>Try Interactive Demo (Chat &amp; File Sharing)</span>`;
     previewBtn.addEventListener('click', callbacks.onPreviewWorkspace);
     container.append(previewBtn);
   }
@@ -471,28 +598,28 @@ export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
   const highlights = el('div', { className: 'landing-highlights' });
   highlights.innerHTML = `
     <div class="landing-highlight-item" title="Mount files or folders as a remote drive with instant byte-slice preview">
-      <span class="highlight-icon">💽</span>
+      <span class="highlight-icon">${iconHardDrive({ size: 16 })}</span>
       <div class="highlight-text">
         <span class="highlight-title">P2P Virtual Drive</span>
         <span class="highlight-sub">Browse &amp; preview remote folders</span>
       </div>
     </div>
     <div class="landing-highlight-item" title="Losslessly strip EXIF &amp; GPS metadata in-memory before sending">
-      <span class="highlight-icon">🛡️</span>
+      <span class="highlight-icon">${iconShield({ size: 16 })}</span>
       <div class="highlight-text">
         <span class="highlight-title">In-Flight Privacy Shield</span>
         <span class="highlight-sub">Auto EXIF &amp; GPS stripping</span>
       </div>
     </div>
     <div class="landing-highlight-item" title="Stream multi-GB files directly to OPFS / disk with active screen wake lock">
-      <span class="highlight-icon">💾</span>
+      <span class="highlight-icon">${iconZap({ size: 16 })}</span>
       <div class="highlight-text">
         <span class="highlight-title">Zero-RAM Disk Streaming</span>
         <span class="highlight-sub">OPFS multi-GB &amp; Screen Awake</span>
       </div>
     </div>
     <div class="landing-highlight-item" title="Ephemeral in-memory canvas viewing &amp; real-time clipboard sync">
-      <span class="highlight-icon">🔒</span>
+      <span class="highlight-icon">${iconLock({ size: 16 })}</span>
       <div class="highlight-text">
         <span class="highlight-title">Zero-Trace &amp; Clipboard</span>
         <span class="highlight-sub">Memory canvas &amp; live sync</span>
@@ -513,7 +640,6 @@ export function createRoomDisplay(
 ): HTMLElement {
   const container = el('div', { className: 'stack stack-md text-center fade-in' });
 
-  // Top header with prominent Back button
   if (onBack) {
     const headerRow = el('div', { className: 'room-header-row' });
     const backBtn = el('button', {
@@ -524,20 +650,19 @@ export function createRoomDisplay(
     });
     backBtn.addEventListener('click', onBack);
 
-    const titleBadge = el('span', { className: 'status-badge' });
-    titleBadge.innerHTML = `<span class="status-dot connected"></span> Room Ready`;
+    const titleBadge = el('span', { className: 'status-badge mono text-xs' });
+    titleBadge.innerHTML = `<span class="status-dot connected"></span> ROOM READY`;
     headerRow.append(backBtn, titleBadge);
     container.append(headerRow);
   }
 
-  // QR code
   const qrWrap = el('div', { className: 'qr-container' });
   const canvasWrap = el('div', { className: 'qr-canvas-wrap' });
   canvasWrap.append(canvasElement);
 
   const qrHint = el('div', {
-    className: 'qr-instruction',
-    textContent: 'Scan with your camera or QR reader to connect instantly',
+    className: 'qr-instruction text-xs muted',
+    textContent: 'Scan with smartphone camera or QR reader to pair instantly',
   });
 
   const isLocalHost = typeof window !== 'undefined' && (
@@ -549,44 +674,40 @@ export function createRoomDisplay(
 
   if (isLocalHost) {
     const localTip = el('div', {
-      className: 'qr-local-tip',
-      textContent: '💡 Tip: To scan from another phone/device, open this site via your local Wi-Fi IP or live domain.',
+      className: 'qr-local-tip mono text-xs muted',
+      textContent: 'Tip: To scan from another phone/device, connect over your local Wi-Fi IP or production URL.',
     });
     qrWrap.append(localTip);
   }
 
-  // Separator
   const sep = el('div', { className: 'separator' });
-  sep.innerHTML = '<span>or enter this code on the other device</span>';
+  sep.innerHTML = '<span class="mono text-xs">or enter this code on the other device</span>';
 
-  // Room code digits
-  const codeDisplay = el('div', { className: 'room-code-display' });
+  const codeDisplay = el('div', { className: 'room-code-display mono' });
   for (const ch of roomCode) {
-    const digit = el('span', { className: 'digit', textContent: ch });
+    const digit = el('span', { className: 'digit tabular-nums', textContent: ch });
     codeDisplay.append(digit);
   }
 
-  // Waiting status
-  const status = el('div', { className: 'status-badge mt-md' });
+  const status = el('div', { className: 'status-badge mt-md mono text-xs' });
   status.style.margin = '12px auto 0';
-  status.innerHTML = `<span class="status-dot"></span> Waiting for other device (code expires in 10m)`;
+  status.innerHTML = `<span class="status-dot"></span> Waiting for peer (code expires in 10m)`;
 
-  // Action buttons: Copy Link & Open Peer Window
   const linkRow = el('div', { className: 'room-actions-row' });
 
   const copyLinkBtn = el('button', {
     className: 'btn btn-secondary btn-sm',
     type: 'button',
-    textContent: '🔗 Copy Invite Link',
     title: 'Copies the deep-link URL to your clipboard',
   });
+  copyLinkBtn.innerHTML = `${iconCopy({ size: 14 })} <span>Copy Invite Link</span>`;
   copyLinkBtn.addEventListener('click', () => {
     const url = `${window.location.origin}/app?room=${roomCode}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
-        copyLinkBtn.textContent = '✓ Link Copied!';
+        copyLinkBtn.innerHTML = `${iconCheck({ size: 14 })} <span>Link Copied</span>`;
         setTimeout(() => {
-          copyLinkBtn.textContent = '🔗 Copy Invite Link';
+          copyLinkBtn.innerHTML = `${iconCopy({ size: 14 })} <span>Copy Invite Link</span>`;
         }, 2500);
       }).catch(() => {
         prompt('Copy invite link:', url);
@@ -597,7 +718,7 @@ export function createRoomDisplay(
   });
 
   const peerTabBtn = el('button', {
-    className: 'btn-peer-tab',
+    className: 'btn-peer-tab btn btn-ghost btn-sm mono text-xs',
     type: 'button',
     textContent: '↗ Open Peer in New Tab',
     title: 'Opens a second window that auto-joins this room to test device-to-device transfer',
@@ -607,7 +728,6 @@ export function createRoomDisplay(
   });
 
   linkRow.append(copyLinkBtn, peerTabBtn);
-
   container.append(qrWrap, sep, codeDisplay, status, linkRow);
 
   if (onBack) {
@@ -634,7 +754,7 @@ export interface JoinInputResult {
 export function createJoinInputWithBack(onSubmit: (code: string) => void): JoinInputResult {
   const container = el('div', { className: 'stack stack-md text-center fade-in' });
 
-  const label = el('h2', { textContent: 'Enter Room Code' });
+  const label = el('h2', { className: 'font-semibold', textContent: 'Enter Room Code' });
 
   const inputRow = el('div', { className: 'room-code-input' });
   const inputs: HTMLInputElement[] = [];
@@ -645,6 +765,7 @@ export function createJoinInputWithBack(onSubmit: (code: string) => void): JoinI
       maxlength: '1',
       autocomplete: 'off',
       autocapitalize: 'characters',
+      className: 'mono tabular-nums',
     }) as HTMLInputElement;
     input.addEventListener('input', () => {
       input.value = input.value.toUpperCase().replace(/[^A-Z2-9]/g, '');
@@ -792,7 +913,7 @@ function renderLocalVfsView(
   const unmountBtn = el('button', {
     type: 'button',
     className: 'btn btn-ghost btn-xs',
-    textContent: '✕ Unmount All',
+    textContent: 'Unmount All',
   });
   unmountBtn.addEventListener('click', () => onUnmount?.());
   head.append(badge, unmountBtn);
@@ -818,7 +939,7 @@ function renderRemoteVfsView(
   if (entries.length === 0) {
     const empty = el('div', { className: 'vfs-empty-card' });
     empty.innerHTML = `
-      <div class="vfs-empty-icon">💽</div>
+      <div class="vfs-empty-icon">${iconHardDrive({ size: 24 })}</div>
       <div class="vfs-empty-title font-semibold">No Remote Drive Mounted</div>
       <div class="vfs-empty-desc text-xs muted">When ${peerName} mounts files or folders in Virtual Drive mode, you can explore them and selectively preview or pull items here.</div>
     `;
@@ -851,21 +972,17 @@ function renderRemoteVfsView(
   for (const f of entries) {
     const tr = el('tr');
 
-    // File name and relative path
     const tdName = el('td');
     const nameEl = el('div', { className: 'vfs-table-filename font-semibold', textContent: f.name });
     const pathEl = el('div', { className: 'vfs-table-path mono text-xs muted', textContent: f.relativePath });
     tdName.append(nameEl, pathEl);
 
-    // Type badge
     const tdType = el('td');
     const typeBadge = el('span', { className: 'vfs-type-tag mono text-xs', textContent: inferShortType(f.mimeType, f.name) });
     tdType.append(typeBadge);
 
-    // Size
     const tdSize = el('td', { className: 'mono text-xs tabular-nums', textContent: formatBytes(f.size) });
 
-    // Action buttons
     const tdAction = el('td', { className: 'vfs-action-cell', style: 'text-align: right;' });
     if (isPreviewable(f.mimeType, f.name)) {
       const prevBtn = el('button', {
@@ -903,11 +1020,11 @@ export function createConnectedWorkspace(
 ): WorkspaceController {
   const container = el('div', { className: 'stack stack-md fade-in' });
 
-  // Optional Preview Mode Banner
   if (isPreview) {
     const banner = el('div', { className: 'preview-banner' });
-    const bannerTxt = el('span', {}, '⚡ PREVIEW MODE — Interacting with simulated Bauhaus peer');
-    const exitBtn = el('button', { type: 'button', textContent: 'Exit Preview' });
+    const bannerTxt = el('span', { className: 'mono text-xs' });
+    bannerTxt.innerHTML = `${iconActivity({ size: 13 })} <span>PREVIEW MODE — Interacting with simulated peer</span>`;
+    const exitBtn = el('button', { type: 'button', className: 'mono text-xs', textContent: 'Exit Preview' });
     exitBtn.addEventListener('click', callbacks.onDisconnect);
     banner.append(bannerTxt, exitBtn);
     container.append(banner);
@@ -919,26 +1036,25 @@ export function createConnectedWorkspace(
   const peerBadge = el('div', { className: 'workspace-peer-badge' });
   const statusDot = el('span', { className: 'status-dot connected' });
   const peerText = el('span', {}, 'Connected with ');
-  const peerNameEl = el('span', { className: 'peer-name', textContent: initialPeerName });
+  const peerNameEl = el('span', { className: 'peer-name font-semibold', textContent: initialPeerName });
   const roleEl = el('span', { className: 'text-xs mono muted', textContent: `(${initialRole})` });
   peerBadge.append(statusDot, peerText, peerNameEl, roleEl);
 
   const e2eBadge = el('div', {
-    className: 'workspace-e2e-badge',
+    className: 'workspace-e2e-badge mono text-xs',
     title: 'Direct peer-to-peer connection encrypted with WebRTC DTLS (TLS 1.3/AES-GCM). Zero server storage.',
   });
-  e2eBadge.innerHTML = `<span class="e2e-lock">🔒</span> <span class="e2e-text">End-to-End Encrypted</span>`;
+  e2eBadge.innerHTML = `<span class="e2e-lock">${iconLock({ size: 12 })}</span> <span class="e2e-text">E2E Encrypted</span>`;
 
   const wakeLockBadge = el('div', {
-    className: 'workspace-wakelock-badge',
+    className: 'workspace-wakelock-badge mono text-xs',
     title: 'Screen WakeLock Active — Display sleep prevented during transfer',
   });
   wakeLockBadge.style.display = 'none';
   wakeLockBadge.innerHTML = `<span class="wakelock-dot"></span> <span class="wakelock-text">Screen Awake Active</span>`;
 
-  const disconnectBtn = el('button', { className: 'btn btn-ghost btn-sm', textContent: 'Disconnect' });
+  const disconnectBtn = el('button', { className: 'btn btn-ghost btn-sm mono text-xs', textContent: 'Disconnect' });
   disconnectBtn.style.padding = '4px 10px';
-  disconnectBtn.style.fontSize = '11px';
   disconnectBtn.addEventListener('click', callbacks.onDisconnect);
 
   header.append(peerBadge, e2eBadge, wakeLockBadge, disconnectBtn);
@@ -955,7 +1071,7 @@ export function createConnectedWorkspace(
     className: 'workspace-tab-btn',
   });
   const driveTabTitle = el('span', {}, 'Virtual Drive ');
-  const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums' });
+  const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums mono' });
   driveTabBadge.style.display = 'none';
   driveTabBtn.append(driveTabTitle, driveTabBadge);
   tabRow.append(activityTabBtn, driveTabBtn);
@@ -995,7 +1111,6 @@ export function createConnectedWorkspace(
     }
   };
 
-  // Drag & drop directly onto feed
   feed.addEventListener('dragover', (e: DragEvent) => {
     e.preventDefault();
     feed.classList.add('dragover');
@@ -1020,7 +1135,6 @@ export function createConnectedWorkspace(
   // 4. Input Row
   const inputRow = el('div', { className: 'chat-input-row' });
 
-  // File attach button
   const fileInput = el('input', {
     type: 'file',
     multiple: '',
@@ -1030,7 +1144,7 @@ export function createConnectedWorkspace(
   fileInput.addEventListener('change', () => {
     if (fileInput.files && fileInput.files.length > 0) {
       handleIncomingFiles(fileInput.files);
-      fileInput.value = ''; // reset so same file can be selected again
+      fileInput.value = '';
     }
   });
 
@@ -1039,30 +1153,28 @@ export function createConnectedWorkspace(
     type: 'button',
     title: 'Attach file (or drag & drop anywhere)',
   });
-  attachBtn.innerHTML = `<span>📎</span> <span class="attach-label">File</span>`;
+  attachBtn.innerHTML = `${iconPaperclip({ size: 14 })} <span class="attach-label">File</span>`;
   attachBtn.addEventListener('click', () => fileInput.click());
 
-  // Mode Toggle Button: Push Immediately vs Mount to Virtual Drive
   const modeBtn = el('button', {
     type: 'button',
     className: 'btn-mode-toggle push-active',
     title: 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.',
   });
-  modeBtn.innerHTML = `<span>⚡</span> <span class="mode-label">Push</span>`;
+  modeBtn.innerHTML = `${iconZap({ size: 13 })} <span class="mode-label">Push</span>`;
   modeBtn.addEventListener('click', () => {
     isMountMode = !isMountMode;
     if (isMountMode) {
       modeBtn.className = 'btn-mode-toggle mount-active';
-      modeBtn.innerHTML = `<span>💽</span> <span class="mode-label">Mount</span>`;
+      modeBtn.innerHTML = `${iconHardDrive({ size: 13 })} <span class="mode-label">Mount</span>`;
       modeBtn.title = 'Mode: Mount as Virtual Drive. Click to toggle Push Immediately.';
     } else {
       modeBtn.className = 'btn-mode-toggle push-active';
-      modeBtn.innerHTML = `<span>⚡</span> <span class="mode-label">Push</span>`;
+      modeBtn.innerHTML = `${iconZap({ size: 13 })} <span class="mode-label">Push</span>`;
       modeBtn.title = 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.';
     }
   });
 
-  // Message text input
   const textInput = el('input', {
     type: 'text',
     className: 'chat-input',
@@ -1071,7 +1183,6 @@ export function createConnectedWorkspace(
     title: 'End-to-End Encrypted via WebRTC DTLS',
   }) as HTMLInputElement;
 
-  // Send button (with explicit chat-send-btn class so it never overflows viewport on phones)
   const sendBtn = el('button', {
     className: 'btn btn-primary chat-send-btn',
     textContent: 'Send',
@@ -1094,16 +1205,15 @@ export function createConnectedWorkspace(
     }
   });
 
-  // 4b. Live Clipboard / Scratchpad Toolbar & Sender Toggles
+  // Tools bar
   const toolsBar = el('div', { className: 'workspace-tools-bar row-between' });
 
-  // Clipboard sync trigger button
   const clipboardBtn = el('button', {
     type: 'button',
-    className: 'btn-clipboard-sync',
+    className: 'btn-clipboard-sync mono text-xs',
     title: 'Send device clipboard content to peer (or press Ctrl+V / Cmd+V anywhere)',
   });
-  clipboardBtn.innerHTML = `<span>📋</span> <span class="tools-btn-label">Send Clipboard</span>`;
+  clipboardBtn.innerHTML = `${iconCopy({ size: 13 })} <span class="tools-btn-label">Send Clipboard</span>`;
   clipboardBtn.addEventListener('click', () => {
     callbacks.onSendClipboard?.();
   });
@@ -1116,7 +1226,6 @@ export function createConnectedWorkspace(
   const toolsLeft = el('div', { className: 'tools-left' });
   toolsLeft.append(clipboardBtn, toolsHint);
 
-  // Sender privacy & view mode toggles
   const togglesWrap = el('div', { className: 'sender-toggles' });
 
   const privacyCheckbox = el('input', {
@@ -1124,13 +1233,14 @@ export function createConnectedWorkspace(
     id: 'toggle-privacy-shield',
     className: 'toggle-checkbox',
   }) as HTMLInputElement;
-  privacyCheckbox.checked = true; // Enabled by default for privacy
+  privacyCheckbox.checked = true;
 
   const privacyLabel = el('label', {
     className: 'toggle-control',
     title: 'In-Flight Privacy Shield: losslessly strip EXIF/GPS, camera serials, and timestamps from images before transmission',
   });
-  const privacyText = el('span', { className: 'toggle-label mono text-xs', textContent: '🛡️ Strip EXIF' });
+  const privacyText = el('span', { className: 'toggle-label mono text-xs' });
+  privacyText.innerHTML = `${iconShield({ size: 12 })} <span>Strip EXIF</span>`;
   privacyLabel.append(privacyCheckbox, privacyText);
 
   const zeroTraceCheckbox = el('input', {
@@ -1143,7 +1253,8 @@ export function createConnectedWorkspace(
     className: 'toggle-control',
     title: 'Zero-Trace View Only: receiver views image in ephemeral canvas memory with download disabled',
   });
-  const zeroTraceText = el('span', { className: 'toggle-label mono text-xs', textContent: '🔒 Zero-Trace' });
+  const zeroTraceText = el('span', { className: 'toggle-label mono text-xs' });
+  zeroTraceText.innerHTML = `${iconLock({ size: 12 })} <span>Zero-Trace</span>`;
   zeroTraceLabel.append(zeroTraceCheckbox, zeroTraceText);
 
   togglesWrap.append(privacyLabel, zeroTraceLabel);
@@ -1152,7 +1263,7 @@ export function createConnectedWorkspace(
   inputRow.append(fileInput, attachBtn, modeBtn, textInput, sendBtn);
   activityPanel.append(feed, toolsBar, inputRow);
 
-  // 5. Virtual Drive Panel Layout
+  // Virtual Drive Panel Layout
   const driveTopBar = el('div', { className: 'vfs-top-bar row-between' });
   const driveBarLeft = el('div');
   const driveBarTitle = el('div', { className: 'vfs-top-title font-semibold text-sm', textContent: 'Virtual Drive / Live Remote Mount' });
@@ -1192,14 +1303,14 @@ export function createConnectedWorkspace(
     type: 'button',
     className: 'btn btn-secondary btn-sm',
   });
-  mountFilesBtn.innerHTML = `<span>📄</span> <span>Mount Files</span>`;
+  mountFilesBtn.innerHTML = `${iconFile({ size: 13 })} <span>Mount Files</span>`;
   mountFilesBtn.addEventListener('click', () => vfsFileInput.click());
 
   const mountFolderBtn = el('button', {
     type: 'button',
     className: 'btn btn-secondary btn-sm',
   });
-  mountFolderBtn.innerHTML = `<span>📁</span> <span>Mount Folder</span>`;
+  mountFolderBtn.innerHTML = `${iconFolder({ size: 13 })} <span>Mount Folder</span>`;
   mountFolderBtn.addEventListener('click', () => vfsFolderInput.click());
 
   mountActions.append(vfsFileInput, vfsFolderInput, mountFilesBtn, mountFolderBtn);
@@ -1209,7 +1320,6 @@ export function createConnectedWorkspace(
   const remoteVfsContainer = el('div', { className: 'vfs-remote-container' });
 
   drivePanel.append(driveTopBar, localVfsContainer, remoteVfsContainer);
-
   container.append(header, tabRow, activityPanel, drivePanel);
 
   let localVfsList: VfsFileEntry[] = [];
@@ -1262,7 +1372,7 @@ export function createConnectedWorkspace(
       switchTab(tab);
     },
     addSystemNotice(text: string) {
-      const notice = el('div', { className: 'system-notice', textContent: text });
+      const notice = el('div', { className: 'system-notice mono text-xs', textContent: text });
       feed.append(notice);
       scrollToBottom();
     },
@@ -1270,8 +1380,8 @@ export function createConnectedWorkspace(
       const row = el('div', { className: `chat-msg ${msg.isMine ? 'mine' : 'peer'}` });
 
       const meta = el('div', { className: 'chat-meta' });
-      const sender = el('span', { className: 'chat-sender', textContent: msg.sender });
-      const time = el('span', { className: 'chat-time', textContent: formatTime(msg.timestamp) });
+      const sender = el('span', { className: 'chat-sender font-semibold', textContent: msg.sender });
+      const time = el('span', { className: 'chat-time mono text-xs muted tabular-nums', textContent: formatTime(msg.timestamp) });
       meta.append(sender, time);
 
       const bubble = el('div', { className: 'chat-bubble', textContent: msg.text });
@@ -1290,18 +1400,19 @@ export function createConnectedWorkspace(
       const row = el('div', { className: `chat-msg ${isMine ? 'mine' : 'peer'}` });
 
       const meta = el('div', { className: 'chat-meta' });
-      const sender = el('span', { className: 'chat-sender', textContent: item.sender });
-      const time = el('span', { className: 'chat-time', textContent: formatTime(item.timestamp) });
+      const sender = el('span', { className: 'chat-sender font-semibold', textContent: item.sender });
+      const time = el('span', { className: 'chat-time mono text-xs muted tabular-nums', textContent: formatTime(item.timestamp) });
       meta.append(sender, time);
 
       const card = el('div', { className: 'clipboard-sync-card' });
 
-      const header = el('div', { className: 'clipboard-card-head row-between' });
+      const head = el('div', { className: 'clipboard-card-head row-between' });
       const typeBadge = el('span', {
-        className: `clipboard-type-badge ${item.type}`,
-        textContent: item.type === 'url' ? '🔗 URL' : item.type === 'code' ? '💻 CODE' : item.type === 'image' ? '🖼️ IMAGE' : '📋 TEXT',
+        className: `clipboard-type-badge ${item.type} mono text-xs`,
       });
-      header.append(typeBadge);
+      const typeIcon = item.type === 'code' ? iconTerminal({ size: 12 }) : item.type === 'url' ? iconShare({ size: 12 }) : iconFileText({ size: 12 });
+      typeBadge.innerHTML = `${typeIcon} <span>${item.type.toUpperCase()}</span>`;
+      head.append(typeBadge);
 
       const content = el('div', {
         className: 'clipboard-card-content mono text-xs',
@@ -1313,7 +1424,7 @@ export function createConnectedWorkspace(
         type: 'button',
         className: 'btn btn-secondary btn-sm btn-copy-clipboard',
       });
-      copyBtn.innerHTML = `<span>📋</span> <span>Copy to Clipboard</span>`;
+      copyBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Copy to Clipboard</span>`;
       copyBtn.addEventListener('click', async () => {
         const ok = await copyTextToClipboard(item.content);
         if (ok) {
@@ -1324,7 +1435,7 @@ export function createConnectedWorkspace(
       });
 
       actions.append(copyBtn);
-      card.append(header, content, actions);
+      card.append(head, content, actions);
       row.append(meta, card);
 
       feed.append(row);
@@ -1345,20 +1456,20 @@ export function createConnectedWorkspace(
       let isZeroTrace = !!opts.isZeroTrace;
 
       const row = el('div', { className: `chat-msg ${opts.isMine ? 'mine' : 'peer'}` });
-
       const card = el('div', { className: 'feed-file' });
 
       const head = el('div', { className: 'feed-file-head' });
-      const icon = el('div', { className: 'feed-file-icon', textContent: '📄' });
+      const icon = el('div', { className: 'feed-file-icon' });
+      icon.innerHTML = iconFileText({ size: 18 });
       const info = el('div', { className: 'feed-file-info' });
-      const name = el('div', { className: 'feed-file-name', textContent: opts.fileName });
-      const size = el('div', { className: 'feed-file-size tabular-nums', textContent: formatBytes(opts.fileSize) });
+      const name = el('div', { className: 'feed-file-name font-semibold', textContent: opts.fileName });
+      const size = el('div', { className: 'feed-file-size tabular-nums mono text-xs muted', textContent: formatBytes(opts.fileSize) });
       info.append(name, size);
 
       const initialSafety = inspectFileSafety(opts.fileName, opts.fileSize);
       if (initialSafety.riskLevel !== 'safe') {
         const badge = el('span', {
-          className: `safety-badge ${initialSafety.riskLevel}`,
+          className: `safety-badge ${initialSafety.riskLevel} mono text-xs`,
           textContent: initialSafety.badgeLabel,
           title: initialSafety.reason,
         });
@@ -1366,60 +1477,75 @@ export function createConnectedWorkspace(
       }
 
       const privacyBadge = el('span', {
-        className: 'safety-badge safe file-badge-privacy-shield',
-        textContent: '🛡️ Metadata Stripped',
+        className: 'safety-badge safe file-badge-privacy-shield mono text-xs',
         title: 'GPS, EXIF, and camera serial numbers were removed in-memory before transmission.',
       });
+      privacyBadge.innerHTML = `${iconShield({ size: 11 })} <span>Metadata Stripped</span>`;
       privacyBadge.style.display = isMetadataStripped ? 'inline-flex' : 'none';
 
       const zeroTraceBadge = el('span', {
-        className: 'safety-badge warning file-badge-zero-trace',
-        textContent: '🔒 Zero-Trace',
+        className: 'safety-badge warning file-badge-zero-trace mono text-xs',
         title: 'Ephemeral canvas view mode. Download disabled and auto-wiped on close.',
       });
+      zeroTraceBadge.innerHTML = `${iconLock({ size: 11 })} <span>Zero-Trace</span>`;
       zeroTraceBadge.style.display = isZeroTrace ? 'inline-flex' : 'none';
 
       info.append(privacyBadge, zeroTraceBadge);
       head.append(icon, info);
 
-      // Progress bar
+      // Progress bar and parallel lanes
       const progWrap = el('div', { className: 'feed-file-progress' });
+
+      // 4-Channel Parallel Visualizer Deck
+      const lanesWrap = el('div', { className: 'parallel-lanes-bar', title: '4-Channel Parallel WebRTC Transfer Pipeline' });
+      const laneFills: HTMLElement[] = [];
+      for (let ch = 0; ch < 4; ch++) {
+        const lane = el('div', { className: `channel-lane lane-${ch}` });
+        const laneTag = el('span', { className: 'lane-tag mono tabular-nums', textContent: `CH-${ch}` });
+        const laneTrack = el('div', { className: 'lane-meter' });
+        const laneFill = el('div', { className: 'lane-fill' });
+        laneFills.push(laneFill);
+        laneTrack.append(laneFill);
+        lane.append(laneTag, laneTrack);
+        lanesWrap.append(lane);
+      }
+
       const track = el('div', { className: 'feed-file-track' });
       const fill = el('div', { className: 'feed-file-fill' });
       track.append(fill);
 
-      const stats = el('div', { className: 'feed-file-stats tabular-nums' });
+      const stats = el('div', { className: 'feed-file-stats tabular-nums mono text-xs' });
       const speedEl = el('span', { className: 'tabular-nums', textContent: '0 B/s' });
-      const percentEl = el('span', { className: 'tabular-nums', textContent: '0%' });
+      const percentEl = el('span', { className: 'tabular-nums font-semibold', textContent: '0%' });
       const etaEl = el('span', { className: 'tabular-nums', textContent: '--' });
-      stats.append(speedEl, percentEl, etaEl);
+      const topologyEl = el('span', { className: 'topology-badge direct', textContent: 'Direct LAN P2P' });
+      stats.append(speedEl, percentEl, etaEl, topologyEl);
 
-      // Utilitarian Pause, Resume, and Cancel Action Controls
       const controls = el('div', { className: 'feed-file-controls' });
-      const statusBadge = el('span', { className: 'feed-file-status-badge' });
+      const statusBadge = el('span', { className: 'feed-file-status-badge mono text-xs' });
       statusBadge.style.display = 'none';
 
       const btnPause = el('button', {
         type: 'button',
-        className: 'btn-file-control btn-control-pause',
+        className: 'btn-file-control btn-control-pause mono text-xs',
         title: 'Pause file transfer',
-        textContent: 'Pause ⏸',
       });
+      btnPause.innerHTML = `${iconPause({ size: 12 })} <span>Pause</span>`;
 
       const btnResume = el('button', {
         type: 'button',
-        className: 'btn-file-control btn-control-resume',
+        className: 'btn-file-control btn-control-resume mono text-xs',
         title: 'Resume file transfer',
-        textContent: 'Resume ▶',
       });
+      btnResume.innerHTML = `${iconPlay({ size: 12 })} <span>Resume</span>`;
       btnResume.style.display = 'none';
 
       const btnCancel = el('button', {
         type: 'button',
-        className: 'btn-file-control btn-control-cancel',
+        className: 'btn-file-control btn-control-cancel mono text-xs',
         title: 'Cancel file transfer',
-        textContent: 'Cancel ✕',
       });
+      btnCancel.innerHTML = `${iconX({ size: 12 })} <span>Cancel</span>`;
 
       btnPause.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1437,7 +1563,7 @@ export function createConnectedWorkspace(
       });
 
       controls.append(statusBadge, btnPause, btnResume, btnCancel);
-      progWrap.append(track, stats, controls);
+      progWrap.append(lanesWrap, track, stats, controls);
       card.append(head, progWrap);
       row.append(card);
 
@@ -1451,6 +1577,12 @@ export function createConnectedWorkspace(
           percentEl.textContent = `${Math.round(pct)}%`;
           speedEl.textContent = formatSpeed(p.speedBps);
           etaEl.textContent = formatETA(p.etaSeconds);
+
+          // Update multi-lane activity bars proportionally
+          laneFills.forEach((lf, idx) => {
+            const lanePct = Math.min(100, Math.max(0, pct + ((idx % 2 === 0 ? 1 : -1) * (pct > 0 && pct < 100 ? 6 : 0))));
+            lf.style.width = `${lanePct}%`;
+          });
         },
         setMetadataStripped(stripped: boolean) {
           isMetadataStripped = stripped;
@@ -1465,7 +1597,7 @@ export function createConnectedWorkspace(
             btnPause.style.display = 'none';
             btnResume.style.display = 'inline-flex';
             statusBadge.style.display = 'inline-flex';
-            statusBadge.className = 'feed-file-status-badge paused';
+            statusBadge.className = 'feed-file-status-badge paused mono text-xs';
             const isYou =
               pausedBy === 'you' ||
               (opts.isMine && pausedBy === 'sender') ||
@@ -1488,7 +1620,7 @@ export function createConnectedWorkspace(
             style: 'color: var(--muted); display: flex; align-items: center; gap: 4px;',
           });
           const who = cancelledBy === 'peer' ? 'peer' : 'you';
-          cancelBadge.innerHTML = `<span>✕</span> <span>Transfer cancelled by ${who}</span>`;
+          cancelBadge.innerHTML = `${iconX({ size: 12 })} <span>Transfer cancelled by ${who}</span>`;
           cancelRow.append(cancelBadge);
           card.append(cancelRow);
           scrollToBottom();
@@ -1516,13 +1648,13 @@ export function createConnectedWorkspace(
           const safety = inspectFileSafety(opts.fileName, opts.fileSize, info.sha256);
 
           if (safety.isBlockedHash) {
-            const blocked = el('div', { className: 'feed-file-threat danger' });
-            blocked.innerHTML = `<span>🛑</span> <span>Blocked Threat</span>`;
+            const blocked = el('div', { className: 'feed-file-threat danger mono text-xs' });
+            blocked.innerHTML = `${iconAlertCircle({ size: 13 })} <span>Blocked Threat</span>`;
             blocked.title = `SHA-256: ${info.sha256} matches a known malicious signature. Quarantined.`;
             doneRow.append(blocked);
           } else {
-            const verified = el('div', { className: 'feed-file-verified' });
-            verified.innerHTML = `<span>✓</span> <span>${safety.riskLevel === 'warning' ? 'Verified (Quarantined)' : 'Verified Safe'}</span>`;
+            const verified = el('div', { className: 'feed-file-verified mono text-xs' });
+            verified.innerHTML = `${iconCheck({ size: 13 })} <span>${safety.riskLevel === 'warning' ? 'Verified (Quarantined)' : 'Verified Safe'}</span>`;
             verified.title = `SHA-256: ${info.sha256}`;
             doneRow.append(verified);
 
@@ -1530,46 +1662,43 @@ export function createConnectedWorkspace(
               if (info.onZeroTraceView) {
                 const viewBtn = el('button', {
                   type: 'button',
-                  className: 'btn btn-primary btn-sm btn-zero-trace-view',
-                  textContent: 'View (Zero-Trace)',
+                  className: 'btn btn-primary btn-sm btn-zero-trace-view mono text-xs',
                 });
+                viewBtn.innerHTML = `${iconEye({ size: 12 })} <span>View (Zero-Trace)</span>`;
                 viewBtn.style.padding = '4px 10px';
-                viewBtn.style.fontSize = '11px';
                 viewBtn.addEventListener('click', info.onZeroTraceView);
                 doneRow.append(viewBtn);
               }
             } else if (info.isDirectDiskSave) {
               const savedBadge = el('div', {
-                className: 'feed-file-disk-saved',
+                className: 'feed-file-disk-saved mono text-xs',
                 title: 'File streamed directly to selected disk folder without RAM usage',
               });
-              savedBadge.innerHTML = `<span>💾</span> <span>Saved to Disk</span>`;
+              savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk</span>`;
               doneRow.append(savedBadge);
             } else if (safety.riskLevel === 'warning') {
-              const warningBadge = el('div', { className: 'feed-file-threat warning' });
-              warningBadge.innerHTML = `<span>⚠️</span> <span>Executable</span>`;
+              const warningBadge = el('div', { className: 'feed-file-threat warning mono text-xs' });
+              warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Executable</span>`;
               warningBadge.title = `SHA-256: ${info.sha256}. High-risk executable binary. Verify sender.`;
               doneRow.append(warningBadge);
 
               if (info.onDownload) {
                 const dlBtn = el('button', {
-                  className: 'btn btn-secondary btn-sm',
+                  className: 'btn btn-secondary btn-sm mono text-xs',
                   textContent: 'Save File',
                   title: 'Exercise caution before executing downloaded software binaries',
                 });
                 dlBtn.style.padding = '4px 10px';
-                dlBtn.style.fontSize = '11px';
                 dlBtn.addEventListener('click', info.onDownload);
                 doneRow.append(dlBtn);
               }
             } else {
               if (info.onDownload) {
                 const dlBtn = el('button', {
-                  className: 'btn btn-primary btn-sm',
+                  className: 'btn btn-primary btn-sm mono text-xs',
                   textContent: 'Download',
                 });
                 dlBtn.style.padding = '4px 10px';
-                dlBtn.style.fontSize = '11px';
                 dlBtn.addEventListener('click', info.onDownload);
                 doneRow.append(dlBtn);
               }
@@ -1582,7 +1711,7 @@ export function createConnectedWorkspace(
         fail(err: string) {
           progWrap.remove();
           const errEl = el('div', {
-            className: 'text-xs',
+            className: 'text-xs mono',
             textContent: `Failed: ${err}`,
           });
           errEl.style.color = 'var(--danger)';
@@ -1604,16 +1733,16 @@ export function createConnectedView(peerRole: string, callbacks: DropZoneCallbac
   const container = el('div', { className: 'stack stack-md fade-in' });
 
   const statusRow = el('div', { className: 'row-between mb-sm' });
-  const badge = el('div', { className: 'status-badge' });
+  const badge = el('div', { className: 'status-badge mono text-xs' });
   badge.innerHTML = `<span class="status-dot connected"></span> peer connected`;
   const roleLabel = el('span', { className: 'text-xs mono muted', textContent: peerRole });
   statusRow.append(badge, roleLabel);
 
   const dropZone = el('div', { className: 'drop-zone' });
   dropZone.innerHTML = `
-    <span class="drop-zone-icon">↓</span>
-    <div class="drop-zone-text">Drop files here</div>
-    <div class="drop-zone-hint">or click to browse — any file type, up to 2 GB</div>
+    <span class="drop-zone-icon">${iconDownload({ size: 24 })}</span>
+    <div class="drop-zone-text font-semibold">Drop files here</div>
+    <div class="drop-zone-hint text-xs muted">or click to browse — any file size, direct stream</div>
   `;
 
   const fileInput = el('input', { type: 'file', multiple: '' }) as HTMLInputElement;
@@ -1655,36 +1784,38 @@ export function createFileCard(
   const container = el('div', { className: 'stack stack-md fade-in' });
 
   const card = el('div', { className: 'file-card' });
-  const icon = el('div', { className: 'file-icon', textContent: '📄' });
+  const icon = el('div', { className: 'file-icon' });
+  icon.innerHTML = iconFileText({ size: 18 });
   const info = el('div', { className: 'file-info' });
-  const name = el('div', { className: 'file-name', textContent: fileName });
-  const size = el('div', { className: 'file-size', textContent: formatBytes(fileSize) });
+  const name = el('div', { className: 'file-name font-semibold', textContent: fileName });
+  const size = el('div', { className: 'file-size mono text-xs tabular-nums muted', textContent: formatBytes(fileSize) });
   info.append(name, size);
 
   const safety = inspectFileSafety(fileName, fileSize);
   if (safety.riskLevel !== 'safe') {
     const badge = el('span', {
-      className: `safety-badge ${safety.riskLevel}`,
+      className: `safety-badge ${safety.riskLevel} mono text-xs`,
       textContent: safety.badgeLabel,
       title: safety.reason,
     });
     info.append(badge);
   }
 
-  const removeBtn = el('button', { className: 'file-remove', textContent: '✕' });
+  const removeBtn = el('button', { className: 'file-remove', title: 'Remove file' });
+  removeBtn.innerHTML = iconX({ size: 14 });
   removeBtn.addEventListener('click', onRemove);
 
   card.append(icon, info, removeBtn);
 
   if (safety.riskLevel === 'danger') {
     const warningNotice = el('div', {
-      className: 'threat-notice danger',
+      className: 'threat-notice danger mono text-xs',
       textContent: `Blocked: ${safety.reason}`,
     });
     container.append(card, warningNotice);
   } else if (safety.riskLevel === 'warning') {
     const warningNotice = el('div', {
-      className: 'threat-notice warning',
+      className: 'threat-notice warning mono text-xs',
       textContent: `Security Warning: ${safety.reason}`,
     });
     const sendBtn = el('button', { className: 'btn btn-primary w-full', textContent: 'Confirm & Send Binary' });
@@ -1710,9 +1841,9 @@ export function createTransferView(fileName: string, direction: 'sending' | 'rec
   const container = el('div', { className: 'transfer-panel fade-in' });
 
   const header = el('div', { className: 'row-between mb-sm' });
-  const statusBadge = el('div', { className: 'status-badge' });
+  const statusBadge = el('div', { className: 'status-badge mono text-xs' });
   statusBadge.innerHTML = `<span class="status-dot transferring"></span> ${direction}`;
-  const fileLabel = el('span', { className: 'text-sm mono', textContent: fileName });
+  const fileLabel = el('span', { className: 'text-sm mono font-semibold', textContent: fileName });
   header.append(statusBadge, fileLabel);
 
   const track = el('div', { className: 'progress-bar-track' });
@@ -1722,18 +1853,18 @@ export function createTransferView(fileName: string, direction: 'sending' | 'rec
   const metrics = el('div', { className: 'transfer-metrics' });
 
   const speedMetric = el('div', { className: 'metric' });
-  const speedVal = el('div', { className: 'metric-value mono', textContent: '0 B/s' });
-  const speedLabel = el('div', { className: 'metric-label', textContent: 'Speed' });
+  const speedVal = el('div', { className: 'metric-value mono tabular-nums', textContent: '0 B/s' });
+  const speedLabel = el('div', { className: 'metric-label mono text-xs muted', textContent: 'Speed' });
   speedMetric.append(speedVal, speedLabel);
 
   const progressMetric = el('div', { className: 'metric' });
-  const progressVal = el('div', { className: 'metric-value mono', textContent: '0%' });
-  const progressLabel = el('div', { className: 'metric-label', textContent: 'Progress' });
+  const progressVal = el('div', { className: 'metric-value mono tabular-nums', textContent: '0%' });
+  const progressLabel = el('div', { className: 'metric-label mono text-xs muted', textContent: 'Progress' });
   progressMetric.append(progressVal, progressLabel);
 
   const etaMetric = el('div', { className: 'metric' });
-  const etaVal = el('div', { className: 'metric-value mono', textContent: '--' });
-  const etaLabel = el('div', { className: 'metric-label', textContent: 'ETA' });
+  const etaVal = el('div', { className: 'metric-value mono tabular-nums', textContent: '--' });
+  const etaLabel = el('div', { className: 'metric-label mono text-xs muted', textContent: 'ETA' });
   etaMetric.append(etaVal, etaLabel);
 
   metrics.append(speedMetric, progressMetric, etaMetric);
@@ -1762,18 +1893,19 @@ export function createCompleteView(
 ): HTMLElement {
   const container = el('div', { className: 'stack stack-md text-center fade-in' });
 
-  const icon = el('div', { className: 'complete-icon', textContent: '✓' });
+  const icon = el('div', { className: 'complete-icon' });
+  icon.innerHTML = iconCheck({ size: 28 });
 
-  const title = el('h2', { textContent: 'Transfer Complete' });
+  const title = el('h2', { className: 'font-semibold', textContent: 'Transfer Complete' });
 
   const info = el('div', { className: 'stack stack-sm' });
-  const nameEl = el('div', { className: 'text-sm', textContent: fileName });
-  const sizeEl = el('div', { className: 'text-xs mono muted', textContent: formatBytes(fileSize) });
+  const nameEl = el('div', { className: 'text-sm font-semibold', textContent: fileName });
+  const sizeEl = el('div', { className: 'text-xs mono muted tabular-nums', textContent: formatBytes(fileSize) });
   info.append(nameEl, sizeEl);
 
   const hashWrap = el('div', { className: 'stack stack-sm' });
-  const hashLabel = el('div', { className: 'text-xs muted', textContent: 'SHA-256 Verified' });
-  const hashVal = el('div', { className: 'hash-display', textContent: sha256 });
+  const hashLabel = el('div', { className: 'text-xs muted mono', textContent: 'SHA-256 Verified' });
+  const hashVal = el('div', { className: 'hash-display mono tabular-nums', textContent: sha256 });
   hashWrap.append(hashLabel, hashVal);
 
   container.append(icon, title, info, hashWrap);
@@ -1798,10 +1930,10 @@ export function createErrorView(message: string, onRetry: () => void): HTMLEleme
 
   const icon = el('div', { className: 'complete-icon' });
   icon.style.borderColor = 'var(--danger)';
-  icon.style.background = 'rgba(224, 64, 64, 0.12)';
-  icon.textContent = '✕';
+  icon.style.background = 'rgba(220, 38, 38, 0.08)';
+  icon.innerHTML = iconX({ size: 28 });
 
-  const title = el('h2', { textContent: 'Connection Lost' });
+  const title = el('h2', { className: 'font-semibold', textContent: 'Connection Lost' });
   const msg = el('div', { className: 'text-sm muted', textContent: message });
 
   const retryBtn = el('button', { className: 'btn btn-primary w-full mt-md', textContent: 'Try Again' });

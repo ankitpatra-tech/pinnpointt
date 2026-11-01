@@ -12,6 +12,8 @@
  * - Wipes the canvas bitmap and revokes memory buffers immediately on close.
  */
 
+import { iconLock, iconShield, iconX } from './icons';
+
 export interface ZeroTraceViewerOptions {
   blob: Blob | File;
   fileName: string;
@@ -19,7 +21,6 @@ export interface ZeroTraceViewerOptions {
 }
 
 export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Promise<void> {
-  // Remove any previous zero-trace viewer
   const existing = document.querySelector('.zero-trace-backdrop');
   if (existing) {
     existing.remove();
@@ -43,7 +44,7 @@ export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Prom
 
   const badge = document.createElement('span');
   badge.className = 'zero-trace-badge';
-  badge.innerHTML = `<span>🔒</span> <span>Zero-Trace View</span>`;
+  badge.innerHTML = `${iconLock({ size: 13 })} <span>Zero-Trace View</span>`;
 
   const title = document.createElement('span');
   title.className = 'zero-trace-filename mono text-xs';
@@ -54,7 +55,7 @@ export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Prom
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'btn-icon modal-close-btn';
-  closeBtn.innerHTML = '✕';
+  closeBtn.innerHTML = iconX({ size: 16 });
   closeBtn.title = 'Close and wipe memory buffer';
 
   header.append(titleWrap, closeBtn);
@@ -63,7 +64,7 @@ export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Prom
   const banner = document.createElement('div');
   banner.className = 'zero-trace-banner text-xs';
   banner.innerHTML = `
-    <span>🛡️</span>
+    ${iconShield({ size: 14 })}
     <span><strong>Ephemeral Canvas View:</strong> Rendered directly in volatile memory. Right-click save and downloading are blocked. Data is wiped upon exit.</span>
   `;
 
@@ -98,96 +99,88 @@ export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Prom
   dismissBtn.textContent = 'Close & Wipe Memory';
 
   footer.append(notice, dismissBtn);
-
   modal.append(header, banner, body, footer);
   backdrop.append(modal);
   document.body.append(backdrop);
 
-  let isWiped = false;
-  let objectUrlToRevoke: string | null = null;
+  let bitmap: ImageBitmap | null = null;
+  let objectUrl: string | null = null;
 
-  const wipeAndClose = () => {
-    if (isWiped) return;
-    isWiped = true;
-
-    // 1. Zero out canvas backing store and wipe 2D context
+  const wipeMemory = () => {
     try {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = 1;
+        canvas.height = 1;
       }
-      canvas.width = 0;
-      canvas.height = 0;
-    } catch {
-      // ignore
+      if (bitmap) {
+        bitmap.close();
+        bitmap = null;
+      }
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+    } catch (e) {
+      console.warn('Wipe memory notice:', e);
     }
+  };
 
-    // 2. Revoke memory Object URL
-    if (objectUrlToRevoke) {
-      URL.revokeObjectURL(objectUrlToRevoke);
-      objectUrlToRevoke = null;
-    }
-
-    // 3. Remove DOM elements
-    window.removeEventListener('keydown', onKeyDown);
+  const closeViewer = () => {
+    wipeMemory();
     backdrop.remove();
     options.onClose?.();
   };
 
-  const onKeyDown = (e: KeyboardEvent) => {
+  closeBtn.addEventListener('click', closeViewer);
+  dismissBtn.addEventListener('click', closeViewer);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeViewer();
+  });
+
+  const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
-      wipeAndClose();
+      window.removeEventListener('keydown', handleKeydown);
+      closeViewer();
     }
   };
+  window.addEventListener('keydown', handleKeydown);
 
-  closeBtn.addEventListener('click', wipeAndClose);
-  dismissBtn.addEventListener('click', wipeAndClose);
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) {
-      wipeAndClose();
-    }
-  });
-  window.addEventListener('keydown', onKeyDown);
-
-  // Render image onto canvas
+  // Render blob
   try {
     if (typeof createImageBitmap === 'function') {
-      const bmp = await createImageBitmap(options.blob);
-      try {
-        canvas.width = bmp.width;
-        canvas.height = bmp.height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(bmp, 0, 0);
-          loadingEl.remove();
-        }
-      } finally {
-        bmp.close(); // Releases GPU memory backing immediately!
+      bitmap = await createImageBitmap(options.blob);
+      loadingEl.remove();
+
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(bitmap, 0, 0);
       }
     } else {
-      // Fallback via Image element with temporary Object URL
-      objectUrlToRevoke = URL.createObjectURL(options.blob);
+      objectUrl = URL.createObjectURL(options.blob);
       const img = new Image();
       img.onload = () => {
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
+        loadingEl.remove();
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0);
-          loadingEl.remove();
         }
-        if (objectUrlToRevoke) {
-          URL.revokeObjectURL(objectUrlToRevoke);
-          objectUrlToRevoke = null;
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = null;
         }
       };
       img.onerror = () => {
-        loadingEl.textContent = 'Failed to decode image in memory.';
+        loadingEl.textContent = 'Unable to render image format in ephemeral viewer.';
       };
-      img.src = objectUrlToRevoke;
+      img.src = objectUrl;
     }
   } catch (err) {
-    console.error('[ZeroTraceViewer] Rendering error:', err);
-    loadingEl.textContent = 'Failed to render ephemeral image.';
+    loadingEl.textContent = `Rendering error: ${err instanceof Error ? err.message : String(err)}`;
   }
 }

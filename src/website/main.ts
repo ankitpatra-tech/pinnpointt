@@ -20,6 +20,7 @@ import {
   isIOS,
 } from '../lib/pwaInstaller';
 import { openDocModal, type DocTab } from '../ui/legalModal';
+import { iconSun, iconMoon } from '../ui/icons';
 
 let currentTheme: ThemeMode = getInitialTheme();
 
@@ -34,8 +35,8 @@ function renderHeroQR(): void {
     qrCanvas.render(matrix, {
       moduleSize: 5,
       quietZone: 3,
-      darkColor: currentTheme === 'light' ? '#18181B' : '#EDEDED',
-      lightColor: currentTheme === 'light' ? '#FFFFFF' : '#121214',
+      darkColor: currentTheme === 'light' ? '#111110' : '#F3F4F6',
+      lightColor: currentTheme === 'light' ? '#FFFFFF' : '#181A1D',
     });
   } catch (err) {
     console.warn('Hero QR render notice:', err);
@@ -60,7 +61,7 @@ function setupTheme(): void {
 function updateThemeButton(): void {
   const themeBtn = document.getElementById('website-theme-toggle');
   if (!themeBtn) return;
-  const icon = currentTheme === 'dark' ? '☀️' : '🌙';
+  const icon = currentTheme === 'dark' ? iconSun({ size: 14 }) : iconMoon({ size: 14 });
   const label = currentTheme === 'dark' ? 'Light' : 'Dark';
   themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span class="theme-label">${label}</span>`;
   themeBtn.setAttribute('title', `Switch to ${currentTheme === 'dark' ? 'light' : 'dark'} mode`);
@@ -76,7 +77,7 @@ function setupPWAInstallation(): void {
     btn.addEventListener('click', async () => {
       const outcome = await promptPWAInstall();
       if (outcome === 'accepted') {
-        btn.textContent = '✓ App Installed!';
+        btn.textContent = 'App Installed!';
         btn.disabled = true;
       } else if (outcome === 'ios') {
         if (iosGuidance) {
@@ -97,7 +98,7 @@ function setupPWAInstallation(): void {
   onInstallAvailabilityChange((canInstall) => {
     installButtons.forEach((btn) => {
       if (isStandalone()) {
-        btn.textContent = '✓ Installed';
+        btn.textContent = 'Installed';
         btn.disabled = true;
       } else if (canInstall || isIOS()) {
         btn.style.display = 'inline-flex';
@@ -130,7 +131,7 @@ function setupThreatSandbox(): void {
   const samples = {
     clean: {
       name: 'presentation_deck.pdf (4.8 MB)',
-      badge: '✓ Verified Safe',
+      badge: 'Verified Safe',
       badgeClass: 'safe',
       reason: 'Normal document. Transferred directly between your devices without any cloud storage.',
       hash: 'Verified Bit-Exact (SHA-256 Matched)',
@@ -138,7 +139,7 @@ function setupThreatSandbox(): void {
     },
     script: {
       name: 'update_patch.ps1 (12 KB)',
-      badge: '⚠️ Warning: Executable Script',
+      badge: 'Warning: Executable Script',
       badgeClass: 'warning',
       reason: 'Script file (.ps1) detected. PinnPointt pauses it in memory so it cannot run automatically on your device.',
       hash: 'Held in Browser Memory (Execution Blocked)',
@@ -146,7 +147,7 @@ function setupThreatSandbox(): void {
     },
     'double-ext': {
       name: 'urgent_invoice.pdf.exe (840 KB)',
-      badge: '🛑 Deceptive Extension Blocked',
+      badge: 'Blocked: double extension trap',
       badgeClass: 'danger',
       reason: 'High-risk double extension trap detected. Malware often masks executables as documents or photos.',
       hash: 'Blocked Before Sending (Trap Neutralized)',
@@ -154,7 +155,7 @@ function setupThreatSandbox(): void {
     },
     'malware-hash': {
       name: 'eicar_antivirus_test.com (68 B)',
-      badge: '🛑 Threat Signature Blocked',
+      badge: 'Blocked: Threat Signature',
       badgeClass: 'danger',
       reason: 'Known harmful payload detected. Blocked instantly before transfer to protect the receiver.',
       hash: 'Matched Known Threat (Client Triage)',

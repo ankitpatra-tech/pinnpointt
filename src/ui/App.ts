@@ -19,8 +19,12 @@ import {
   createJoinInputWithBack,
   createConnectedWorkspace,
   createErrorView,
+  createModeBar,
+  createNearbyRadar,
+  showToast,
   type WorkspaceController,
 } from './components';
+import { iconSun, iconMoon } from './icons';
 import { openDocModal } from './legalModal';
 import { openOnboardingModal, shouldShowOnboardingOnStartup } from './onboardingModal';
 import { createInstallBanner } from '../lib/pwaInstaller';
@@ -63,7 +67,6 @@ import {
   type ClipboardItemData,
 } from '../lib/clipboardSync';
 import { openZeroTraceViewer } from './zeroTraceViewer';
-import { showToast } from './components';
 
 type AppState =
   | 'idle'
@@ -139,9 +142,9 @@ export class App {
     this.currentTheme = toggleTheme();
     const themeBtn = this.root.querySelector('.btn-theme-toggle');
     if (themeBtn) {
-      const icon = this.currentTheme === 'dark' ? '☀️' : '🌙';
-      const label = this.currentTheme === 'dark' ? 'Light' : 'Dark';
-      themeBtn.innerHTML = `<span class="theme-icon">${icon}</span> <span class="theme-label">${label}</span>`;
+      const themeIcon = this.currentTheme === 'dark' ? iconSun({ size: 13 }) : iconMoon({ size: 13 });
+      const themeLabel = this.currentTheme === 'dark' ? 'Light' : 'Dark';
+      themeBtn.innerHTML = `<span class="theme-icon">${themeIcon}</span> <span class="theme-label">${themeLabel}</span>`;
       themeBtn.setAttribute('title', `Switch to ${this.currentTheme === 'dark' ? 'light' : 'dark'} mode`);
     }
 
@@ -157,8 +160,8 @@ export class App {
           qrCanvas.render(matrix, {
             moduleSize: 7,
             quietZone: 4,
-            darkColor: this.currentTheme === 'light' ? '#18181B' : '#EDEDED',
-            lightColor: this.currentTheme === 'light' ? '#FFFFFF' : '#121214',
+            darkColor: this.currentTheme === 'light' ? '#111110' : '#F3F4F6',
+            lightColor: this.currentTheme === 'light' ? '#FFFFFF' : '#181A1D',
           });
         } catch (e) {
           console.warn('QR update error:', e);
@@ -206,6 +209,43 @@ export class App {
 
     // Prompt installing PWA on mobile / desktop browsers
     container.append(createInstallBanner());
+
+    // Top Mode Bar (1-to-1 Direct, Broadcast Room, Virtual Drive)
+    let currentMode: 'direct' | 'broadcast' | 'drive' = 'direct';
+    if (this.isPreviewMode) {
+      currentMode = 'drive';
+    }
+    const modeBar = createModeBar(currentMode, (selected) => {
+      if (selected === 'drive') {
+        if (this.state !== 'connected') {
+          this.startPreviewMode();
+          setTimeout(() => this.workspace?.switchTab('drive'), 200);
+        } else {
+          this.workspace?.switchTab('drive');
+        }
+      } else if (selected === 'broadcast') {
+        showToast('Broadcast Room: Connect multiple peers to 1-to-Many stream');
+        if (this.state === 'idle') {
+          this.handleCreateRoom();
+        }
+      } else {
+        if (this.state === 'connected') {
+          this.workspace?.switchTab('activity');
+        }
+      }
+    });
+    container.append(modeBar);
+
+    // Nearby Wi-Fi Radar Banner (shown on idle / pairing)
+    if (['idle', 'creating', 'joining'].includes(this.state)) {
+      const radar = createNearbyRadar(1, () => {
+        showToast('Local subnet peer detected. Initiating direct pairing...');
+        if (this.state === 'idle') {
+          this.handleCreateRoom();
+        }
+      });
+      container.append(radar);
+    }
 
     // Operator username identity card (on idle, creating, joining)
     if (['idle', 'creating', 'joining'].includes(this.state)) {
@@ -265,7 +305,7 @@ export class App {
     card.append(this.renderState());
     container.append(card);
 
-    // Attribution footer (Developed by Ankit Patra for the community ❤️, Policies & Changelog)
+    // Attribution footer (Developed by Ankit Patra for the community, Policies & Changelog)
     container.append(createFooter((tab) => openDocModal(tab)));
 
     this.root.append(container);

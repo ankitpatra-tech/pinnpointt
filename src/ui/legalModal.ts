@@ -5,9 +5,11 @@
  *   - Privacy Policy (Zero cloud storage, transport encryption, SHA-256 verification, use cases)
  *   - Fair Usage Policy (Lawful personal/professional use, prohibited abuse)
  *   - Disclaimer ("AS IS", limitation of liability, peer-to-peer nature)
- *   - Changelog (v0.0.4-beta, v0.0.3-beta, v0.0.2-beta, v0.0.1-beta)
+ *   - Changelog (v0.0.57-beta through v0.0.1-beta)
  *   - Direct In-App Contact Form with 2-per-week rate limit (email hidden from plain view)
  */
+
+import { iconX, iconMail, iconCheck } from './icons';
 
 export type DocTab = 'privacy' | 'fair-usage' | 'disclaimer' | 'changelog' | 'contact';
 
@@ -90,7 +92,7 @@ export function openDocModal(initialTab: DocTab = 'privacy'): void {
   const closeBtn = document.createElement('button');
   closeBtn.className = 'modal-close-btn';
   closeBtn.type = 'button';
-  closeBtn.innerHTML = '✕';
+  closeBtn.innerHTML = iconX({ size: 16 });
   closeBtn.title = 'Close (Esc)';
   closeBtn.addEventListener('click', () => closeModal());
 
@@ -152,32 +154,32 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>PinnPointt is engineered from first principles on a zero-knowledge, zero-retention foundation. Your files and conversations belong solely to you and your recipient.</p>
 
         <div class="policy-card">
-          <h4>🔒 1. Zero Cloud Storage &amp; Direct Device-to-Device Link</h4>
+          <h4>1. Zero Cloud Storage &amp; Direct Device-to-Device Link</h4>
           <p>PinnPointt does not maintain file servers, databases, or intermediary cloud storage. When you send files or chat messages, data streams straight from your device's memory to your recipient's device via WebRTC.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🛡️ 2. Transport-Layer Encryption (DTLS 1.3 / SRTP)</h4>
+          <h4>2. Transport-Layer Encryption (DTLS 1.3 / SRTP)</h4>
           <p>Every direct peer-to-peer connection is protected by cryptographic transport-layer encryption using modern TLS-grade cipher suites (AES-GCM). Intermediary network nodes, Wi-Fi operators, ISPs, and signaling relays cannot inspect, intercept, or decrypt your transferred payloads.</p>
         </div>
 
         <div class="policy-card">
-          <h4>⚡ 3. Ephemeral Signaling Relay</h4>
+          <h4>3. Ephemeral Signaling Relay</h4>
           <p>The lightweight relay functions solely to introduce devices (brokering initial network handshakes). <strong>No file data, file chunks, filenames, or chat messages ever pass through the signaling server.</strong> Rooms automatically expire after 120 seconds of inactivity and clear state upon disconnect.</p>
         </div>
 
         <div class="policy-card">
-          <h4>✓ 4. In-Browser Integrity Verification &amp; Safety Triage</h4>
+          <h4>4. In-Browser Integrity Verification &amp; Safety Triage</h4>
           <p>Before any file is dispatched, an in-browser cryptographic SHA-256 hash is calculated. Upon arrival, the receiving device re-verifies the hash before saving. Corrupted, modified, or quarantined payloads are immediately caught in browser memory.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🚫 5. Zero Tracking &amp; No Third-Party Cookies</h4>
+          <h4>5. Zero Tracking &amp; No Third-Party Cookies</h4>
           <p>PinnPointt contains zero analytics trackers, zero advertising pixels, and zero profiling cookies. Your display name and visual theme preferences reside strictly in your device's local storage.</p>
         </div>
 
         <div class="policy-card">
-          <h4>💡 6. Intended Use Cases</h4>
+          <h4>6. Intended Use Cases</h4>
           <p>• <strong>Confidential Document Sharing:</strong> Transfer sensitive documents or archives directly without uploading to third-party cloud drives.<br/>
           • <strong>Uncompressed Large Media:</strong> Send raw video, photography, or software packages directly between phones, laptops, and PCs.<br/>
           • <strong>Private Collaboration:</strong> Real-time messaging and direct file attachments between colleagues or personal devices.</p>
@@ -191,12 +193,12 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>PinnPointt provides a decentralized, direct transport utility for lawful, productive, and constructive collaboration. By using PinnPointt, you agree to this Fair Usage Policy.</p>
 
         <div class="policy-card">
-          <h4>⚖️ Permitted Usage</h4>
+          <h4>Permitted Usage</h4>
           <p>You may use PinnPointt for personal, educational, research, and legitimate commercial file exchange and communication between consenting parties.</p>
         </div>
 
         <div class="policy-card">
-          <h4>⛔ Zero-Tolerance Prohibited Activities</h4>
+          <h4>Zero-Tolerance Prohibited Activities</h4>
           <p>PinnPointt is engineered strictly for lawful file exchange. You strictly agree NOT to use PinnPointt to transmit, distribute, facilitate, or store:</p>
           <ul style="padding-left: 20px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
             <li><strong>Malware &amp; Cyberattacks:</strong> Any computer viruses, worms, trojans, ransomware, spyware, keyloggers, exploit scripts, or malicious payloads designed to damage, compromise, or intercept hardware, networks, or devices.</li>
@@ -207,7 +209,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         </div>
 
         <div class="policy-card">
-          <h4>👤 User Responsibility</h4>
+          <h4>User Responsibility</h4>
           <p>Because PinnPointt is a direct peer-to-peer transport with zero centralized content inspection or storage, you bear full and exclusive legal responsibility for all files and communications transmitted from your device.</p>
         </div>
       `;
@@ -219,7 +221,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>Please review this disclaimer before utilizing PinnPointt.</p>
 
         <div class="policy-card">
-          <h4>🏛️ Statutory Safe Harbor &amp; Neutral Conduit Status</h4>
+          <h4>Statutory Safe Harbor &amp; Neutral Conduit Status</h4>
           <p>PinnPointt operates strictly as a decentralized, zero-knowledge peer-to-peer transport utility (analogous to a neutral fiber optic cable, local network switch, or Wi-Fi radio). Under US CDA Section 230, DMCA Section 512(a), and the EU Digital Services Act / E-Commerce Directive, PinnPointt and its developer (Ankit Patra) qualify as a passive, neutral conduit:
           <br/>• We do not initiate, host, store, inspect, modify, or curate peer-to-peer data transfers.
           <br/>• All data streams encrypted directly from sender device memory to recipient device memory.
@@ -228,17 +230,17 @@ function renderTabContent(tab: DocTab): HTMLElement {
         </div>
 
         <div class="policy-card">
-          <h4>⚠️ "AS IS" Software License</h4>
+          <h4>"AS IS" Software License</h4>
           <p>PinnPointt is provided free of charge on an "AS IS" and "AS AVAILABLE" basis without warranties of any kind, whether express, statutory, or implied, including fitness for a particular purpose or non-infringement.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🛡️ Complete Limitation of Liability</h4>
+          <h4>Complete Limitation of Liability</h4>
           <p>To the maximum extent permitted by applicable law, the author (Ankit Patra) and open-source contributors expressly disclaim all liability for any direct, indirect, incidental, punitive, or consequential damages resulting from peer-to-peer file exchanges, user transmissions, malware infection, network interruptions, or data loss. Users bear sole and exclusive legal accountability for all data transmitted from their devices.</p>
         </div>
 
         <div class="policy-card">
-          <h4>🌐 Network &amp; Firewall Traversal</h4>
+          <h4>Network &amp; Firewall Traversal</h4>
           <p>Direct peer connections rely on local network topologies and NAT configurations. While standard STUN traversal is provided, restrictive corporate firewalls or symmetric NATs may occasionally prevent direct connectivity.</p>
         </div>
       `;
@@ -255,13 +257,14 @@ function renderTabContent(tab: DocTab): HTMLElement {
             <span class="changelog-date">Current Release</span>
           </div>
           <ul class="changelog-list">
+            <li><strong>Swiss Architectural Daylight &amp; Slate Design System:</strong> Overhauled visual design with clean daylight default (#F6F5F0), refined slate dark mode, crisp 1.5px geometric SVGs, and zero orange or emoji artifacts.</li>
             <li><strong>4-Channel Parallel WebRTC Multi-Stream Engine:</strong> Upgraded transfer pipeline to a dedicated pool of 4 negotiated binary data channels (<code>pinnpointt-data-0..3</code>) with round-robin lowest-buffered scheduling, sustaining 30–80+ MB/s throughput across local 5GHz Wi-Fi with a 2 MB backpressure ceiling.</li>
             <li><strong>Instant Lossless Pause, Byte-Offset Resume &amp; Cancel:</strong> 8-state Transfer State Machine with OPFS chunk checkpointing. Senders halt disk reads immediately on pause; resume syncs the exact lowest unwritten chunk index on disk with zero duplicate bytes re-transmitted.</li>
             <li><strong>12-Byte Binary Framing &amp; Random-Access OPFS:</strong> 64 KB chunks framed with a fixed 12-byte binary header (<code>fileIdHash</code>, <code>chunkIndex</code>, <code>payloadByteLength</code>) written directly to their exact byte positions in OPFS and File System Access streams.</li>
             <li><strong>Rolling 1.5-Second Moving Average Speed Gauge:</strong> Jitter-free throughput and ETA estimator with strictly enforced <code>tabular-nums</code> typography.</li>
-            <li><strong>In-Flight Privacy Shield:</strong> In-memory metadata stripper that losslessly omits APP1/EXIF/GPS, APP2, APP13, and comment markers from JPEG byte streams before entering WebRTC DataChannel without re-encoding or compression loss, with automated canvas strip fallback for PNG and WebP images.</li>
-            <li><strong>Instant Universal Clipboard Sync:</strong> Real-time cross-device scratchpad. Intercepts <code>Ctrl+V</code> / <code>Cmd+V</code> anywhere in the room (or tap "Send Clipboard") to sync text, URLs, code snippets, or screenshot images over the direct peer DataChannel. Features one-click copy with instant toast confirmation.</li>
-            <li><strong>Ephemeral Zero-Trace View Mode:</strong> Ephemeral image view mode rendering raw bytes directly onto an HTML5 <code>&lt;canvas&gt;</code> with context-menu disabled, dragging blocked, and no download trigger. Volatile bitmap memory is wiped and buffers are revoked immediately upon exit.</li>
+            <li><strong>In-Flight Privacy Shield:</strong> In-memory metadata stripper that losslessly omits APP1/EXIF/GPS, APP2, APP13, and comment markers from JPEG byte streams before entering WebRTC DataChannel without re-encoding or compression loss.</li>
+            <li><strong>Instant Universal Clipboard Sync:</strong> Real-time cross-device scratchpad with one-click copy and instant toast confirmation.</li>
+            <li><strong>Ephemeral Zero-Trace View Mode:</strong> Ephemeral image view mode rendering raw bytes directly onto an HTML5 <code>&lt;canvas&gt;</code> with volatile bitmap memory wiped upon exit.</li>
             <li><strong>Hybrid Serverless Signaling Fallback:</strong> Abstracted signaling adapter with automatic 2,500ms timeout fallback from primary WebSocket relay to 100% serverless P2P Nostr signaling.</li>
           </ul>
         </div>
@@ -272,176 +275,10 @@ function renderTabContent(tab: DocTab): HTMLElement {
             <span class="changelog-date">Previous Release</span>
           </div>
           <ul class="changelog-list">
-            <li><strong>P2P Virtual Drive (Live Remote Mount):</strong> Senders can mount files or entire folder trees (<code>webkitdirectory</code>) as a browsable Virtual Drive without pushing gigabytes over the wire upfront. Senders transmit a lightweight JSON manifest (<code>VFS_MANIFEST</code>).</li>
+            <li><strong>P2P Virtual Drive (Live Remote Mount):</strong> Senders can mount files or entire folder trees as a browsable Virtual Drive without pushing gigabytes over the wire upfront.</li>
             <li><strong>Interactive Remote Explorer Table:</strong> Receivers explore remote directory structures with file names, relative paths, types, and exact sizes rendered with jitter-free tabular numbers.</li>
-            <li><strong>On-Demand Byte-Slice Previewing:</strong> Instant ephemeral modal preview for images, markdown/text, JSON, code, audio, and video via <code>VFS_SLICE_REQ</code> / <code>VFS_SLICE_RES</code> byte slicing from peer disk with zero permanent storage on receiver device.</li>
-            <li><strong>Selective On-Demand File Pulling:</strong> Receivers click [Pull File] to stream individual files on demand over the high-speed chunk streamer without needing a full bulk push.</li>
-            <li><strong>Seamless Mode Switching:</strong> Integrated dual-mode toggle ("Push Immediately" vs "Mount as Virtual Drive") into file drop zones and the workspace input row.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.55-beta</span>
-            <span class="changelog-date">Previous Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Screen WakeLock Manager:</strong> Automatically keeps screen awake on mobile and desktop browsers during active peer connections and large file transfers via <code>navigator.wakeLock</code>, re-acquiring on visibility change and displaying a subtle "Screen Awake Active" status indicator.</li>
-            <li><strong>Zero-RAM Disk Streaming:</strong> Upgraded file receiver to eliminate memory bloat for multi-gigabyte transfers using tiered storage: direct disk streaming via File System Access API on desktop Chromium and sequential Origin Private File System (OPFS) on iOS Safari, Android Chrome, and Firefox with automated cleanup.</li>
-            <li><strong>Strict WebRTC Backpressure Engine:</strong> Configured <code>bufferedAmountLowThreshold = 64 KB</code> with a 256 KB pause ceiling, preventing packet drops and UI thread stalls across high-latency cellular networks.</li>
-            <li><strong>Tabular Numeric Typography:</strong> Enforced non-jittering tabular figures across all transfer counters, speeds, percentages, and ETAs for clean, stable readouts.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.54-beta</span>
-            <span class="changelog-date">Previous Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Auto-Connect QR Code (No App Required):</strong> Upgraded native QR generator to support auto-scaling (Versions 1–40), encoding full deep-link URLs (<code>/app?room=...</code>) so any smartphone camera opens the browser and connects immediately without saying "no app to connect".</li>
-            <li><strong>Answerer ICE Candidate Race Fix:</strong> Queued candidate arrivals until local SDP answers are set, eliminating discarded ICE candidates and connection timeouts.</li>
-            <li><strong>Multi-STUN &amp; Candidate Pre-gathering:</strong> Added Cloudflare and secondary Google STUN endpoints with <code>iceCandidatePoolSize</code> for sub-second P2P establishment across mobile and restrictive NATs.</li>
-            <li><strong>Signaling Connection Timeout &amp; Guard:</strong> Added a 12-second WebSocket connect timeout with informative diagnostics and state guards preventing workspace resets.</li>
-            <li><strong>One-Click Invite Link Sharing:</strong> Added a "Copy Invite Link" button alongside the peer window testing option.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.53-beta</span>
-            <span class="changelog-date">Previous Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Large File (&gt; 100 MB) Connection Stability Fix:</strong> Standardized chunk framing to 32 KB, safely within SCTP 64 KB limits, eliminating packet fragmentation and association resets.</li>
-            <li><strong>Dual-Watermark Backpressure Hysteresis:</strong> Implemented 512 KB high watermark and 128 KB low watermark draining to prevent browser buffer congestion and channel timeouts.</li>
-            <li><strong>Zero-Copy Reception &amp; OOM Elimination:</strong> Replaced monolithic ArrayBuffer allocations and map indexing with direct zero-copy typed array views and pre-allocated part arrays, preventing browser tab crashes.</li>
-            <li><strong>Transient ICE Disconnect Grace Period:</strong> Handled temporary network latency spikes with a 5-second recovery window instead of terminating the session prematurely.</li>
-            <li><strong>Signaling Resilience:</strong> Protected active P2P transfers from signaling socket errors and paused text keepalives during heavy binary streaming.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.52-beta</span>
-            <span class="changelog-date">Previous Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Mobile Chat Viewport Alignment:</strong> Resolved flexbox overflow on mobile phone screens (< 480px) so the Send button stays perfectly aligned and fully visible within the viewport.</li>
-            <li><strong>End-to-End Encrypted (E2EE) Chat over WebRTC DTLS:</strong> Surfaced clear cryptographic indicators confirming that all real-time chat messages and file transfers are 100% end-to-end encrypted directly device-to-device with zero server storage.</li>
-            <li><strong>Large File (&gt; 100 MB) Memory &amp; Dropout Fix:</strong> Upgraded stream chunking to 64 KB and replaced whole-buffer RAM allocations with direct Blob slicing and dual-mode backpressure drain, preventing browser heap exhaustion and connection drops.</li>
-            <li><strong>Signaling Heartbeat &amp; 10-Minute Room Expiry:</strong> Implemented active 25s ping-pong keepalive preventing cloud reverse-proxy drops (Render / Cloudflare), extended room waiting timeout to 10 minutes, and decoupled signaling connection loss from active P2P transfers.</li>
-            <li><strong>Interactive Welcome &amp; Onboarding Guide:</strong> Added 3-step visual onboarding walkthrough, accessible on initial visit or via navbar guide, with friendly "Set Your Name" terminology.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.51-beta</span>
-            <span class="changelog-date">Previous Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Signaling Timeout Resolution:</strong> Fixed room lifecycle timer so the 2-minute timeout only applies to abandoned, unjoined rooms. Paired peers enjoy unlimited session durations for huge file streaming and extended chat.</li>
-            <li><strong>Interactive Power-User Verification:</strong> Added live in-browser threat triage sandbox, DevTools network challenge, and reproducible dual-Chromium E2E terminal benchmark telemetry to the showcase website.</li>
-            <li><strong>Streamlined Architecture Showcase:</strong> Simplified proprietary technology cards to focus on user benefits (zero-dependency native QR, crash-free 10 GB+ streaming, native hardware Web Crypto).</li>
-            <li><strong>Hardened Legal &amp; Safe-Harbor Protections:</strong> Fortified Privacy Policy, Fair Usage, and Disclaimers with explicit statutory Safe Harbor classifications (US CDA §230, DMCA §512, EU DSA) and complete common-carrier liability immunity.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.5-beta</span>
-            <span class="changelog-date">Beta Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Client-Side File Safety &amp; Malicious Triage Engine:</strong> Real-time in-browser inspection detecting executable binaries, script droppers, and double-extension traps before transfer.</li>
-            <li><strong>Threat Quarantining &amp; Verification:</strong> High-risk payloads are quarantined in browser memory with visual risk badges and SHA-256 verification, preventing silent or accidental execution.</li>
-            <li><strong>Cryptographic Security Showcase:</strong> Added dedicated Security &amp; Verification section on the website detailing our custom-engineered TS QR engine, 64 KB WebRTC chunking, and zero-knowledge architecture.</li>
-            <li><strong>Enhanced Abuse &amp; Safe-Harbor Policy:</strong> Strengthened Fair Usage Policy with strict zero-tolerance prohibitions against malware, CSAM, stolen databases, and statutory safe-harbor protections.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.42-beta</span>
-            <span class="changelog-date">Beta Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Interactive Quick Start Navigation:</strong> Onboarding steps are now interactive navigation shortcuts. Clicking Step 1 highlights and focuses your display name with an identity pulse, Step 2 guides device pairing, and Step 3 launches the interactive demo mode.</li>
-            <li><strong>Room Creation Navigation:</strong> Added dual back-button controls in the "Create a Room" view (top header and bottom primary button) to cleanly return to pairing options without page reloads.</li>
-            <li><strong>Motion &amp; Micro-Interaction Overhaul:</strong> Added smooth staggered card entrances, tactile button physics, room code digit pop-ins, and animated step hover feedback.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.41-beta</span>
-            <span class="changelog-date">Beta Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Cohesive Design System Overhaul:</strong> Unified warm Industrial Bauhaus aesthetics across both the Web App and Showcase Website with frosted glassmorphism and tactile button physics.</li>
-            <li><strong>Multi-Resolution Fluid Scalability:</strong> Dynamic scaling with CSS clamp typography, responsive grid restructuring, and zero-overflow code inputs on small screens (320px–360px).</li>
-            <li><strong>Full-Width Structured Footer:</strong> Multi-column footer featuring quick navigation, community resources, direct founder contact, and privacy guarantees.</li>
-            <li><strong>Roadmap Subject to Changes Notice:</strong> Explicit transparency disclaimer regarding future milestones and browser standards evolution.</li>
-            <li><strong>Comprehensive Security Audit:</strong> Verified 0 dependency vulnerabilities and complete client-side DOM XSS sanitization across all chat and file transfer feeds.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.4-beta</span>
-            <span class="changelog-date">Beta Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Rebranding to PinnPointt:</strong> Unified product identity across all application modules and manifests.</li>
-            <li><strong>In-App Direct Contact Form:</strong> Submit feedback, bug reports, and inquiries directly from within the app without email exposure.</li>
-            <li><strong>Weekly Contact Rate Limiting:</strong> Enforces a strict 2-submissions-per-week rate limit with countdown feedback.</li>
-            <li><strong>Subtle Micro-Attribution:</strong> Refined, smaller community footer with elegant contrast.</li>
-            <li><strong>Fluid Traversal & Animations:</strong> Staggered card entrance physics, smooth chat scroll, and reactive hover states.</li>
-            <li><strong>Paste & Connection Bugfixes:</strong> Support for instant 6-digit code pasting with auto-advance and direct connection spinners.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.3-beta</span>
-            <span class="changelog-date">Beta Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Human-First Language:</strong> Replaced technical protocol terms with accessible everyday descriptions.</li>
-            <li><strong>Industrial Bauhaus Themes:</strong> Full Light and Dark mode system with instant token switching.</li>
-            <li><strong>Dynamic QR Theming:</strong> Custom canvas engine automatically adapts contrast to the active theme.</li>
-            <li><strong>Desktop & Mobile Navbar:</strong> Responsive top bar with live session badges and theme switcher.</li>
-            <li><strong>Compliance Modals:</strong> Built-in Privacy Policy, Fair Usage, and Disclaimer dialogs.</li>
-            <li><strong>Simplified 3-Step Onboarding:</strong> Streamlined micro-guide with interactive step highlights.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.2-beta</span>
-            <span class="changelog-date">Beta Release</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Real-Time Encrypted Chat:</strong> End-to-end messaging over WebRTC data channels with timestamped message bubbles.</li>
-            <li><strong>Operator Name Generator:</strong> Architectural username generator with monogram avatar and persistence.</li>
-            <li><strong>Unified Activity Feed:</strong> Single-canvas feed rendering real-time chat and in-feed file streaming cards simultaneously.</li>
-            <li><strong>Interactive Demo Mode:</strong> Single-window sandbox with simulated peer to preview streaming and verification.</li>
-          </ul>
-        </div>
-
-        <div class="changelog-release">
-          <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.1-beta</span>
-            <span class="changelog-date">Initial Architecture</span>
-          </div>
-          <ul class="changelog-list">
-            <li><strong>Proprietary QR Engine:</strong> Pure TypeScript ISO/IEC 18004 V2-M generator (Galois Field GF(2^8) Reed-Solomon encoding &amp; BCH format masking).</li>
-            <li><strong>Native WebRTC Binary Pipeline:</strong> 32 KB chunk framing with 8-byte binary sequence header.</li>
-            <li><strong>Backpressure Flow Control:</strong> 1 MB threshold throttling via <code>bufferedAmountLow</code> to prevent memory exhaustion.</li>
-            <li><strong>Cryptographic SHA-256 Validation:</strong> Pre/post transfer checksum verification with automatic corruption rejection.</li>
-            <li><strong>Signaling Relay:</strong> Lightweight Node.js WebSocket relay with 120s room auto-expiration.</li>
-            <li><strong>Offline PWA Shell:</strong> Progressive Web App manifest and network-first Service Worker caching.</li>
+            <li><strong>On-Demand Byte-Slice Previewing:</strong> Instant ephemeral modal preview for images, markdown/text, JSON, code, audio, and video via byte slicing from peer disk with zero permanent storage on receiver device.</li>
+            <li><strong>Selective On-Demand File Pulling:</strong> Receivers click [Pull File] to stream individual files on demand over the high-speed chunk streamer.</li>
           </ul>
         </div>
       `;
@@ -453,7 +290,6 @@ function renderTabContent(tab: DocTab): HTMLElement {
       const isRateLimited = remaining === 0;
       const daysUntilReset = getNextAvailableDays(submissions);
 
-      // Pre-fill name from localStorage if saved
       const savedName = localStorage.getItem('pinnpointt_username') || localStorage.getItem('pinpoint_username') || '';
 
       const formWrap = document.createElement('div');
@@ -467,11 +303,11 @@ function renderTabContent(tab: DocTab): HTMLElement {
           <span class="rate-limit-pill ${isRateLimited ? 'limited' : ''}">
             ${
               isRateLimited
-                ? `⚠️ Weekly limit reached (2 / 2 used) • Reopens in ${daysUntilReset}d`
-                : `⚡ ${remaining} of ${MAX_SUBMISSIONS_PER_WEEK} inquiries remaining this week`
+                ? `Weekly limit reached (2 of 2 used) • Reopens in ${daysUntilReset}d`
+                : `${remaining} of 2 inquiries remaining this week`
             }
           </span>
-          <span class="text-xs muted">Rate limit: 2 / week</span>
+          <span class="text-xs muted mono">Rate limit: 2 / week</span>
         </div>
 
         <div class="contact-card">
@@ -492,11 +328,11 @@ function renderTabContent(tab: DocTab): HTMLElement {
             <div>
               <label class="form-label" for="contact-category">Topic</label>
               <select id="contact-category" class="form-select" ${isRateLimited ? 'disabled' : ''}>
-                <option value="Feedback">💡 General Feedback</option>
-                <option value="Bug Report">🐛 Bug Report</option>
-                <option value="Feature Request">✨ Feature Request</option>
-                <option value="Architecture & Security">🔒 Architecture & Security</option>
-                <option value="Other">💬 Other Inquiry</option>
+                <option value="Feedback">General Feedback</option>
+                <option value="Bug Report">Bug Report</option>
+                <option value="Feature Request">Feature Request</option>
+                <option value="Architecture & Security">Architecture & Security</option>
+                <option value="Other">Other Inquiry</option>
               </select>
             </div>
 
@@ -534,7 +370,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
               id="btn-submit-contact"
               ${isRateLimited ? 'disabled' : ''}
             >
-              <span>✉</span> <span>Submit Message</span>
+              ${iconMail({ size: 14 })} <span>Submit Message</span>
             </button>
           </form>
         </div>
@@ -547,7 +383,6 @@ function renderTabContent(tab: DocTab): HTMLElement {
         form.addEventListener('submit', (e) => {
           e.preventDefault();
 
-          // Check rate limit
           const currentSubmissions = getRecentSubmissions();
           if (currentSubmissions.length >= MAX_SUBMISSIONS_PER_WEEK) {
             alert('Rate limit reached: Maximum 2 inquiries per week. Please try again later.');
@@ -571,10 +406,8 @@ function renderTabContent(tab: DocTab): HTMLElement {
             return;
           }
 
-          // Record this submission in rate limit tracking
           recordSubmission();
 
-          // Prepare email payload using obfuscated recipient
           const recipient = getObfuscatedRecipient();
           const subject = encodeURIComponent(`[PinnPointt] ${category} - from ${name}`);
           const body = encodeURIComponent(
@@ -591,7 +424,6 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `------------------------------------\n`
           );
 
-          // Dispatch through mailto scheme without exposing recipient on screen
           const mailtoUri = `mailto:${recipient}?subject=${subject}&body=${body}`;
           const mailLink = document.createElement('a');
           mailLink.href = mailtoUri;
@@ -601,7 +433,6 @@ function renderTabContent(tab: DocTab): HTMLElement {
           mailLink.click();
           mailLink.remove();
 
-          // Show confirmation UI inside modal
           form.reset();
           submitBtn.disabled = true;
           nameInput.disabled = true;
@@ -612,7 +443,9 @@ function renderTabContent(tab: DocTab): HTMLElement {
           statusMsg.style.display = 'block';
           statusMsg.className = 'contact-success-banner';
           statusMsg.innerHTML = `
-            <div style="font-weight: 600; font-size: 13px;">✓ Message Prepared & Dispatched!</div>
+            <div style="font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+              ${iconCheck({ size: 14 })} <span>Message Prepared &amp; Dispatched</span>
+            </div>
             <div style="font-size: 11.5px; opacity: 0.9; margin-top: 3px;">
               Your message was routed directly to the developer. Thank you for contributing to PinnPointt!
             </div>
