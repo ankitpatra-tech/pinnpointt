@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#F6F5F0" />
-  <meta name="description" content="PinnPointt — Zero-cloud direct peer-to-peer file transfer and real-time collaboration. Why PinnPointt, core architecture, and open-source roadmap." />
-  <title>PinnPointt — Peer-to-Peer File Transfer at Hardware Speed</title>
+  <meta name="theme-color" content="#F8F7F4" />
+  <meta name="description" content="PinnPointt — Share files of any size, straight between your devices. No cloud uploads, no sign-ups, and no file size limits." />
+  <title>PinnPointt — Share Files Directly Between Devices</title>
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='4' y='4' width='24' height='24' rx='4' fill='%230047FF'/><circle cx='16' cy='16' r='6' fill='%23FFFFFF'/></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='4' y='4' width='24' height='24' rx='6' fill='%230052FF'/><circle cx='16' cy='16' r='6' fill='%23FFFFFF'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/website/website.css" />
 </head>
 <body>
@@ -20,40 +20,35 @@
       <div class="nav-brand" onclick="window.location.href='/'">
         <div class="nav-logo">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" class="brand-mark">
-            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.75" fill="none"/>
             <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
-            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
           </svg>
         </div>
         <div class="nav-title-wrap">
           <span class="nav-title">PinnPointt</span>
-          <span class="nav-badge mono text-xs">v0.0.57-beta</span>
+          <span class="nav-badge text-xs">v0.0.57-beta</span>
         </div>
       </div>
 
       <nav class="site-nav-links" id="site-nav-links">
         <a href="#how-it-works" class="site-nav-link">How It Works</a>
-        <a href="#why" class="site-nav-link">Why PinnPointt</a>
-        <a href="#comparison" class="site-nav-link">Comparison</a>
-        <a href="#features" class="site-nav-link">Features</a>
-        <a href="#security" class="site-nav-link">Security</a>
-        <a href="#install" class="site-nav-link">Install</a>
-        <a href="#roadmap" class="site-nav-link">Roadmap</a>
-        <a href="#developer-note" class="site-nav-link">Founder's Note</a>
+        <a href="#why" class="site-nav-link">Why Direct Sharing</a>
+        <a href="#comparison" class="site-nav-link">Compare</a>
+        <a href="#faq" class="site-nav-link">FAQ</a>
       </nav>
 
       <div class="nav-actions">
         <button id="website-theme-toggle" class="btn-theme-toggle" type="button" title="Toggle theme">
           <span class="theme-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             </svg>
           </span>
-          <span class="theme-label mono text-xs">Light</span>
+          <span class="theme-label text-xs">Light</span>
         </button>
         <a href="/app" class="site-nav-cta">
-          <span class="cta-text-full">Open Workspace →</span>
-          <span class="cta-text-short">App →</span>
+          <span>Start Sharing →</span>
         </a>
         <button id="nav-toggle-btn" class="nav-mobile-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false">
           <span class="hamburger-bar"></span>
@@ -66,235 +61,232 @@
 
   <div class="site-wrapper">
 
-    <!-- ── Hero Section (Asymmetric 2-Column Swiss Grid) ── -->
+    <!-- ── Hero Section (Wide 2-Column Split) ── -->
     <section class="hero-section">
       <div class="hero-grid">
-        <!-- Left Column: Editorial Hierarchy -->
+        <!-- Left Column: Friendly Editorial Narrative -->
         <div class="hero-left">
-          <div class="hero-eyebrow mono text-xs">
+          <div class="hero-eyebrow">
             <span class="hero-eyebrow-dot"></span>
-            <span>Direct Device-to-Device File Sharing</span>
+            <span>Direct Device-to-Device Sharing</span>
           </div>
 
           <h1 class="hero-title">
-            Share files of any size directly between your devices.
+            Share files of any size, straight between your devices.
           </h1>
 
           <p class="hero-subtitle">
-            Send photos, videos, and large folders straight from your phone to your computer—or to anyone, anywhere. No cloud uploads, no accounts, and no file size limits.
+            Move photos, videos, and large folders between your phone and computer in seconds. No cloud uploads, no sign-ups, and no file size limits.
           </p>
 
           <div class="hero-actions">
             <a href="/app" class="hero-btn-primary">
-              <span>Launch Web App</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span>Start Sharing Now</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
             <a href="#how-it-works" class="hero-btn-secondary">
               <span>See How It Works</span>
             </a>
             <button type="button" class="hero-btn-secondary trigger-pwa-install">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Install App</span>
             </button>
           </div>
 
           <div class="hero-trust-strip">
             <div class="trust-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>No File Size Limits</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>No file size limits</span>
             </div>
             <div class="trust-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Works Across All Devices</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Works on Phone &amp; PC</span>
             </div>
             <div class="trust-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>End-to-End Encrypted</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Private &amp; encrypted</span>
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Precision Hardware Telemetry Instrument -->
+        <!-- Right Column: Calm, Realistic Live Transfer Preview -->
         <div class="hero-right">
-          <div class="telemetry-instrument">
-            <div class="instrument-header">
-              <div class="instrument-status">
-                <span class="status-pulse-dot"></span>
-                <span class="mono text-xs font-semibold">LIVE SIMULATION PREVIEW</span>
-              </div>
-              <div class="topology-badge direct">
-                <span class="status-dot connected"></span>
-                <span>Connected Directly over Wi-Fi</span>
-              </div>
-            </div>
-
-            <div class="instrument-body">
-              <div class="instrument-qr-pane">
-                <div class="qr-frame">
-                  <canvas id="hero-qr-canvas" width="130" height="130"></canvas>
+          <div class="preview-card-wrap">
+            <div class="telemetry-instrument">
+              <div class="instrument-header">
+                <div class="instrument-status">
+                  <span class="status-pulse-dot"></span>
+                  <span class="status-header-text">Live Transfer Preview</span>
                 </div>
-                <span class="mono text-xs muted">Scan to connect</span>
+                <div class="topology-badge direct">
+                  <span class="status-dot connected"></span>
+                  <span>Connected via Direct Wi-Fi</span>
+                </div>
               </div>
 
-              <div class="instrument-feed-pane">
-                <div class="instrument-file-row">
-                  <div class="file-name font-semibold text-sm">Summer-Trip-Videos.zip</div>
-                  <div class="file-size mono text-xs tabular-nums font-semibold">8.4 GB</div>
-                </div>
-
-                <!-- Single Smooth Progress Track -->
-                <div class="telemetry-bar-track">
-                  <div class="telemetry-bar-fill" style="width: 74%;"></div>
-                </div>
-
-                <div class="telemetry-metrics-row mono text-xs tabular-nums">
-                  <span><strong>74%</strong></span>
-                  <span>•</span>
-                  <span><strong>68.4 MB/s</strong></span>
-                  <span>•</span>
-                  <span><strong>32 seconds left</strong></span>
-                </div>
-
-                <div class="telemetry-controls-row">
-                  <div class="telemetry-actions">
-                    <button type="button" class="telemetry-btn">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-                      <span>Pause</span>
-                    </button>
-                    <button type="button" class="telemetry-btn">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                      <span>Resume</span>
-                    </button>
-                    <button type="button" class="telemetry-btn cancel">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                      <span>Cancel</span>
-                    </button>
+              <div class="instrument-body">
+                <div class="instrument-qr-pane">
+                  <div class="qr-frame">
+                    <canvas id="hero-qr-canvas" width="130" height="130"></canvas>
                   </div>
-                  <span class="file-badge-verified mono text-xs font-semibold">Ready</span>
+                  <span class="qr-caption text-xs muted">Point camera to connect</span>
+                </div>
+
+                <div class="instrument-feed-pane">
+                  <div class="instrument-file-row">
+                    <div class="file-name font-semibold text-sm">Vacation-Photos.zip</div>
+                    <div class="file-size text-xs font-semibold tabular-nums">4.2 GB</div>
+                  </div>
+
+                  <!-- One Single Smooth Progress Bar -->
+                  <div class="telemetry-bar-track">
+                    <div class="telemetry-bar-fill" style="width: 74%;"></div>
+                  </div>
+
+                  <div class="telemetry-metrics-row text-xs tabular-nums">
+                    <span><strong>74%</strong></span>
+                    <span>•</span>
+                    <span><strong>68.4 MB/s</strong></span>
+                    <span>•</span>
+                    <span><strong>Done in 20s</strong></span>
+                  </div>
+
+                  <div class="telemetry-controls-row">
+                    <div class="telemetry-actions">
+                      <button type="button" class="telemetry-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                        <span>Pause</span>
+                      </button>
+                      <button type="button" class="telemetry-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>Resume</span>
+                      </button>
+                      <button type="button" class="telemetry-btn cancel">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <span>Cancel</span>
+                      </button>
+                    </div>
+                    <span class="file-badge-verified text-xs font-semibold">Streaming</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="instrument-footer mono text-xs">
-              <span class="status-online-text"><span class="status-dot"></span> End-to-End Encrypted</span>
-              <span class="muted">Direct Peer Link</span>
+              <div class="instrument-footer text-xs">
+                <span class="status-online-text"><span class="status-dot"></span> End-to-End Encrypted</span>
+                <span class="muted">Never stored on any cloud server</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── How It Works in 3 Steps ── -->
+    <!-- ── 3 Simple Steps Section ── -->
     <section id="how-it-works" class="editorial-section how-it-works-section">
-      <div class="editorial-sidebar">
-        <span class="section-tag mono text-xs">HOW IT WORKS</span>
-        <h2 class="section-title">How PinnPointt Works</h2>
+      <div class="section-center-head">
+        <span class="section-pill">How It Works</span>
+        <h2 class="section-title">Sharing in 3 Simple Steps</h2>
         <p class="section-desc">
-          No sign-ups, no passwords, and no software to install. Start streaming directly between devices in three simple steps:
+          No sign-ups, no passwords, and no software to install. Start moving files in seconds.
         </p>
       </div>
 
-      <div class="editorial-content">
-        <div class="steps-grid">
-          <div class="step-card">
-            <div class="step-badge mono text-xs">01</div>
-            <div class="step-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
-            </div>
-            <h3>Open in Browser</h3>
-            <p>Open PinnPointt on any phone, laptop, or tablet. There is nothing to install and no account to create.</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-badge">1</div>
+          <div class="step-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
           </div>
+          <h3>Open on both devices</h3>
+          <p>Open PinnPointt in any web browser on your phone, laptop, or tablet. There is nothing to install and no account to create.</p>
+        </div>
 
-          <div class="step-card">
-            <div class="step-badge mono text-xs">02</div>
-            <div class="step-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            </div>
-            <h3>Scan to Connect</h3>
-            <p>Scan the on-screen QR code with your camera or enter the 6-letter room code. Devices connect in one second.</p>
+        <div class="step-card">
+          <div class="step-badge">2</div>
+          <div class="step-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
           </div>
+          <h3>Scan the QR code</h3>
+          <p>Point your phone camera at the screen or type the 6-character room code. Devices link together in one second.</p>
+        </div>
 
-          <div class="step-card">
-            <div class="step-badge mono text-xs">03</div>
-            <div class="step-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div>
-            <h3>Share at Full Speed</h3>
-            <p>Select your files or folders. Everything streams directly device-to-device with zero size caps and zero cloud storage.</p>
+        <div class="step-card">
+          <div class="step-badge">3</div>
+          <div class="step-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           </div>
+          <h3>Drop your files</h3>
+          <p>Select photos, 4K videos, or entire folders. Everything streams straight between your devices at full local Wi-Fi speed.</p>
         </div>
       </div>
     </section>
 
-    <!-- ── Why PinnPointt & What Issue It Solves ── -->
+    <!-- ── Why Direct Sharing Beats the Cloud ── -->
     <section id="why" class="editorial-section">
-      <div class="editorial-sidebar">
-        <span class="section-tag mono text-xs">WHY PINNPOINTT</span>
+      <div class="section-center-head">
+        <span class="section-pill">Why Direct Sharing</span>
         <h2 class="section-title">Why Direct Sharing Beats the Cloud</h2>
         <p class="section-desc">
           Sending a file to someone sitting next to you shouldn't take a detour through a corporate data center.
-          PinnPointt streams data directly from device to device.
         </p>
       </div>
 
-      <div class="editorial-content">
-        <div class="comparison-grid">
-          <!-- The Problem -->
-          <div class="comparison-card negative">
-            <div class="comparison-badge mono text-xs">TRADITIONAL CLOUD TRANSFER</div>
-            <ul class="comparison-list">
-              <li class="comparison-item">
-                <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
-                <span><strong>Double Waiting:</strong> You wait 15 minutes to upload to a cloud server, then your receiver waits another 15 minutes to download.</span>
-              </li>
-              <li class="comparison-item">
-                <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
-                <span><strong>Paywalls &amp; 2 GB Caps:</strong> Free cloud services cut you off at 2 GB, throttle download speeds, or demand monthly credit card subscriptions.</span>
-              </li>
-              <li class="comparison-item">
-                <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
-                <span><strong>Files Stored Remotely:</strong> Cloud providers store your sensitive documents and personal photos on their remote servers.</span>
-              </li>
-              <li class="comparison-item">
-                <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
-                <span><strong>Ecosystem Silos:</strong> AirDrop only connects Apple devices; Quick Share is fragmented across vendor platforms.</span>
-              </li>
-            </ul>
-          </div>
+      <div class="comparison-grid">
+        <!-- The Problem -->
+        <div class="comparison-card negative">
+          <div class="comparison-badge">Traditional Cloud Sharing</div>
+          <ul class="comparison-list">
+            <li class="comparison-item">
+              <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+              <span><strong>Double Waiting:</strong> You wait 15 minutes to upload to a cloud server, then your receiver waits another 15 minutes to download.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+              <span><strong>Paywalls &amp; 2 GB Caps:</strong> Free cloud services cut you off at 2 GB, throttle download speeds, or demand monthly credit card subscriptions.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+              <span><strong>Files Stored Remotely:</strong> Cloud providers store your sensitive documents and personal photos on their remote servers.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon icon-cross"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+              <span><strong>Ecosystem Silos:</strong> AirDrop only connects Apple devices; Quick Share is fragmented across vendor platforms.</span>
+            </li>
+          </ul>
+        </div>
 
-          <!-- The PinnPointt Solution -->
-          <div class="comparison-card positive">
-            <div class="comparison-badge mono text-xs">PINNPOINTT DIRECT SHARING</div>
-            <ul class="comparison-list">
-              <li class="comparison-item">
-                <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span><strong>Direct Device-to-Device:</strong> Data streams straight from your device to the other device across your Wi-Fi or direct peer link with zero cloud storage.</span>
-              </li>
-              <li class="comparison-item">
-                <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span><strong>No File Size Limits:</strong> Share 50 MB or 50 GB. Smooth chunk streaming ensures your browser never freezes or crashes.</span>
-              </li>
-              <li class="comparison-item">
-                <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span><strong>100% Private &amp; Temporary:</strong> Nothing is ever saved to any server. Once the transfer finishes, the connection closes and leaves no trace behind.</span>
-              </li>
-              <li class="comparison-item">
-                <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <span><strong>Universal Device Freedom:</strong> Instant compatibility across iPhone, Android, Mac, Windows, Linux, iPad, and Chromebooks right in the browser.</span>
-              </li>
-            </ul>
-          </div>
+        <!-- The PinnPointt Solution -->
+        <div class="comparison-card positive">
+          <div class="comparison-badge">PinnPointt Direct Sharing</div>
+          <ul class="comparison-list">
+            <li class="comparison-item">
+              <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span><strong>Direct Device-to-Device:</strong> Data streams straight from your device to the other device across your Wi-Fi with zero cloud storage.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span><strong>No File Size Limits:</strong> Share 50 MB or 50 GB. Smooth streaming ensures your browser never freezes or crashes.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span><strong>100% Private &amp; Temporary:</strong> Nothing is ever saved to any server. Once the transfer finishes, it leaves no trace behind.</span>
+            </li>
+            <li class="comparison-item">
+              <span class="icon icon-check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span><strong>Universal Device Freedom:</strong> Instant compatibility across iPhone, Android, Mac, Windows, Linux, iPad, and Chromebooks right in the browser.</span>
+            </li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <!-- ── Comparison & Superiority Section (12-Row Specification Sheet) ── -->
+    <!-- ── Comparison Table ── -->
     <section id="comparison" class="comparison-section">
-      <div class="section-header">
-        <span class="section-tag mono text-xs">COMPARISON</span>
-        <h2 class="section-title">How PinnPointt Compares to the Rest</h2>
+      <div class="section-center-head">
+        <span class="section-pill">Comparison</span>
+        <h2 class="section-title">How PinnPointt Compares</h2>
         <p class="section-desc">
-          Compare PinnPointt directly with AirDrop, Quick Share, cloud lockers, and older web P2P tools.
+          Compare PinnPointt directly with AirDrop, Quick Share, and cloud storage providers.
         </p>
       </div>
 
@@ -302,22 +294,22 @@
         <table class="comparison-table">
           <thead>
             <tr>
-              <th style="min-width: 200px;">Capability</th>
+              <th style="min-width: 220px;">Feature</th>
               <th class="col-pinnpointt">
                 <div class="table-brand-header">
                   <span>PinnPointt</span>
-                  <span class="table-badge-winner mono text-xs">SPEC</span>
+                  <span class="table-badge-winner">Direct</span>
                 </div>
               </th>
               <th>Apple AirDrop</th>
               <th>Quick Share</th>
-              <th>Cloud (WeTransfer / Drive)</th>
+              <th>Cloud (Drive / WeTransfer)</th>
               <th>Old Web P2P (Snapdrop)</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>Cross-Platform Freedom</strong></td>
+              <td><strong>Works on all devices</strong></td>
               <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Any Browser</span></td>
               <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Apple Only</span></td>
               <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Android &amp; Windows</span></td>
@@ -325,7 +317,7 @@
               <td><span class="table-status-partial">~ Same Subnet Only</span></td>
             </tr>
             <tr>
-              <td><strong>No Account / Sign-Up Needed</strong></td>
+              <td><strong>No login required</strong></td>
               <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Zero Logins</span></td>
               <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Apple ID Needed</span></td>
               <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Google Account</span></td>
@@ -333,7 +325,7 @@
               <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Zero Logins</span></td>
             </tr>
             <tr>
-              <td><strong>Zero Cloud Storage / 100% Private</strong></td>
+              <td><strong>Never stored in the cloud</strong></td>
               <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Zero Cloud</span></td>
               <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Direct Link</span></td>
               <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Direct Link</span></td>
@@ -341,470 +333,146 @@
               <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Direct Link</span></td>
             </tr>
             <tr>
-              <td><strong>No File Size Limits (Multi-GB)</strong></td>
+              <td><strong>Unlimited file size</strong></td>
               <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Unlimited</span></td>
               <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> High Capacity</span></td>
               <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> High Capacity</span></td>
               <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 2 GB Free Caps</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Crashes on &gt;500 MB</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Crashes on large files</span></td>
             </tr>
             <tr>
-              <td><strong>Zero Double-Waiting</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Live Stream</span></td>
-              <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Immediate</span></td>
-              <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Immediate</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Upload 100% First</span></td>
-              <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Live Stream</span></td>
-            </tr>
-            <tr>
-              <td><strong>Works Over Any Wi-Fi &amp; Internet</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Local &amp; Remote</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Close Range Only</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Close Range Only</span></td>
-              <td><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Anywhere</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Strict Same Wi-Fi</span></td>
-            </tr>
-            <tr>
-              <td><strong>Built-In Live Chat During Transfer</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Real-Time Chat</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
-            </tr>
-            <tr>
-              <td><strong>100% Free Forever &amp; Open Source</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> MIT at v1.0</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Closed Apple</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Closed Google</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Paid Subscriptions</span></td>
-              <td><span class="table-status-partial">~ Abandoned Project</span></td>
-            </tr>
-            <tr>
-              <td><strong>Parallel Multi-Channel WebRTC (4 Streams)</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 4 Streams (30–80 MB/s)</span></td>
-              <td><span class="table-status-partial">~ 1 Stream</span></td>
-              <td><span class="table-status-partial">~ 1 Stream</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Upload Capped</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> 1 Stream (Slow)</span></td>
-            </tr>
-            <tr>
-              <td><strong>Instant Pause &amp; Lossless Resume</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Byte-Exact OPFS Resume</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Fails &amp; Restarts</span></td>
+              <td><strong>Picks up where it left off if interrupted</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Instant Resume</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Restarts from 0%</span></td>
               <td><span class="table-status-partial">~ Partial</span></td>
               <td><span class="table-status-partial">~ Requires Desktop App</span></td>
               <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Restarts from 0%</span></td>
             </tr>
             <tr>
-              <td><strong>P2P Virtual Drive (Remote Mount)</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Preview Before Pull</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Blind Push Only</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Blind Push Only</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Full Upload First</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Blind Push Only</span></td>
+              <td><strong>Built-in live notes &amp; links</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Live Notes &amp; Chat</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> None</span></td>
             </tr>
             <tr>
-              <td><strong>In-Flight Photo Privacy Shield</strong></td>
-              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> In-Memory EXIF/GPS Strip</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Leaks Location/EXIF</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Leaks Location/EXIF</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Stored on Cloud</span></td>
-              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Transmits Raw EXIF</span></td>
+              <td><strong>Completely free &amp; private</strong></td>
+              <td class="col-pinnpointt"><span class="table-status-yes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 100% Free &amp; Private</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Closed Apple</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Closed Google</span></td>
+              <td><span class="table-status-no"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Paid Subscriptions</span></td>
+              <td><span class="table-status-partial">~ Abandoned Project</span></td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <!-- 4 Pillars of Architectural Superiority -->
-      <div class="superiority-grid">
-        <div class="superiority-card">
-          <div class="superiority-header">
-            <div class="superiority-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
-            </div>
-            <h3>Universal Hardware Freedom</h3>
-          </div>
-          <p>
-            No more Apple-only or Android-only barriers. PinnPointt works seamlessly between an iPhone and a Windows PC, an Android phone and a MacBook, or a Linux desktop and an iPad. If a device has a browser, it works.
-          </p>
-        </div>
-
-        <div class="superiority-card">
-          <div class="superiority-header">
-            <div class="superiority-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div>
-            <h3>Zero Double-Waiting</h3>
-          </div>
-          <p>
-            Cloud drives force you to wait twice: 15 minutes to upload a 4 GB video to their server, then the other person waits another 15 minutes to download it. PinnPointt streams data live — as the sender reads the file, the receiver saves it.
-          </p>
-        </div>
-
-        <div class="superiority-card">
-          <div class="superiority-header">
-            <div class="superiority-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>
-            </div>
-            <h3>Rock-Solid Large File Streaming</h3>
-          </div>
-          <p>
-            Traditional browser transfer tools attempt to load whole files into memory all at once, crashing tabs on files over 500 MB. PinnPointt uses smart OPFS chunk streaming to deliver multi-gigabyte files reliably.
-          </p>
-        </div>
-
-        <div class="superiority-card">
-          <div class="superiority-header">
-            <div class="superiority-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <h3>Bit-for-Bit Verified &amp; Private</h3>
-          </div>
-          <p>
-            Files travel directly between your devices with end-to-end encryption. Every single file is checked upon arrival to ensure zero corruption or missing bytes. Once the transfer completes, nothing remains on any server.
-          </p>
-        </div>
-      </div>
     </section>
 
-    <!-- ── Core Features ── -->
-    <section id="features">
-      <div class="section-header">
-        <span class="section-tag mono text-xs">SYSTEM CAPABILITIES</span>
-        <h2 class="section-title">Designed to Be Simple &amp; Fast</h2>
-        <p class="section-desc">
-          No complex setups, no tech jargon. Just open PinnPointt and start sharing.
-        </p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs tabular-nums">30–80+ MB/s</span>
-          </div>
-          <h3>4-Channel Parallel WebRTC</h3>
-          <p>Dedicated pool of 4 negotiated binary data channels (<code>pinnpointt-data-0..3</code>) with round-robin lowest-buffered scheduling, saturating local 5GHz Wi-Fi at 30–80+ MB/s without pausing between reads.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">8-State Engine</span>
-          </div>
-          <h3>Instant Lossless Pause &amp; Resume</h3>
-          <p>Bidirectional pause and resume protocol backed by OPFS chunk checkpointing. Sender halts disk reads instantly; resume syncs the exact lowest unwritten chunk index on disk with zero duplicate bytes sent.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">Live Mount</span>
-          </div>
-          <h3>P2P Virtual Drive</h3>
-          <p>Mount local files or full directory trees as a remote virtual drive. Peers browse remote folders, preview files via on-demand byte slicing, and selectively pull items without upfront bulk downloads.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">Exif &amp; GPS</span>
-          </div>
-          <h3>In-Flight Privacy Shield</h3>
-          <p>Automatic EXIF, GPS, and camera metadata stripping directly in memory before bytes leave your device. Losslessly removes location tags and timestamps with zero pixel recompression.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">Zero-RAM OPFS</span>
-          </div>
-          <h3>Zero-RAM Disk Streaming</h3>
-          <p>12-byte binary framed chunks written directly to random-access byte positions via OPFS and File System Access, bypassing RAM constraints while Mobile Screen WakeLock keeps displays active.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">Volatile RAM</span>
-          </div>
-          <h3>Zero-Trace View &amp; Live Clipboard</h3>
-          <p>Ephemeral view mode renders confidential images directly into volatile HTML5 canvas memory with right-click saves blocked. Live universal clipboard syncs text, links, and code with one click.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">Zero Backend</span>
-          </div>
-          <h3>Hybrid Serverless Signaling</h3>
-          <p>High-speed WebSocket relay backed by automatic 2,500ms fallback to 100% serverless P2P Nostr signaling. Functions seamlessly on pure static web hosting with zero backend server dependencies.</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header-row">
-            <div class="feature-icon-box">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            </div>
-            <span class="feature-tag mono text-xs">1-Second Pair</span>
-          </div>
-          <h3>Instant Camera Pairing &amp; E2EE Chat</h3>
-          <p>Scan the on-screen QR code or enter a 6-letter room code to connect in seconds. Communicate through end-to-end encrypted (WebRTC DTLS) live chat while files transfer with SHA-256 verification.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Security & File Safety Shield ── -->
+    <!-- ── Interactive File Safety Shield Sandbox ── -->
     <section id="security" class="security-section">
-      <div class="section-header">
-        <span class="section-tag mono text-xs">CRYPTOGRAPHIC INTEGRITY</span>
-        <h2 class="section-title">Built to Keep Your Files Safe &amp; Private</h2>
-        <p class="section-desc">
-          Your private files should never live on someone else's server. PinnPointt connects your devices directly,
-          verifies every byte upon arrival, and protects you from suspicious files.
-        </p>
-      </div>
-
-      <!-- Live Verifiable Proof Cards (4 Cards) -->
-      <div class="security-proof-grid">
-        <div class="proof-card">
-          <div class="proof-metric mono tabular-nums">100%</div>
-          <div class="proof-label font-semibold">Bit-for-Bit Verified</div>
-          <p class="proof-desc">Every file is verified as it arrives. If a single byte is damaged, incomplete, or corrupted during transfer, it is rejected before saving.</p>
-          <div class="proof-tag mono text-xs">Guaranteed Complete</div>
-        </div>
-
-        <div class="proof-card">
-          <div class="proof-metric mono tabular-nums">0</div>
-          <div class="proof-label font-semibold">Cloud Servers or Trackers</div>
-          <p class="proof-desc">Zero servers saving your personal files. Zero advertising cookies, external analytics, or background trackers watching what you send.</p>
-          <div class="proof-tag mono text-xs">100% Private</div>
-        </div>
-
-        <div class="proof-card">
-          <div class="proof-metric mono tabular-nums">2</div>
-          <div class="proof-label font-semibold">Direct Connected Devices</div>
-          <p class="proof-desc">Only you and your receiver. Rooms automatically expire once you leave, leaving zero traces or stored logs behind.</p>
-          <div class="proof-tag mono text-xs">Private Direct Link</div>
-        </div>
-
-        <div class="proof-card">
-          <div class="proof-metric mono tabular-nums">2×</div>
-          <div class="proof-label font-semibold">Faster Than Cloud Drives</div>
-          <p class="proof-desc">Files stream straight from device to device. You never have to wait for a 15-minute cloud upload to finish before downloading starts.</p>
-          <div class="proof-tag mono text-xs">Instant Direct Stream</div>
-        </div>
-      </div>
-
-      <!-- Simple Built-In Technology -->
-      <div class="tech-breakdown-card">
-        <h3 class="tech-card-title">How PinnPointt Keeps Sharing Safe &amp; Smooth</h3>
-        <p class="tech-card-desc">Three core architectural decisions why PinnPointt feels faster and safer than other tools:</p>
-
-        <div class="tech-pillars-grid">
-          <div class="tech-pillar">
-            <div class="pillar-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            </div>
-            <h4>Instant Camera Pairing</h4>
-            <p>Connect in one second by pointing your phone camera at the screen. No phone numbers, passwords, or Bluetooth pairing needed.</p>
-          </div>
-
-          <div class="tech-pillar">
-            <div class="pillar-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            </div>
-            <h4>Smooth Big-File Streaming</h4>
-            <p>Send large 4K video clips, full photo galleries, and huge archives smoothly without freezing your phone or eating up memory.</p>
-          </div>
-
-          <div class="tech-pillar">
-            <div class="pillar-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            </div>
-            <h4>Direct Device-to-Device Privacy</h4>
-            <p>Files travel straight to the other device with end-to-end security. Nothing is ever saved to any cloud server.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- DevTools Challenge for Curious Users -->
-      <div class="devtools-challenge-card">
-        <div class="devtools-badge mono text-xs font-semibold">VERIFY IN DEVTOOLS</div>
-        <div class="devtools-body">
-          <h3>See the Zero-Cloud Promise with Your Own Eyes</h3>
-          <p>
-            Press <kbd>F12</kbd> (or <kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>) to open Chrome DevTools, click the <strong>Network</strong> tab, and transfer any file.
-            You will observe <strong>0 bytes uploaded to any cloud server</strong>. What you share stays strictly between your two devices.
-          </p>
-        </div>
-      </div>
-
-      <!-- Visual Direct vs Cloud Illustration -->
-      <div class="waterfall-compare-card">
-        <h3>Why Direct Transfer is Twice as Fast</h3>
-        <p class="waterfall-desc">See how PinnPointt cuts out the cloud middleman for faster, safer sharing:</p>
-
-        <div class="diagram-comparison-grid">
-          <!-- Cloud Route -->
-          <div class="diagram-route-card cloud-route">
-            <div class="route-header">
-              <span class="route-badge cloud mono text-xs">THE SLOW CLOUD ROUTE</span>
-              <span class="route-subtitle text-xs muted">Google Drive, Dropbox, WeTransfer</span>
-            </div>
-            <div class="route-flow">
-              <div class="route-node">
-                <span class="node-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                </span>
-                <span class="node-label">Your Phone</span>
-              </div>
-              <div class="route-arrow cloud-arrow">
-                <span class="arrow-label mono text-xs">1. Upload to Cloud</span>
-                <span class="arrow-line">───────▶</span>
-              </div>
-              <div class="route-node server-node">
-                <span class="node-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                </span>
-                <span class="node-label">Remote Server</span>
-                <span class="node-sublabel mono text-xs">(Saved Remotely)</span>
-              </div>
-              <div class="route-arrow cloud-arrow">
-                <span class="arrow-label mono text-xs">2. Download from Cloud</span>
-                <span class="arrow-line">───────▶</span>
-              </div>
-              <div class="route-node">
-                <span class="node-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                </span>
-                <span class="node-label">Laptop</span>
-              </div>
-            </div>
-            <div class="route-meta negative mono text-xs">
-              Double waiting time • Files saved on remote server • 2 GB caps
-            </div>
-          </div>
-
-          <!-- PinnPointt Route -->
-          <div class="diagram-route-card pinnpointt-route">
-            <div class="route-header">
-              <span class="route-badge pinnpointt mono text-xs">THE PINNPOINTT DIRECT ROUTE</span>
-              <span class="route-subtitle text-xs muted">Direct Device-to-Device</span>
-            </div>
-            <div class="route-flow direct-flow">
-              <div class="route-node">
-                <span class="node-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                </span>
-                <span class="node-label">Your Phone</span>
-              </div>
-              <div class="route-arrow direct-arrow">
-                <span class="arrow-label mono text-xs">Direct High-Speed Encrypted Stream</span>
-                <span class="arrow-line">════════════════════════════════════════════════▶</span>
-              </div>
-              <div class="route-node">
-                <span class="node-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                </span>
-                <span class="node-label">Laptop</span>
-              </div>
-            </div>
-            <div class="route-meta positive mono text-xs">
-              Half the waiting time • Zero cloud storage • 100% private • No file size caps
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Live Interactive In-Browser Threat Simulator Widget -->
       <div class="threat-sandbox-card" id="threat-sandbox">
         <div class="threat-sandbox-header">
           <div class="sandbox-title-wrap">
             <span class="sandbox-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </span>
             <div>
-              <h3>Built-In File Safety Shield</h3>
-              <p>Click any test file below to see how PinnPointt flags dangerous or disguised files to protect your device:</p>
+              <h3>Built-In Protection from Suspicious Files</h3>
+              <p>Every file is checked upon arrival to make sure it's complete and safe. Click a sample file to see how it works:</p>
             </div>
           </div>
         </div>
 
         <div class="sandbox-buttons">
-          <button class="sandbox-btn active mono text-xs" data-sample="clean" type="button">
+          <button class="sandbox-btn active text-xs" data-sample="clean" type="button">
             presentation_deck.pdf
           </button>
-          <button class="sandbox-btn mono text-xs" data-sample="script" type="button">
+          <button class="sandbox-btn text-xs" data-sample="script" type="button">
             update_patch.ps1
           </button>
-          <button class="sandbox-btn mono text-xs" data-sample="double-ext" type="button">
+          <button class="sandbox-btn text-xs" data-sample="double-ext" type="button">
             urgent_invoice.pdf.exe
           </button>
-          <button class="sandbox-btn mono text-xs" data-sample="malware-hash" type="button">
+          <button class="sandbox-btn text-xs" data-sample="malware-hash" type="button">
             eicar_antivirus_test.com
           </button>
         </div>
 
         <div class="sandbox-output" id="sandbox-output">
           <div class="sandbox-status-row">
-            <span class="sandbox-status-badge safe mono text-xs" id="sandbox-badge">Verified Safe</span>
-            <span class="sandbox-file-meta mono text-xs" id="sandbox-filename">presentation_deck.pdf (4.8 MB)</span>
+            <span class="sandbox-status-badge safe text-xs" id="sandbox-badge">Verified Safe</span>
+            <span class="sandbox-file-meta text-xs" id="sandbox-filename">presentation_deck.pdf (4.8 MB)</span>
           </div>
           <div class="sandbox-reason" id="sandbox-reason">
             Normal document. Transferred directly between your devices without any cloud storage.
           </div>
           <div class="sandbox-details-grid">
             <div class="sandbox-detail">
-              <span class="detail-label mono text-xs muted">File Status:</span>
+              <span class="detail-label text-xs muted">File Status:</span>
               <span class="detail-value" id="sandbox-policy">Safe to Download (Direct Stream)</span>
             </div>
             <div class="sandbox-detail">
-              <span class="detail-label mono text-xs muted">Integrity Check:</span>
-              <span class="detail-value mono" id="sandbox-hash">Verified Bit-Exact (SHA-256 Matched)</span>
+              <span class="detail-label text-xs muted">Integrity Check:</span>
+              <span class="detail-value" id="sandbox-hash">Verified Bit-Exact (SHA-256 Matched)</span>
             </div>
             <div class="sandbox-detail">
-              <span class="detail-label mono text-xs muted">Cloud Server Requests:</span>
-              <span class="detail-value highlight mono" id="sandbox-network">0 network requests (100% on your device)</span>
+              <span class="detail-label text-xs muted">Cloud Server Requests:</span>
+              <span class="detail-value highlight" id="sandbox-network">0 network requests (100% on your device)</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── Mobile & Desktop PWA Installation ── -->
+    <!-- ── Frequently Asked Questions (FAQ) ── -->
+    <section id="faq" class="editorial-section">
+      <div class="section-center-head">
+        <span class="section-pill">FAQ</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-desc">
+          Quick answers to common questions about PinnPointt.
+        </p>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-card">
+          <h3>How large of a file can I send?</h3>
+          <p>There are no file size limits. Whether you are sending a 10 MB document or a 50 GB 4K video collection, PinnPointt streams data smoothly in chunks so your browser never runs out of memory or crashes.</p>
+        </div>
+        <div class="faq-card">
+          <h3>Do my files ever go to a cloud server?</h3>
+          <p>Never. Your files travel straight from one device to the other over your local Wi-Fi or direct peer-to-peer connection. No server stores your data, and when the transfer completes, no traces are left anywhere.</p>
+        </div>
+        <div class="faq-card">
+          <h3>Can I send between iPhone and Windows?</h3>
+          <p>Yes. PinnPointt works seamlessly across all platforms. You can share files between iPhone, Android, Mac, Windows, Linux, and Chromebooks without installing any special software.</p>
+        </div>
+        <div class="faq-card">
+          <h3>What happens if the transfer gets paused or interrupted?</h3>
+          <p>If you pause or the connection temporarily drops, PinnPointt remembers the exact byte offset where it paused and resumes right where it left off, so you never have to re-upload from 0%.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Mobile & Desktop Installation ── -->
     <section id="install">
       <div class="install-section-box">
         <div class="install-left">
-          <span class="section-tag mono text-xs" style="text-align: left;">STANDALONE UTILITY</span>
+          <span class="section-pill" style="align-self: flex-start;">Install Anywhere</span>
           <h2>Install Directly from Your Browser</h2>
           <p>
-            PinnPointt is a modern Progressive Web App (PWA). No app store downloads, no megabytes of disk overhead, no intrusive tracking permissions.
+            PinnPointt is a Progressive Web App. No app store downloads or disk clutter.
             Install once to launch full-screen directly from your mobile home screen or desktop dock.
           </p>
 
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary trigger-pwa-install">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Install PinnPointt App</span>
             </button>
             <a href="/app" class="btn btn-ghost">
-              <span>Open Web App in Browser ↗</span>
+              <span>Open in Browser ↗</span>
             </a>
           </div>
         </div>
@@ -813,11 +481,11 @@
           <div class="install-platform-card">
             <div class="platform-info">
               <span class="platform-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
               </span>
               <div>
                 <div class="platform-name font-semibold">Android &amp; Chrome</div>
-                <div class="platform-desc text-xs muted">Tap "Install" or click the install pill in the address bar</div>
+                <div class="platform-desc text-xs muted">Tap "Install" or click the install icon in the address bar</div>
               </div>
             </div>
             <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
@@ -826,7 +494,7 @@
           <div class="install-platform-card">
             <div class="platform-info">
               <span class="platform-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
               </span>
               <div>
                 <div class="platform-name font-semibold">iOS &amp; Safari</div>
@@ -839,11 +507,11 @@
           <div class="install-platform-card">
             <div class="platform-info">
               <span class="platform-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
               </span>
               <div>
                 <div class="platform-name font-semibold">Windows, Mac &amp; Linux</div>
-                <div class="platform-desc text-xs muted">Install as a native desktop utility via Edge or Chrome</div>
+                <div class="platform-desc text-xs muted">Install as a desktop utility via Chrome, Edge, or Brave</div>
               </div>
             </div>
             <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
@@ -851,7 +519,7 @@
 
           <div id="ios-install-steps" class="ios-guide-box" style="display: none; margin-top: 10px;">
             <strong>iPhone / iPad Installation:</strong>
-            <ol style="padding-left: 18px; margin: 6px 0 0; font-size: 11.5px; line-height: 1.5;">
+            <ol style="padding-left: 18px; margin: 6px 0 0; font-size: 13px; line-height: 1.6;">
               <li>Open PinnPointt in Safari.</li>
               <li>Tap the <strong>Share</strong> button (box with upward arrow) at the bottom.</li>
               <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
@@ -862,43 +530,70 @@
       </div>
     </section>
 
-    <!-- ── Future Roadmap to Open Source & Global Launch ── -->
+    <!-- ── Under the Hood: Technical Architecture (Collapsible Accordion) ── -->
+    <section id="technical-architecture" class="technical-accordion-section">
+      <details class="tech-accordion">
+        <summary class="tech-accordion-summary">
+          <div class="tech-summary-left">
+            <span class="section-pill">Under The Hood</span>
+            <h3 class="tech-summary-title">Curious how it works under the hood? Read the technical summary</h3>
+          </div>
+          <span class="tech-accordion-chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="tech-accordion-body">
+          <div class="tech-grid">
+            <div class="tech-card">
+              <h4>4-Channel Parallel WebRTC SCTP Pool</h4>
+              <p>Transfers are multiplexed across four concurrent SCTP DataChannels with round-robin chunk dispatching based on low-watermark buffer backpressure to saturate local Wi-Fi speeds.</p>
+            </div>
+            <div class="tech-card">
+              <h4>Direct-to-Disk Stream Handling</h4>
+              <p>Chunks stream directly into Origin Private File System handles using FileSystemWritableFileStream, eliminating browser tab RAM spikes and crash risks on multi-gigabyte transfers.</p>
+            </div>
+            <div class="tech-card">
+              <h4>WebRTC Transport Encryption</h4>
+              <p>Direct peer connections are cryptographically authenticated and encrypted using DTLS 1.3 with AES-GCM-256 ciphers. Zero unencrypted packets ever traverse the network.</p>
+            </div>
+            <div class="tech-card">
+              <h4>Hybrid Serverless Signaling Relay</h4>
+              <p>When WebSocket signaling is blocked, peers can bootstrap SDP offers and ICE candidates through decentralized, ephemeral Nostr relays (NIP-01) with zero server persistence.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ── Development Phases & Roadmap ── -->
     <section id="roadmap">
-      <div class="section-header">
-        <span class="section-tag mono text-xs">DEVELOPMENT PHASES</span>
+      <div class="section-center-head">
+        <span class="section-pill">Roadmap</span>
         <h2 class="section-title">The Path to Open Source &amp; Global Launch</h2>
         <p class="section-desc">
-          Our commitment is clear: PinnPointt will become 100% free and open-source software (FOSS)
-          under the MIT License upon reaching its v1.0.0 Global Stable release.
+          PinnPointt will become 100% free and open-source software under the MIT License upon reaching its v1.0.0 Global Stable release.
         </p>
-        <div class="roadmap-disclaimer-pill mono text-xs">
-          <span class="disclaimer-badge">NOTE</span>
-          <span>Roadmap milestones, feature targets, and release timelines are <strong>subject to change</strong> based on community feedback, browser standard evolutions, and engineering priorities.</span>
-        </div>
       </div>
 
       <div class="roadmap-timeline">
-        <!-- Phase 1 (Current) -->
+        <!-- Phase 1 -->
         <div class="roadmap-card current">
           <div class="roadmap-meta">
-            <span class="roadmap-version mono">v0.0.1 – v0.0.57 beta</span>
-            <span class="roadmap-status completed mono text-xs">Shipped &amp; Live</span>
+            <span class="roadmap-version">v0.0.1 – v0.0.57 beta</span>
+            <span class="roadmap-status completed text-xs">Shipped &amp; Live</span>
           </div>
           <div class="roadmap-details">
             <h3>Phase 1: Core Foundation &amp; Web App</h3>
             <p>Direct device-to-device streaming, pairing, and visual experience.</p>
             <ul class="roadmap-items">
-              <li>4-Channel parallel WebRTC multi-stream engine (30–80+ MB/s on local 5GHz Wi-Fi).</li>
-              <li>Instant, lossless Pause, Byte-Offset Resume &amp; Cancel protocol with OPFS disk checkpointing.</li>
-              <li>12-Byte zero-overhead binary framing with random-access OPFS and direct disk writes.</li>
-              <li>P2P Virtual Drive: mount remote directories, on-demand byte-slice previews &amp; selective file pulls.</li>
-              <li>In-Flight Privacy Shield: in-memory EXIF, GPS &amp; metadata stripping before DataChannel transmission.</li>
-              <li>Zero-RAM disk streaming via OPFS &amp; FileSystemAccess with active Mobile Screen WakeLock.</li>
-              <li>Ephemeral Zero-Trace View mode via volatile canvas memory &amp; live universal clipboard sync.</li>
-              <li>Hybrid signaling engine: primary WebSocket relay with 2,500ms serverless Nostr P2P fallback.</li>
+              <li>Multi-stream high-speed file transfer engine.</li>
+              <li>Instant, lossless Pause, Resume &amp; Cancel protocol with disk checkpointing.</li>
+              <li>On-demand remote file browsing and previews.</li>
+              <li>In-memory photo privacy protection (location and camera data removal).</li>
+              <li>Real-time live notes and universal clipboard sync.</li>
               <li>Instant camera pairing via dynamic on-screen QR codes &amp; 6-letter room pairing.</li>
-              <li>End-to-End Encrypted (E2EE) real-time live chat over WebRTC DTLS.</li>
-              <li>Client-side file safety triage, executable quarantining &amp; SHA-256 pre-verification.</li>
+              <li>End-to-end encrypted direct communication.</li>
+              <li>Client-side file safety triage &amp; SHA-256 pre-verification.</li>
             </ul>
           </div>
         </div>
@@ -906,8 +601,8 @@
         <!-- Phase 2 -->
         <div class="roadmap-card">
           <div class="roadmap-meta">
-            <span class="roadmap-version mono">v0.0.6 – v0.0.9 beta</span>
-            <span class="roadmap-status planned mono text-xs">Q1 2027 • In Progress</span>
+            <span class="roadmap-version">v0.0.6 – v0.0.9 beta</span>
+            <span class="roadmap-status planned text-xs">In Progress</span>
           </div>
           <div class="roadmap-details">
             <h3>Phase 2: Enhanced Sharing Capabilities</h3>
@@ -921,11 +616,11 @@
           </div>
         </div>
 
-        <!-- Phase 3 (Open Source Launch) -->
+        <!-- Phase 3 -->
         <div class="roadmap-card future-highlight">
           <div class="roadmap-meta">
-            <span class="roadmap-version mono">v1.0.0 Global Stable</span>
-            <span class="roadmap-status target mono text-xs">Open-Source Launch</span>
+            <span class="roadmap-version">v1.0.0 Global Stable</span>
+            <span class="roadmap-status target text-xs">Open-Source Launch</span>
           </div>
           <div class="roadmap-details">
             <h3>Phase 3: Global Launch &amp; 100% Open Source Release</h3>
@@ -941,54 +636,19 @@
       </div>
     </section>
 
-    <!-- ── Under the Hood: Technical Architecture (For Engineers) ── -->
-    <section id="technical-architecture" class="technical-accordion-section">
-      <details class="tech-accordion">
-        <summary class="tech-accordion-summary">
-          <div class="tech-summary-left">
-            <span class="mono text-xs section-tag">FOR ENGINEERS</span>
-            <h3 class="tech-summary-title">Under the Hood: Technical Architecture</h3>
-          </div>
-          <span class="tech-accordion-chevron">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </span>
-        </summary>
-        <div class="tech-accordion-body">
-          <div class="tech-grid">
-            <div class="tech-card">
-              <h4>4-Channel Parallel WebRTC SCTP Pool</h4>
-              <p>Transfers are multiplexed across four concurrent SCTP DataChannels with round-robin chunk dispatching based on low-watermark buffered amount to saturate local Wi-Fi speeds.</p>
-            </div>
-            <div class="tech-card">
-              <h4>Direct-to-Disk OPFS Streaming</h4>
-              <p>Chunks stream directly into Origin Private File System handles using FileSystemWritableFileStream, eliminating browser tab RAM spikes and crash risks on multi-gigabyte transfers.</p>
-            </div>
-            <div class="tech-card">
-              <h4>WebRTC DTLS 1.3 Transport Security</h4>
-              <p>Direct peer connections are cryptographically authenticated and encrypted using DTLS 1.3 with AES-GCM-256 ciphers. Zero unencrypted packets ever traverse the network.</p>
-            </div>
-            <div class="tech-card">
-              <h4>Nostr Ephemeral Signaling Relay Fallback</h4>
-              <p>When WebSocket signaling is blocked, peers can bootstrap SDP offers and ICE candidates through decentralized, ephemeral Nostr relays (NIP-01) with zero server persistence.</p>
-            </div>
-          </div>
-        </div>
-      </details>
-    </section>
-
     <!-- ── Note from the Founder ── -->
     <section id="developer-note">
-      <div class="section-header">
-        <span class="section-tag mono text-xs">FOUNDATION NOTE</span>
-        <h2 class="section-title">A Note from Founder</h2>
+      <div class="section-center-head">
+        <span class="section-pill">Founder's Note</span>
+        <h2 class="section-title">A Note from the Founder</h2>
       </div>
 
       <div class="dev-letter-card">
         <div class="dev-letter-header">
-          <div class="dev-avatar mono">AP</div>
+          <div class="dev-avatar">AP</div>
           <div class="dev-info">
             <h3>Ankit Patra</h3>
-            <span class="mono text-xs muted">Founder of PinnPointt</span>
+            <span class="text-xs muted">Founder of PinnPointt</span>
           </div>
         </div>
 
@@ -1001,7 +661,7 @@
           <p>Thank you for using PinnPointt and helping make the web faster and more private for all of us.</p>
           <div class="dev-signature">
             — Ankit Patra<br />
-            <span class="text-xs muted mono">Founder, PinnPointt</span>
+            <span class="text-xs muted">Founder, PinnPointt</span>
           </div>
         </div>
       </div>
@@ -1014,38 +674,37 @@
           <div class="nav-brand" onclick="window.location.href='/'">
             <div class="nav-logo">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" class="brand-mark">
-                <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.75" fill="none"/>
                 <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
-                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
               </svg>
             </div>
             <div class="nav-title-wrap">
               <span class="nav-title">PinnPointt</span>
-              <span class="nav-badge mono text-xs">v0.0.57-beta</span>
+              <span class="nav-badge text-xs">v0.0.57-beta</span>
             </div>
           </div>
           <p class="footer-tagline">
-            Zero-cloud, browser-native direct peer-to-peer file transfer and real-time collaboration.
+            Zero-cloud, direct peer-to-peer file transfer and real-time collaboration.
             No logins, no file size caps, and memory-to-memory encryption.
           </p>
         </div>
 
         <div class="footer-nav-col">
-          <span class="footer-col-title mono text-xs">NAVIGATION</span>
+          <span class="footer-col-title text-xs">NAVIGATION</span>
           <div class="footer-col-links">
-            <a href="/app" class="footer-nav-link">Launch Web App →</a>
-            <a href="#why" class="footer-nav-link">Why PinnPointt</a>
-            <a href="#comparison" class="footer-nav-link">PinnPointt vs Others</a>
-            <a href="#features" class="footer-nav-link">Features</a>
-            <a href="#security" class="footer-nav-link">Security &amp; Proof</a>
+            <a href="/app" class="footer-nav-link">Start Sharing →</a>
+            <a href="#how-it-works" class="footer-nav-link">How It Works</a>
+            <a href="#why" class="footer-nav-link">Why Direct Sharing</a>
+            <a href="#comparison" class="footer-nav-link">Comparison</a>
+            <a href="#faq" class="footer-nav-link">FAQ</a>
             <a href="#install" class="footer-nav-link">Install App</a>
             <a href="#roadmap" class="footer-nav-link">Roadmap</a>
-            <a href="#developer-note" class="footer-nav-link">Founder's Note</a>
           </div>
         </div>
 
         <div class="footer-nav-col">
-          <span class="footer-col-title mono text-xs">LEGAL &amp; COMMUNITY</span>
+          <span class="footer-col-title text-xs">LEGAL &amp; COMMUNITY</span>
           <div class="footer-col-links">
             <button class="footer-link" data-open-modal="privacy">Privacy Policy</button>
             <button class="footer-link" data-open-modal="fair-usage">Fair Usage</button>
@@ -1063,7 +722,7 @@
 
         <div class="footer-meta">
           <span class="footer-subtitle">Direct device-to-device transfers • Zero cloud storage • 100% private</span>
-          <span class="footer-version mono tabular-nums">v0.0.57-beta</span>
+          <span class="footer-version tabular-nums">v0.0.57-beta</span>
         </div>
       </div>
     </footer>

@@ -1,12 +1,13 @@
 /**
- * Pinpoint — Application State Machine & DOM Orchestrator
+ * PinnPointt — Application State Machine & DOM Orchestrator
  *
- * Single-Canvas UX:
- *   idle          → User sees username setting & pair selection (Create / Join)
- *   creating      → Room created, showing QR + code, waiting for peer
- *   joining       → User entering 6-digit code
- *   connected     → Connected Workspace: Real-Time Chat + Drag & Drop File Transfer Feed
- *   error         → Something went wrong
+ * Progressive 2-Step Flow:
+ *   STATE A: Not Connected Yet
+ *     Spacious 2-column split (Left: Connect Card with Wi-Fi radar, QR code, Room Code, Join input;
+ *     Right: Full-height tactile Drag-and-Drop canvas ready to queue files immediately with photo privacy toggle).
+ *   STATE B: Once Connected
+ *     QR & Room Code auto-collapses into top header bar pill: 🟢 Connected to Device • Room ABC123 • [Disconnect].
+ *     Full-width workspace opens: Main Sharing Stage (1fr) + Shared Notes & Links Drawer (340px).
  */
 
 import {
@@ -18,10 +19,11 @@ import {
   createRoomDisplay,
   createJoinInputWithBack,
   createConnectedWorkspace,
+  createDropZoneReadySurface,
   createErrorView,
-  createModeBar,
   createNearbyRadar,
   showToast,
+  formatBytes,
   type WorkspaceController,
 } from './components';
 import { iconSun, iconMoon } from './icons';
@@ -75,7 +77,7 @@ type AppState =
   | 'connected'
   | 'error';
 
-// Signaling server URL (supports local dev, E2E test runner, and production cloud hosts)
+// Signaling server URL
 const getSignalUrl = (): string => {
   const env = (import.meta as unknown as { env?: { VITE_SIGNALING_URL?: string; VITE_SIGNAL_URL?: string } }).env;
   const envUrl = env?.VITE_SIGNALING_URL || env?.VITE_SIGNAL_URL;
@@ -103,7 +105,7 @@ export class App {
   private dataChannel: RTCDataChannel | null = null;
   private roomCode: string = '';
   private myUsername: string = getSavedUsername();
-  private peerUsername: string = 'Peer';
+  private peerUsername: string = 'Other Device';
   private workspace: WorkspaceController | null = null;
   private isSendingFile: boolean = false;
   private isPreviewMode: boolean = false;
@@ -114,6 +116,8 @@ export class App {
   private pendingFileCleanups: Array<() => Promise<void>> = [];
   private virtualDrive: VirtualDriveManager | null = null;
   private transferManager: TransferManager = new TransferManager();
+  private privacyShieldEnabled: boolean = true;
+  private queuedFiles: File[] = [];
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -142,31 +146,34 @@ export class App {
     this.currentTheme = toggleTheme();
     const themeBtn = this.root.querySelector('.btn-theme-toggle');
     if (themeBtn) {
-      const themeIcon = this.currentTheme === 'dark' ? iconSun({ size: 13 }) : iconMoon({ size: 13 });
+      const themeIcon = this.currentTheme === 'dark' ? iconSun({ size: 14 }) : iconMoon({ size: 14 });
       const themeLabel = this.currentTheme === 'dark' ? 'Light' : 'Dark';
       themeBtn.innerHTML = `<span class="theme-icon">${themeIcon}</span> <span class="theme-label">${themeLabel}</span>`;
       themeBtn.setAttribute('title', `Switch to ${this.currentTheme === 'dark' ? 'light' : 'dark'} mode`);
     }
 
-    // If currently displaying QR code, update canvas palette
     if (this.state === 'creating') {
-      const canvas = this.root.querySelector('canvas');
-      if (canvas) {
-        try {
-          const qrEngine = new QREngine();
-          const qrPayload = this.getRoomJoinUrl();
-          const matrix = qrEngine.encode(qrPayload);
-          const qrCanvas = new QRCanvas(canvas);
-          qrCanvas.render(matrix, {
-            moduleSize: 7,
-            quietZone: 4,
-            darkColor: this.currentTheme === 'light' ? '#111110' : '#F3F4F6',
-            lightColor: this.currentTheme === 'light' ? '#FFFFFF' : '#181A1D',
-          });
-        } catch (e) {
-          console.warn('QR update error:', e);
-        }
+      const canvas = this.root.querySelector('.qr-canvas-wrap canvas') as HTMLCanvasElement | null;
+      if (canvas && this.roomCode) {
+        this.renderQRCodeIntoCanvas(canvas);
       }
+    }
+  }
+
+  private renderQRCodeIntoCanvas(canvas: HTMLCanvasElement): void {
+    try {
+      const qrEngine = new QREngine();
+      const qrPayload = this.getRoomJoinUrl();
+      const matrix = qrEngine.encode(qrPayload);
+      const qrCanvas = new QRCanvas(canvas);
+      qrCanvas.render(matrix, {
+        moduleSize: 6,
+        quietZone: 3,
+        darkColor: this.currentTheme === 'light' ? '#141413' : '#F4F4F6',
+        lightColor: this.currentTheme === 'light' ? '#FFFFFF' : '#18191D',
+      });
+    } catch (e) {
+      console.warn('QR render error:', e);
     }
   }
 
@@ -177,22 +184,33 @@ export class App {
   private render(): void {
     this.clear();
 
-    const container = document.createElement('div');
-    container.className = `container ${this.state === 'connected' ? 'expanded' : ''}`;
+    const appShell = document.createElement('div');
+    appShell.className = `app-shell ${this.state === 'connected' ? 'is-connected' : 'is-pairing'}`;
 
     // Status label for top navigation bar
-    let statusLabel = 'Direct P2P';
+    let statusLabel = 'Direct Share';
     if (this.isPreviewMode) {
       statusLabel = 'Demo Mode';
     } else if (this.state === 'connected') {
       statusLabel = 'Connected';
     } else if (this.state === 'creating') {
-      statusLabel = 'Pairing';
+      statusLabel = 'Ready to Pair';
     } else if (this.state === 'joining') {
       statusLabel = 'Connecting';
     }
 
-    // Top desktop & mobile navigation bar with Light/Dark toggle & Guide
+    // Top Header: In State B (Connected), auto-collapses QR/room info into the top pill
+    const peerInfo = this.state === 'connected'
+      ? {
+          name: this.peerUsername,
+          roomCode: this.roomCode || 'DIRECT',
+          onDisconnect: () => {
+            this.cleanup();
+            this.transition('idle');
+          },
+        }
+      : undefined;
+
     const navbar = createNavbar(
       this.currentTheme,
       () => this.handleToggleTheme(),
@@ -203,93 +221,98 @@ export class App {
           this.transition('idle');
         }
       },
-      () => openOnboardingModal()
+      () => openOnboardingModal(),
+      peerInfo
     );
-    container.append(navbar);
+    appShell.append(navbar);
 
-    // Prompt installing PWA on mobile / desktop browsers
-    container.append(createInstallBanner());
+    // Optional PWA install banner
+    appShell.append(createInstallBanner());
 
-    // Top Mode Bar (1-to-1 Direct, Broadcast Room, Virtual Drive)
-    let currentMode: 'direct' | 'broadcast' | 'drive' = 'direct';
-    if (this.isPreviewMode) {
-      currentMode = 'drive';
+    // Main workspace / state area
+    if (this.state === 'error') {
+      appShell.append(this.renderError());
+    } else if (this.state === 'connected') {
+      // STATE B: Once Connected Workspace (Full-Width Main Stage + Shared Notes Drawer)
+      appShell.append(this.renderConnectedWorkspace());
+    } else {
+      // STATE A: Not Connected Yet (Calm Full-Screen 2-Column Split Layout)
+      appShell.append(this.renderStateAPairingLayout());
+      appShell.append(createFooter((tab) => openDocModal(tab)));
     }
-    const modeBar = createModeBar(currentMode, (selected) => {
-      if (selected === 'drive') {
-        if (this.state !== 'connected') {
-          this.startPreviewMode();
-          setTimeout(() => this.workspace?.switchTab('drive'), 200);
-        } else {
-          this.workspace?.switchTab('drive');
-        }
-      } else if (selected === 'broadcast') {
-        showToast('Broadcast Room: Connect multiple peers to 1-to-Many stream');
-        if (this.state === 'idle') {
-          this.handleCreateRoom();
-        }
-      } else {
-        if (this.state === 'connected') {
-          this.workspace?.switchTab('activity');
-        }
+
+    this.root.append(appShell);
+
+    // Check if queued files exist and we just connected
+    if (this.state === 'connected' && this.queuedFiles.length > 0) {
+      const pending = [...this.queuedFiles];
+      this.queuedFiles = [];
+      setTimeout(() => {
+        void this.handleSendFileList(pending);
+      }, 300);
+    }
+  }
+
+  // ── STATE A: Full-Screen 2-Column Split (Not Connected Yet) ─
+
+  private renderStateAPairingLayout(): HTMLElement {
+    const layout = document.createElement('div');
+    layout.className = 'app-pairing-layout';
+
+    // LEFT CARD: "Connect a Device"
+    const leftCard = document.createElement('div');
+    leftCard.className = 'card pairing-card stack stack-md';
+
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'pairing-card-header stack stack-xs';
+    const cardTitle = document.createElement('h2');
+    cardTitle.className = 'pairing-title font-semibold';
+    cardTitle.textContent = 'Connect a Device';
+    const cardSubtitle = document.createElement('p');
+    cardSubtitle.className = 'pairing-subtitle text-xs muted';
+    cardSubtitle.textContent = 'Scan the QR code with your phone camera, or enter the code below.';
+    cardHeader.append(cardTitle, cardSubtitle);
+    leftCard.append(cardHeader);
+
+    // Friendly Nearby Wi-Fi radar banner
+    const radar = createNearbyRadar(1, () => {
+      showToast('Nearby device detected. Opening pair code...');
+      if (this.state === 'idle') {
+        this.handleCreateRoom();
       }
     });
-    container.append(modeBar);
+    leftCard.append(radar);
 
-    // Nearby Wi-Fi Radar Banner (shown on idle / pairing)
-    if (['idle', 'creating', 'joining'].includes(this.state)) {
-      const radar = createNearbyRadar(1, () => {
-        showToast('Local subnet peer detected. Initiating direct pairing...');
-        if (this.state === 'idle') {
-          this.handleCreateRoom();
-        }
+    // Operator display name row
+    const userBar = createUsernameBar(this.myUsername, (newName) => {
+      this.updateMyUsername(newName);
+    });
+    leftCard.append(userBar);
+
+    // Pairing controls depending on state
+    if (this.state === 'idle') {
+      // Show Pair Selection Options + Quick Start + Quick Join Input
+      const pairSelection = createPairSelection({
+        onCreateRoom: () => this.handleCreateRoom(),
+        onJoinRoom: () => this.transition('joining'),
+        onPreviewWorkspace: () => this.startPreviewMode(),
       });
-      container.append(radar);
-    }
+      leftCard.append(pairSelection);
 
-    // Operator username identity card (on idle, creating, joining)
-    if (['idle', 'creating', 'joining'].includes(this.state)) {
-      container.append(
-        createUsernameBar(this.myUsername, (newName) => {
-          this.updateMyUsername(newName);
-        })
-      );
-    }
-
-    // Friendly 3-step micro-onboarding guide (Interactive navigation + full tour modal)
-    if (['idle', 'creating', 'joining'].includes(this.state)) {
-      const activeStep = this.state === 'idle' ? 1 : 2;
-      container.append(
+      // Micro-onboarding steps
+      leftCard.append(
         createOnboarding(
-          activeStep,
+          1,
           (step) => {
             if (step === 1) {
-              const focusAndPulse = () => {
-                const input = document.querySelector('.identity-input') as HTMLInputElement | null;
-                input?.focus();
-                input?.select();
-                const card = document.querySelector('.identity-card') as HTMLElement | null;
-                card?.classList.add('identity-pulse');
-                setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
-              };
-
-              if (this.state !== 'idle') {
-                this.cleanup();
-                this.transition('idle');
-                setTimeout(focusAndPulse, 50);
-              } else {
-                focusAndPulse();
-              }
+              const input = document.querySelector('.identity-input') as HTMLInputElement | null;
+              input?.focus();
+              input?.select();
+              const card = document.querySelector('.identity-card') as HTMLElement | null;
+              card?.classList.add('identity-pulse');
+              setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
             } else if (step === 2) {
-              if (this.state === 'idle') {
-                const pairCard = document.querySelector('.pair-options') as HTMLElement | null;
-                pairCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              } else if (this.state === 'joining') {
-                this.handleCreateRoom();
-              } else if (this.state === 'creating') {
-                this.cleanup();
-                this.transition('joining');
-              }
+              this.handleCreateRoom();
             } else if (step === 3) {
               this.startPreviewMode();
             }
@@ -297,162 +320,123 @@ export class App {
           () => openOnboardingModal()
         )
       );
-    }
 
-    // Main interaction card
-    const card = document.createElement('div');
-    card.className = 'card stack stack-lg';
-    card.append(this.renderState());
-    container.append(card);
+      // Quick Join row at bottom: "Connecting from another computer? Enter code..." + Join
+      const quickJoinWrap = document.createElement('div');
+      quickJoinWrap.className = 'quick-join-row-wrap mt-sm';
+      quickJoinWrap.innerHTML = `
+        <div class="text-xs muted mb-xs">Connecting from another computer?</div>
+      `;
+      const inputGroup = document.createElement('div');
+      inputGroup.className = 'quick-join-input-group';
+      const quickInput = document.createElement('input');
+      quickInput.type = 'text';
+      quickInput.className = 'quick-join-input mono';
+      quickInput.placeholder = 'Enter 6-letter code...';
+      quickInput.maxLength = 6;
+      quickInput.autocomplete = 'off';
 
-    // Attribution footer (Developed by Ankit Patra for the community, Policies & Changelog)
-    container.append(createFooter((tab) => openDocModal(tab)));
+      const quickBtn = document.createElement('button');
+      quickBtn.type = 'button';
+      quickBtn.className = 'btn btn-primary btn-sm btn-connect-room';
+      quickBtn.textContent = 'Join';
 
-    this.root.append(container);
-  }
-
-  private renderState(): HTMLElement {
-    switch (this.state) {
-      case 'idle':
-        return this.renderIdle();
-      case 'creating':
-        return this.renderCreating();
-      case 'joining':
-        return this.renderJoining();
-      case 'connected':
-        return this.renderConnectedWorkspace();
-      case 'error':
-        return this.renderError();
-    }
-  }
-
-  // ── Idle ──────────────────────────────────────────
-
-  private renderIdle(): HTMLElement {
-    return createPairSelection({
-      onCreateRoom: () => this.handleCreateRoom(),
-      onJoinRoom: () => this.transition('joining'),
-      onPreviewWorkspace: () => this.startPreviewMode(),
-    });
-  }
-
-  private startPreviewMode(): void {
-    this.isPreviewMode = true;
-    this.peerUsername = 'Kandinsky (Simulated)';
-    void wakeLock.acquire('webrtc');
-    this.transition('connected');
-
-    setTimeout(() => {
-      this.workspace?.addChatMessage({
-        sender: this.peerUsername,
-        text: `Hello ${this.myUsername}! Welcome to PinnPointt. Send a message to test live chat, or click the "Virtual Drive" tab above to explore remote files and test on-demand slice previews.`,
-        timestamp: Date.now(),
-        isMine: false,
+      const submitQuick = () => {
+        const val = quickInput.value.trim().toUpperCase();
+        if (val.length === 6) {
+          this.handleJoinRoom(val);
+        }
+      };
+      quickBtn.addEventListener('click', submitQuick);
+      quickInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitQuick();
       });
 
-      // Populate sample remote drive files in demo mode
-      this.workspace?.setRemoteVfsEntries([
-        {
-          id: 'demo_f1',
-          name: 'project_architecture.md',
-          relativePath: 'docs/project_architecture.md',
-          size: 4096,
-          mimeType: 'text/markdown',
-          lastModified: Date.now() - 3600000,
+      inputGroup.append(quickInput, quickBtn);
+      quickJoinWrap.append(inputGroup);
+      leftCard.append(quickJoinWrap);
+    } else if (this.state === 'creating') {
+      // Room display with 180x180 QR code, 6-letter room code in JetBrains Mono, copy buttons, and quick join row
+      const canvas = document.createElement('canvas');
+      canvas.width = 180;
+      canvas.height = 180;
+      setTimeout(() => this.renderQRCodeIntoCanvas(canvas), 10);
+
+      const roomDisplay = createRoomDisplay(
+        this.roomCode,
+        canvas,
+        () => {
+          this.cleanup();
+          this.transition('idle');
         },
-        {
-          id: 'demo_f2',
-          name: 'pinnpointt_brand_spec.svg',
-          relativePath: 'assets/pinnpointt_brand_spec.svg',
-          size: 16384,
-          mimeType: 'image/svg+xml',
-          lastModified: Date.now() - 7200000,
-        },
-        {
-          id: 'demo_f3',
-          name: 'performance_benchmarks.csv',
-          relativePath: 'reports/performance_benchmarks.csv',
-          size: 102400,
-          mimeType: 'text/csv',
-          lastModified: Date.now() - 10800000,
-        },
-      ]);
-    }, 150);
-  }
-
-  // ── Creating ─────────────────────────────────────
-
-  private renderCreating(): HTMLElement {
-    const canvas = document.createElement('canvas');
-
-    try {
-      const qrEngine = new QREngine();
-      const qrPayload = this.getRoomJoinUrl();
-      const matrix = qrEngine.encode(qrPayload);
-      const qrCanvas = new QRCanvas(canvas);
-      qrCanvas.render(matrix, {
-        moduleSize: 7,
-        quietZone: 4,
-        darkColor: this.currentTheme === 'light' ? '#18181B' : '#EDEDED',
-        lightColor: this.currentTheme === 'light' ? '#FFFFFF' : '#121214',
-      });
-    } catch (e) {
-      console.warn('QR render error:', e);
-    }
-
-    return createRoomDisplay(this.roomCode, canvas, () => {
-      this.cleanup();
-      this.transition('idle');
-    });
-  }
-
-  // ── Joining ──────────────────────────────────────
-
-  private renderJoining(): HTMLElement {
-    if (this.roomCode) {
-      const container = document.createElement('div');
-      container.className = 'stack stack-md text-center fade-in';
-
-      const label = document.createElement('h2');
-      label.textContent = 'Connecting to Room';
-
-      const codeDisplay = document.createElement('div');
-      codeDisplay.className = 'room-code-display';
-      for (const ch of this.roomCode) {
-        const digit = document.createElement('span');
-        digit.className = 'digit';
-        digit.textContent = ch;
-        codeDisplay.append(digit);
+        (code) => this.handleJoinRoom(code)
+      );
+      leftCard.append(roomDisplay);
+    } else if (this.state === 'joining') {
+      if (this.roomCode) {
+        const waitingView = document.createElement('div');
+        waitingView.className = 'stack stack-md text-center fade-in';
+        waitingView.innerHTML = `
+          <h2 class="font-semibold">Connecting to Room</h2>
+          <div class="room-code-display mono"><span class="digit">${this.roomCode}</span></div>
+          <div class="status-badge"><span class="status-dot"></span> Establishing direct peer connection...</div>
+        `;
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-ghost w-full mt-sm';
+        cancelBtn.textContent = '← Cancel';
+        cancelBtn.addEventListener('click', () => {
+          this.cleanup();
+          this.transition('idle');
+        });
+        waitingView.append(cancelBtn);
+        leftCard.append(waitingView);
+      } else {
+        const { element, backBtn } = createJoinInputWithBack((code) => {
+          this.handleJoinRoom(code);
+        });
+        backBtn.addEventListener('click', () => {
+          this.cleanup();
+          this.transition('idle');
+        });
+        leftCard.append(element);
       }
-
-      const status = document.createElement('div');
-      status.className = 'status-badge mt-md';
-      status.style.margin = '12px auto 0';
-      status.innerHTML = `<span class="status-dot"></span> Negotiating direct device connection...`;
-
-      const cancelBtn = document.createElement('button');
-      cancelBtn.className = 'btn btn-ghost w-full mt-sm';
-      cancelBtn.textContent = '← Cancel';
-      cancelBtn.addEventListener('click', () => {
-        this.cleanup();
-        this.transition('idle');
-      });
-
-      container.append(label, codeDisplay, status, cancelBtn);
-      return container;
     }
 
-    const { element, backBtn } = createJoinInputWithBack((code: string) => {
-      this.handleJoinRoom(code);
+    // RIGHT SURFACE: Full-height Tactile Drag-and-Drop Canvas
+    const rightSurface = createDropZoneReadySurface({
+      onFilesSelected: (files) => {
+        this.handleQueueOrSendFiles(files);
+      },
+      onTogglePrivacy: (enabled) => {
+        this.privacyShieldEnabled = enabled;
+        showToast(enabled ? 'Location tags will be removed from photos' : 'Location details will be kept on photos');
+      },
+      privacyEnabled: this.privacyShieldEnabled,
+      queuedFiles: this.queuedFiles,
+      onRemoveQueuedFile: (idx) => {
+        this.queuedFiles.splice(idx, 1);
+        this.render();
+      },
     });
-    backBtn.addEventListener('click', () => {
-      this.cleanup();
-      this.transition('idle');
-    });
-    return element;
+
+    layout.append(leftCard, rightSurface);
+    return layout;
   }
 
-  // ── Connected Workspace (Chat + File Sharing Feed) ─
+  private handleQueueOrSendFiles(files: FileList): void {
+    if (this.state === 'connected') {
+      void this.handleSendFiles(files);
+      return;
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      this.queuedFiles.push(files[i]);
+    }
+    showToast(`${files.length} file(s) ready to stream as soon as you connect`);
+    this.render();
+  }
+
+  // ── STATE B: Connected Workspace ─────────────────
 
   private renderConnectedWorkspace(): HTMLElement {
     const myRole = this.isPreviewMode ? 'YOU' : (this.peer?.role === 'offerer' ? 'HOST' : 'GUEST');
@@ -468,7 +452,7 @@ export class App {
           if (this.virtualDrive) {
             const mounted = this.virtualDrive.mountLocalFiles(files);
             this.workspace?.setLocalVfsEntries(mounted);
-            this.workspace?.addSystemNotice(`Mounted ${mounted.length} file(s) to Virtual Drive for peer`);
+            this.workspace?.addSystemNotice(`Shared ${mounted.length} file(s) with the other device`);
           } else if (this.isPreviewMode) {
             const entries: VfsFileEntry[] = [];
             for (let i = 0; i < files.length; i++) {
@@ -483,26 +467,26 @@ export class App {
               });
             }
             this.workspace?.setLocalVfsEntries(entries);
-            this.workspace?.addSystemNotice(`Demo: Mounted ${entries.length} file(s) to Virtual Drive`);
+            this.workspace?.addSystemNotice(`Demo: Shared ${entries.length} file(s) with simulated device`);
           }
         },
         onUnmountDrive: () => {
           if (this.virtualDrive) {
             this.virtualDrive.unmountLocal();
             this.workspace?.setLocalVfsEntries([]);
-            this.workspace?.addSystemNotice(`Unmounted local Virtual Drive`);
+            this.workspace?.addSystemNotice(`Stopped sharing local files`);
           } else if (this.isPreviewMode) {
             this.workspace?.setLocalVfsEntries([]);
-            this.workspace?.addSystemNotice(`Demo: Unmounted Virtual Drive`);
+            this.workspace?.addSystemNotice(`Demo: Stopped sharing files`);
           }
         },
         onPullRemoteFile: (fileId: string) => {
           if (this.virtualDrive) {
             this.virtualDrive.pullRemoteFile(fileId);
-            this.workspace?.addSystemNotice(`Requesting remote peer to stream file...`);
+            this.workspace?.addSystemNotice(`Requesting file from other device...`);
             this.workspace?.switchTab('activity');
           } else if (this.isPreviewMode) {
-            this.workspace?.addSystemNotice(`Demo: Pulled remote file (${fileId})`);
+            this.workspace?.addSystemNotice(`Demo: Pulled file (${fileId})`);
             this.workspace?.switchTab('activity');
           }
         },
@@ -514,12 +498,12 @@ export class App {
               slicePromise,
               onPullFile: (id) => {
                 this.virtualDrive?.pullRemoteFile(id);
-                this.workspace?.addSystemNotice(`Requesting remote peer to stream file "${entry.name}"...`);
+                this.workspace?.addSystemNotice(`Requesting file "${entry.name}"...`);
                 this.workspace?.switchTab('activity');
               },
             });
           } else if (this.isPreviewMode) {
-            const sampleText = `# PinnPointt Virtual Drive Preview\n\nLive on-demand byte slice streamed directly from peer memory with ZERO local disk allocation.\n\nFile Name: ${entry.name}\nPath:      ${entry.relativePath}\nMIME:      ${entry.mimeType}\nSize:      ${entry.size} bytes\n`;
+            const sampleText = `# PinnPointt Virtual Drive Preview\n\nLive on-demand preview streamed directly from device memory with ZERO cloud storage.\n\nFile Name: ${entry.name}\nSize: ${formatBytes(entry.size)}\n`;
             const mockSlice = Promise.resolve({
               fileId: entry.id,
               offset: 0,
@@ -561,13 +545,54 @@ export class App {
 
     this.workspace.addSystemNotice(
       this.isPreviewMode
-        ? 'Interactive demo active — Simulated peer ready'
-        : 'Direct device-to-device connection secured'
+        ? 'Interactive demo ready — Simulated peer connected'
+        : 'Direct peer-to-peer connection secured'
     );
     return this.workspace.element;
   }
 
-  // ── Error ────────────────────────────────────────
+  private startPreviewMode(): void {
+    this.isPreviewMode = true;
+    this.peerUsername = 'Kandinsky (Simulated)';
+    void wakeLock.acquire('webrtc');
+    this.transition('connected');
+
+    setTimeout(() => {
+      this.workspace?.addChatMessage({
+        sender: this.peerUsername,
+        text: `Hello ${this.myUsername}! Welcome to PinnPointt. Send a note or attach files of any size to test live direct streaming.`,
+        timestamp: Date.now(),
+        isMine: false,
+      });
+
+      this.workspace?.setRemoteVfsEntries([
+        {
+          id: 'demo_f1',
+          name: 'project_notes.md',
+          relativePath: 'notes/project_notes.md',
+          size: 4096,
+          mimeType: 'text/markdown',
+          lastModified: Date.now() - 3600000,
+        },
+        {
+          id: 'demo_f2',
+          name: 'brand_artwork.svg',
+          relativePath: 'artwork/brand_artwork.svg',
+          size: 16384,
+          mimeType: 'image/svg+xml',
+          lastModified: Date.now() - 7200000,
+        },
+        {
+          id: 'demo_f3',
+          name: 'trip_expenses.csv',
+          relativePath: 'spreadsheets/trip_expenses.csv',
+          size: 102400,
+          mimeType: 'text/csv',
+          lastModified: Date.now() - 10800000,
+        },
+      ]);
+    }, 150);
+  }
 
   private renderError(): HTMLElement {
     return createErrorView(this.errorMessage, () => {
@@ -575,8 +600,6 @@ export class App {
       this.transition('idle');
     });
   }
-
-  // ── State Transitions ────────────────────────────
 
   private transition(newState: AppState): void {
     this.state = newState;
@@ -659,10 +682,8 @@ export class App {
     this.dataChannel = channel;
     this.transition('connected');
 
-    // Keep screen awake while direct peer connection is active
     void wakeLock.acquire('webrtc');
 
-    // Initialize Virtual Drive Manager for on-demand pull and byte-slice previews
     this.virtualDrive = new VirtualDriveManager(
       (data) => this.sendJSON(data),
       {
@@ -670,16 +691,16 @@ export class App {
           this.workspace?.setRemoteVfsEntries(files);
           this.workspace?.addSystemNotice(
             files.length > 0
-              ? `${this.peerUsername} mounted ${files.length} item(s) in Virtual Drive`
-              : `${this.peerUsername} unmounted their Virtual Drive`
+              ? `${this.peerUsername} shared ${files.length} item(s)`
+              : `${this.peerUsername} unmounted their shared files`
           );
         },
         onRemoteUnmounted: () => {
           this.workspace?.setRemoteVfsEntries([]);
-          this.workspace?.addSystemNotice(`${this.peerUsername} unmounted their Virtual Drive`);
+          this.workspace?.addSystemNotice(`${this.peerUsername} unmounted their shared files`);
         },
         onFilePullRequested: (file: File) => {
-          this.workspace?.addSystemNotice(`${this.peerUsername} requested on-demand pull of "${file.name}"`);
+          this.workspace?.addSystemNotice(`${this.peerUsername} requested "${file.name}"`);
           void this.handleSendSingleFile(file);
         },
         onNotice: (text: string) => {
@@ -688,43 +709,34 @@ export class App {
       }
     );
 
-    // 1. Send peer introduction with our username
     this.sendJSON({
       type: 'peer-intro',
       username: this.myUsername,
     });
 
-    // 2. Attach chat and protocol message listener
     window.addEventListener('paste', this.handleGlobalPaste);
     channel.addEventListener('message', (event: MessageEvent) => {
-      if (typeof event.data !== 'string') return; // Binary messages handled by stream receiver
+      if (typeof event.data !== 'string') return;
 
       try {
         const msg = JSON.parse(event.data) as Record<string, unknown>;
 
-        // Route Virtual Drive (Live Remote Mount) messages
-        if (this.virtualDrive?.handleMessage(msg)) {
-          return;
-        }
-
-        // Route Transfer Pause/Resume/Cancel Control messages
-        if (this.transferManager.handleControlMessage(msg)) {
-          return;
-        }
-
-        // Route Instant Universal Clipboard messages
+        if (this.virtualDrive?.handleMessage(msg)) return;
+        if (this.transferManager.handleControlMessage(msg)) return;
         if (isClipboardSyncMessage(msg)) {
           this.workspace?.addClipboardItem(msg.item, false);
           return;
         }
 
         if (msg.type === 'peer-intro') {
-          const peerName = String(msg.username || 'Peer');
+          const peerName = String(msg.username || 'Other Device');
           this.peerUsername = peerName;
           const myRole = this.peer?.role === 'offerer' ? 'HOST' : 'GUEST';
           const peerRole = myRole === 'HOST' ? 'GUEST' : 'HOST';
           this.workspace?.setPeerName(peerName, peerRole);
-          this.workspace?.addSystemNotice(`${peerName} joined the room`);
+          this.workspace?.addSystemNotice(`${peerName} connected`);
+          const headerPillName = document.querySelector('.peer-name');
+          if (headerPillName) headerPillName.textContent = peerName;
         } else if (msg.type === 'dc-ping') {
           this.sendJSON({ type: 'dc-pong' });
           return;
@@ -739,19 +751,18 @@ export class App {
           });
         } else if (msg.type === 'username-update') {
           const oldName = this.peerUsername;
-          const newName = String(msg.username || 'Peer');
+          const newName = String(msg.username || 'Other Device');
           this.peerUsername = newName;
           const myRole = this.peer?.role === 'offerer' ? 'HOST' : 'GUEST';
           const peerRole = myRole === 'HOST' ? 'GUEST' : 'HOST';
           this.workspace?.setPeerName(newName, peerRole);
           this.workspace?.addSystemNotice(`${oldName} changed name to ${newName}`);
+          const headerPillName = document.querySelector('.peer-name');
+          if (headerPillName) headerPillName.textContent = newName;
         }
-      } catch {
-        // Non-JSON string message
-      }
+      } catch {}
     });
 
-    // 3. Start DataChannel keepalive ping (every 15s) to keep NAT tables active through cellular & router firewalls
     if (this.dcKeepaliveTimer) clearInterval(this.dcKeepaliveTimer);
     this.dcKeepaliveTimer = setInterval(() => {
       if (this.isSendingFile) return;
@@ -760,7 +771,6 @@ export class App {
       }
     }, 15_000);
 
-    // 4. Start persistent receiver loop for binary file transfers
     this.listenForIncomingFiles(channel);
   }
 
@@ -777,12 +787,11 @@ export class App {
         isMine: true,
       });
 
-      // Friendly simulated peer replies
       setTimeout(() => {
         const responses = [
-          `Received your message: "${text}". Direct device link is active and fast!`,
-          `Connection is clear and private. You can attach or drop files of any size to test live streaming.`,
-          `Message delivered in real time. All transfers stream directly with zero cloud storage.`,
+          `Received your message: "${text}". The direct link is live and private.`,
+          `Message delivered instantly across device memory. You can drop files to test transfers.`,
+          `All communication stays strictly between your two devices with zero cloud logs.`,
         ];
         const reply = responses[Math.floor(Math.random() * responses.length)];
         this.workspace?.addChatMessage({
@@ -830,7 +839,6 @@ export class App {
   private handleGlobalPaste = (e: ClipboardEvent): void => {
     if (this.state !== 'connected' && !this.isPreviewMode) return;
 
-    // Check for clipboard files (e.g. screenshot image pasted)
     const items = e.clipboardData?.items;
     if (items) {
       for (let i = 0; i < items.length; i++) {
@@ -847,7 +855,6 @@ export class App {
       }
     }
 
-    // Check if user is typing in an active text input or textarea
     const target = e.target as HTMLElement | null;
     if (
       target &&
@@ -855,11 +862,9 @@ export class App {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable)
     ) {
-      // Allow normal typing / paste inside text inputs
       return;
     }
 
-    // User pressed Ctrl+V / Cmd+V in the room outside of an input: sync text
     const text = e.clipboardData?.getData('text') || '';
     if (text.trim()) {
       e.preventDefault();
@@ -902,7 +907,7 @@ export class App {
 
     if (this.isPreviewMode) {
       this.workspace?.addClipboardItem(item, true);
-      showToast('Copied to live scratchpad');
+      showToast('Copied to live notes');
       return;
     }
 
@@ -914,7 +919,7 @@ export class App {
     });
 
     this.workspace?.addClipboardItem(item, true);
-    showToast('Clipboard synced to peer!');
+    showToast('Sent to connected device!');
   }
 
   // ── File Streaming & Transfers ───────────────────
@@ -924,14 +929,11 @@ export class App {
     isMetadataStripped: boolean;
     isZeroTrace: boolean;
   }> {
-    const privacyEnabled = this.workspace?.getPrivacyShieldEnabled() ?? true;
-    const zeroTraceEnabled = this.workspace?.getZeroTraceEnabled() ?? false;
-
     let fileToSend = rawFile;
     let isMetadataStripped = false;
-    let isZeroTrace = false;
+    const isZeroTrace = false;
 
-    if (privacyEnabled && isMetadataStrippable(rawFile)) {
+    if (this.privacyShieldEnabled && isMetadataStrippable(rawFile)) {
       const stripResult = await stripImageMetadata(rawFile);
       if (stripResult.stripped) {
         fileToSend = stripResult.file;
@@ -939,11 +941,21 @@ export class App {
       }
     }
 
-    if (zeroTraceEnabled && (rawFile.type.startsWith('image/') || isMetadataStrippable(rawFile))) {
-      isZeroTrace = true;
-    }
-
     return { file: fileToSend, isMetadataStripped, isZeroTrace };
+  }
+
+  private async handleSendFileList(files: File[]): Promise<void> {
+    const fakeList = {
+      length: files.length,
+      item: (i: number) => files[i] || null,
+      [Symbol.iterator]: function* () {
+        for (const f of files) yield f;
+      },
+    } as unknown as FileList;
+    for (let i = 0; i < files.length; i++) {
+      Object.defineProperty(fakeList, i, { value: files[i], enumerable: true });
+    }
+    return this.handleSendFiles(fakeList);
   }
 
   private async handleSendFiles(files: FileList): Promise<void> {
@@ -962,11 +974,9 @@ export class App {
             isZeroTrace,
           });
 
-          // Read and compute real SHA-256
           const buf = await file.arrayBuffer();
           const sha256 = await computeSHA256(buf);
 
-          // Smooth streaming progress preview
           const totalSteps = 8;
           for (let s = 1; s <= totalSteps; s++) {
             await new Promise((r) => setTimeout(r, 80));
@@ -981,25 +991,11 @@ export class App {
             });
           }
 
-          if (isZeroTrace) {
-            card?.complete({
-              sha256,
-              isZeroTrace: true,
-              isMetadataStripped,
-              onZeroTraceView: () => {
-                void openZeroTraceViewer({
-                  blob: new Blob([buf], { type: file.type }),
-                  fileName: file.name,
-                });
-              },
-            });
-          } else {
-            card?.complete({
-              sha256,
-              isMetadataStripped,
-              onDownload: () => downloadFile(new Blob([buf], { type: file.type }), file.name),
-            });
-          }
+          card?.complete({
+            sha256,
+            isMetadataStripped,
+            onDownload: () => downloadFile(new Blob([buf], { type: file.type }), file.name),
+          });
         }
       } finally {
         void wakeLock.release('transfer');
@@ -1047,15 +1043,15 @@ export class App {
           if (state === 'paused_by_sender' || state === 'paused_by_receiver') {
             card?.setPaused?.(true, details?.by);
             this.workspace?.addSystemNotice(
-              `File transfer paused by ${details?.by === 'sender' ? 'you' : this.peerUsername}`
+              `Transfer paused by ${details?.by === 'sender' ? 'you' : this.peerUsername}`
             );
           } else if (state === 'transferring' || state === 'resuming') {
             card?.setPaused?.(false);
-            this.workspace?.addSystemNotice(`File transfer resumed`);
+            this.workspace?.addSystemNotice(`Transfer resumed`);
           } else if (state === 'cancelled') {
             card?.setCancelled?.(details?.by === 'receiver' ? 'peer' : 'you');
             this.workspace?.addSystemNotice(
-              `File transfer cancelled by ${details?.by === 'receiver' ? this.peerUsername : 'you'}`
+              `Transfer cancelled by ${details?.by === 'receiver' ? this.peerUsername : 'you'}`
             );
           }
         });
@@ -1123,15 +1119,15 @@ export class App {
       if (state === 'paused_by_sender' || state === 'paused_by_receiver') {
         card?.setPaused?.(true, details?.by);
         this.workspace?.addSystemNotice(
-          `File transfer paused by ${details?.by === 'sender' ? 'you' : this.peerUsername}`
+          `Transfer paused by ${details?.by === 'sender' ? 'you' : this.peerUsername}`
         );
       } else if (state === 'transferring' || state === 'resuming') {
         card?.setPaused?.(false);
-        this.workspace?.addSystemNotice(`File transfer resumed`);
+        this.workspace?.addSystemNotice(`Transfer resumed`);
       } else if (state === 'cancelled') {
         card?.setCancelled?.(details?.by === 'receiver' ? 'peer' : 'you');
         this.workspace?.addSystemNotice(
-          `File transfer cancelled by ${details?.by === 'receiver' ? this.peerUsername : 'you'}`
+          `Transfer cancelled by ${details?.by === 'receiver' ? this.peerUsername : 'you'}`
         );
       }
     });
@@ -1273,7 +1269,6 @@ export class App {
                   },
             });
           }
-          // Immediately listen for the next file
           listenNext();
         })
         .catch((err) => {
