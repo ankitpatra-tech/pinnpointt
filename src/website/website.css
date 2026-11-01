@@ -288,12 +288,177 @@
 /* ── Website Container & Section Layout ────────── */
 .site-wrapper {
   width: 100%;
-  max-width: min(1080px, 94vw);
+  max-width: 1600px;
   margin: 0 auto;
-  padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 24px) clamp(40px, 6vw, 80px);
+  padding: 0 clamp(24px, 4.5vw, 72px) clamp(48px, 8vw, 96px);
   display: flex;
   flex-direction: column;
   gap: clamp(48px, 8vw, 88px);
+}
+
+.site-wrapper > section {
+  position: relative;
+  border-top: 1px solid var(--border-hairline);
+  padding-top: clamp(40px, 6vw, 72px);
+}
+
+.site-wrapper > section:first-of-type {
+  border-top: none;
+  padding-top: clamp(16px, 3vw, 32px);
+}
+
+/* ── Asymmetric Editorial Sections (4-col Sticky Sidebar + 8-col Content) ── */
+.editorial-section {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: clamp(32px, 5vw, 64px);
+  align-items: start;
+}
+
+.editorial-sidebar {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.editorial-sidebar .section-desc {
+  max-width: 340px;
+  line-height: 1.65;
+  color: var(--muted);
+  font-size: clamp(13px, 1.6vw, 15px);
+}
+
+.editorial-content {
+  width: 100%;
+}
+
+@media (max-width: 1023px) {
+  .editorial-section {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .editorial-sidebar {
+    position: static;
+  }
+  .editorial-sidebar .section-desc {
+    max-width: 100%;
+  }
+}
+
+/* ── Hero Trust Strip ──────────────────────────── */
+.hero-trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(12px, 2vw, 20px);
+  align-items: center;
+  margin-top: 6px;
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.trust-badge svg {
+  color: var(--status-online);
+}
+
+/* ── Technical Architecture Accordion ─────────── */
+.technical-accordion-section {
+  width: 100%;
+}
+
+.tech-accordion {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.tech-accordion:hover {
+  border-color: var(--border-strong);
+}
+
+.tech-accordion-summary {
+  padding: 22px 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  list-style: none;
+}
+
+.tech-accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.tech-summary-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tech-summary-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.tech-accordion-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tech-accordion[open] .tech-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.tech-accordion-body {
+  padding: 0 28px 28px 28px;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.tech-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.tech-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+.tech-card p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 /* ── Hero Section ──────────────────────────────── */

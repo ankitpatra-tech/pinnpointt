@@ -38,6 +38,8 @@ import {
   iconUsers,
   iconActivity,
   iconShare,
+  iconUpload,
+  iconChevronDown,
 } from './icons';
 
 // ─── DOM Helper ─────────────────────────────────────
@@ -1018,20 +1020,27 @@ export function createConnectedWorkspace(
   callbacks: WorkspaceCallbacks,
   isPreview: boolean = false
 ): WorkspaceController {
-  const container = el('div', { className: 'stack stack-md fade-in' });
+  const container = el('div', { className: 'app-workspace-3pane fade-in' });
+
+  // ── LEFT PANE: Connect Devices & Session Info ──
+  const leftPane = el('div', { className: 'app-pane app-pane-left' });
+
+  const leftHeader = el('div', { className: 'pane-header' });
+  leftHeader.innerHTML = `<span class="pane-title">Connect Devices</span>`;
+  leftPane.append(leftHeader);
 
   if (isPreview) {
     const banner = el('div', { className: 'preview-banner' });
     const bannerTxt = el('span', { className: 'mono text-xs' });
-    bannerTxt.innerHTML = `${iconActivity({ size: 13 })} <span>PREVIEW MODE — Interacting with simulated peer</span>`;
+    bannerTxt.innerHTML = `${iconActivity({ size: 13 })} <span>PREVIEW MODE — Simulated peer</span>`;
     const exitBtn = el('button', { type: 'button', className: 'mono text-xs', textContent: 'Exit Preview' });
     exitBtn.addEventListener('click', callbacks.onDisconnect);
     banner.append(bannerTxt, exitBtn);
-    container.append(banner);
+    leftPane.append(banner);
   }
 
   // 1. Header with Peer Badge, E2EE Indicator & Disconnect
-  const header = el('div', { className: 'workspace-header' });
+  const connectedCard = el('div', { className: 'card stack stack-sm' });
 
   const peerBadge = el('div', { className: 'workspace-peer-badge' });
   const statusDot = el('span', { className: 'status-dot connected' });
@@ -1054,30 +1063,76 @@ export function createConnectedWorkspace(
   wakeLockBadge.innerHTML = `<span class="wakelock-dot"></span> <span class="wakelock-text">Screen Awake Active</span>`;
 
   const disconnectBtn = el('button', { className: 'btn btn-ghost btn-sm mono text-xs', textContent: 'Disconnect' });
-  disconnectBtn.style.padding = '4px 10px';
+  disconnectBtn.style.padding = '6px 12px';
   disconnectBtn.addEventListener('click', callbacks.onDisconnect);
 
-  header.append(peerBadge, e2eBadge, wakeLockBadge, disconnectBtn);
+  connectedCard.append(peerBadge, e2eBadge, wakeLockBadge, disconnectBtn);
 
-  // 2. Workspace Navigation Tabs
+  const sessionCard = el('div', { className: 'card stack stack-xs mono text-xs muted' });
+  sessionCard.innerHTML = `
+    <div class="row-between"><span>LINK</span><strong class="text-bright">Direct Peer-to-Peer</strong></div>
+    <div class="row-between"><span>TRANSPORT</span><strong class="text-bright">WebRTC DTLS 1.3</strong></div>
+    <div class="row-between"><span>STORAGE</span><strong class="text-bright">Zero Cloud Storage</strong></div>
+  `;
+
+  const leftFooter = createFooter((tab) => openDocModal(tab));
+  leftPane.append(connectedCard, sessionCard, leftFooter);
+
+  // ── CENTER MAIN STAGE: File Sharing Canvas ──
+  const centerStage = el('div', { className: 'app-pane app-pane-center' });
+
+  const centerHeader = el('div', { className: 'stage-header row-between' });
+
+  // Workspace Navigation Tabs
   const tabRow = el('div', { className: 'workspace-tab-row' });
   const activityTabBtn = el('button', {
     type: 'button',
     className: 'workspace-tab-btn active',
-    textContent: 'Activity & Feed',
+    textContent: 'Send & Receive (Activity & Feed)',
   });
+  activityTabBtn.setAttribute('data-tab', 'activity');
+
   const driveTabBtn = el('button', {
     type: 'button',
     className: 'workspace-tab-btn',
   });
-  const driveTabTitle = el('span', {}, 'Virtual Drive ');
+  driveTabBtn.setAttribute('data-tab', 'drive');
+  const driveTabTitle = el('span', {}, 'Browse Files Before Downloading (Virtual Drive) ');
   const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums mono' });
   driveTabBadge.style.display = 'none';
   driveTabBtn.append(driveTabTitle, driveTabBadge);
   tabRow.append(activityTabBtn, driveTabBtn);
 
+  // Privacy Shield Toggle
+  const togglesWrap = el('div', { className: 'sender-toggles' });
+
+  const privacyCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'toggle-privacy-shield',
+    className: 'toggle-checkbox',
+    style: 'display: none;',
+  }) as HTMLInputElement;
+  privacyCheckbox.checked = true;
+
+  const zeroTraceCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'toggle-zero-trace',
+    className: 'toggle-checkbox',
+  }) as HTMLInputElement;
+
+  const zeroTraceLabel = el('label', {
+    className: 'toggle-control',
+    title: 'Remove location & camera info from photos before transmission',
+  });
+  const zeroTraceText = el('span', { className: 'toggle-label mono text-xs' });
+  zeroTraceText.innerHTML = `${iconShield({ size: 12 })} <span>Remove location & camera info from photos</span>`;
+  zeroTraceLabel.append(zeroTraceCheckbox, zeroTraceText);
+
+  togglesWrap.append(privacyCheckbox, zeroTraceLabel);
+  centerHeader.append(tabRow, togglesWrap);
+
   // Panels
-  const activityPanel = el('div', { className: 'workspace-panel activity-panel' });
+  const activityPanel = el('div', { className: 'workspace-panel activity-panel stack stack-md' });
   const drivePanel = el('div', { className: 'workspace-panel drive-panel stack stack-md' });
   drivePanel.style.display = 'none';
 
@@ -1085,21 +1140,26 @@ export function createConnectedWorkspace(
     if (tab === 'activity') {
       activityTabBtn.classList.add('active');
       driveTabBtn.classList.remove('active');
-      activityPanel.style.display = 'block';
+      activityPanel.style.display = 'flex';
       drivePanel.style.display = 'none';
     } else {
       driveTabBtn.classList.add('active');
       activityTabBtn.classList.remove('active');
       activityPanel.style.display = 'none';
-      drivePanel.style.display = 'block';
+      drivePanel.style.display = 'flex';
     }
   }
 
   activityTabBtn.addEventListener('click', () => switchTab('activity'));
   driveTabBtn.addEventListener('click', () => switchTab('drive'));
 
-  // 3. Chat & File Activity Feed
-  const feed = el('div', { className: 'chat-feed' });
+  // Hidden File Input
+  const fileInput = el('input', {
+    type: 'file',
+    multiple: '',
+    className: 'file-hidden-input',
+    style: 'display: none;',
+  }) as HTMLInputElement;
 
   let isMountMode = false;
   const handleIncomingFiles = (files: FileList) => {
@@ -1111,36 +1171,6 @@ export function createConnectedWorkspace(
     }
   };
 
-  feed.addEventListener('dragover', (e: DragEvent) => {
-    e.preventDefault();
-    feed.classList.add('dragover');
-  });
-  feed.addEventListener('dragleave', () => {
-    feed.classList.remove('dragover');
-  });
-  feed.addEventListener('drop', (e: DragEvent) => {
-    e.preventDefault();
-    feed.classList.remove('dragover');
-    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-      handleIncomingFiles(e.dataTransfer.files);
-    }
-  });
-
-  const scrollToBottom = () => {
-    requestAnimationFrame(() => {
-      feed.scrollTop = feed.scrollHeight;
-    });
-  };
-
-  // 4. Input Row
-  const inputRow = el('div', { className: 'chat-input-row' });
-
-  const fileInput = el('input', {
-    type: 'file',
-    multiple: '',
-    className: 'file-hidden-input',
-  }) as HTMLInputElement;
-
   fileInput.addEventListener('change', () => {
     if (fileInput.files && fileInput.files.length > 0) {
       handleIncomingFiles(fileInput.files);
@@ -1148,126 +1178,48 @@ export function createConnectedWorkspace(
     }
   });
 
-  const attachBtn = el('button', {
-    className: 'btn-attach',
-    type: 'button',
-    title: 'Attach file (or drag & drop anywhere)',
+  // Calm Tactile Dropzone
+  const dropzone = el('div', { className: 'stage-dropzone' });
+  dropzone.innerHTML = `
+    <div class="stage-dropzone-icon">${iconUpload({ size: 24 })}</div>
+    <div class="stage-dropzone-title">Select files or folders, or drop them anywhere</div>
+    <div class="stage-dropzone-sub">Photos, videos, or archives of any size. Direct device-to-device streaming with zero cloud storage.</div>
+    <button type="button" class="btn btn-primary btn-sm stage-dropzone-btn">Browse Files</button>
+  `;
+  dropzone.querySelector('.stage-dropzone-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
   });
-  attachBtn.innerHTML = `${iconPaperclip({ size: 14 })} <span class="attach-label">File</span>`;
-  attachBtn.addEventListener('click', () => fileInput.click());
-
-  const modeBtn = el('button', {
-    type: 'button',
-    className: 'btn-mode-toggle push-active',
-    title: 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.',
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', (e: DragEvent) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
   });
-  modeBtn.innerHTML = `${iconZap({ size: 13 })} <span class="mode-label">Push</span>`;
-  modeBtn.addEventListener('click', () => {
-    isMountMode = !isMountMode;
-    if (isMountMode) {
-      modeBtn.className = 'btn-mode-toggle mount-active';
-      modeBtn.innerHTML = `${iconHardDrive({ size: 13 })} <span class="mode-label">Mount</span>`;
-      modeBtn.title = 'Mode: Mount as Virtual Drive. Click to toggle Push Immediately.';
-    } else {
-      modeBtn.className = 'btn-mode-toggle push-active';
-      modeBtn.innerHTML = `${iconZap({ size: 13 })} <span class="mode-label">Push</span>`;
-      modeBtn.title = 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.';
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', (e: DragEvent) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      handleIncomingFiles(e.dataTransfer.files);
     }
   });
 
-  const textInput = el('input', {
-    type: 'text',
-    className: 'chat-input',
-    placeholder: 'Type an end-to-end encrypted message or drop files...',
-    autocomplete: 'off',
-    title: 'End-to-End Encrypted via WebRTC DTLS',
-  }) as HTMLInputElement;
-
-  const sendBtn = el('button', {
-    className: 'btn btn-primary chat-send-btn',
-    textContent: 'Send',
-    type: 'button',
-  });
-
-  const handleSend = () => {
-    const text = textInput.value.trim();
-    if (!text) return;
-    callbacks.onSendMessage(text);
-    textInput.value = '';
-    textInput.focus();
+  // File Transfer Feed
+  const fileFeed = el('div', { className: 'transfer-feed stack stack-sm' });
+  const scrollToBottom = () => {
+    requestAnimationFrame(() => {
+      activityPanel.scrollTop = activityPanel.scrollHeight;
+    });
   };
-
-  sendBtn.addEventListener('click', handleSend);
-  textInput.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSend();
-    }
-  });
-
-  // Tools bar
-  const toolsBar = el('div', { className: 'workspace-tools-bar row-between' });
-
-  const clipboardBtn = el('button', {
-    type: 'button',
-    className: 'btn-clipboard-sync mono text-xs',
-    title: 'Send device clipboard content to peer (or press Ctrl+V / Cmd+V anywhere)',
-  });
-  clipboardBtn.innerHTML = `${iconCopy({ size: 13 })} <span class="tools-btn-label">Send Clipboard</span>`;
-  clipboardBtn.addEventListener('click', () => {
-    callbacks.onSendClipboard?.();
-  });
-
-  const toolsHint = el('span', {
-    className: 'tools-hint mono text-xs muted',
-    textContent: 'Ctrl+V anywhere to sync clipboard',
-  });
-
-  const toolsLeft = el('div', { className: 'tools-left' });
-  toolsLeft.append(clipboardBtn, toolsHint);
-
-  const togglesWrap = el('div', { className: 'sender-toggles' });
-
-  const privacyCheckbox = el('input', {
-    type: 'checkbox',
-    id: 'toggle-privacy-shield',
-    className: 'toggle-checkbox',
-  }) as HTMLInputElement;
-  privacyCheckbox.checked = true;
-
-  const privacyLabel = el('label', {
-    className: 'toggle-control',
-    title: 'In-Flight Privacy Shield: losslessly strip EXIF/GPS, camera serials, and timestamps from images before transmission',
-  });
-  const privacyText = el('span', { className: 'toggle-label mono text-xs' });
-  privacyText.innerHTML = `${iconShield({ size: 12 })} <span>Strip EXIF</span>`;
-  privacyLabel.append(privacyCheckbox, privacyText);
-
-  const zeroTraceCheckbox = el('input', {
-    type: 'checkbox',
-    id: 'toggle-zero-trace',
-    className: 'toggle-checkbox',
-  }) as HTMLInputElement;
-
-  const zeroTraceLabel = el('label', {
-    className: 'toggle-control',
-    title: 'Zero-Trace View Only: receiver views image in ephemeral canvas memory with download disabled',
-  });
-  const zeroTraceText = el('span', { className: 'toggle-label mono text-xs' });
-  zeroTraceText.innerHTML = `${iconLock({ size: 12 })} <span>Zero-Trace</span>`;
-  zeroTraceLabel.append(zeroTraceCheckbox, zeroTraceText);
-
-  togglesWrap.append(privacyLabel, zeroTraceLabel);
-  toolsBar.append(toolsLeft, togglesWrap);
-
-  inputRow.append(fileInput, attachBtn, modeBtn, textInput, sendBtn);
-  activityPanel.append(feed, toolsBar, inputRow);
+  activityPanel.append(fileInput, dropzone, fileFeed);
 
   // Virtual Drive Panel Layout
   const driveTopBar = el('div', { className: 'vfs-top-bar row-between' });
   const driveBarLeft = el('div');
-  const driveBarTitle = el('div', { className: 'vfs-top-title font-semibold text-sm', textContent: 'Virtual Drive / Live Remote Mount' });
-  const driveBarSub = el('div', { className: 'text-xs muted', textContent: 'Mount local files or folders for peer browsing, slice previews, and on-demand pull.' });
+  const driveBarTitle = el('div', { className: 'vfs-top-title font-semibold text-sm', textContent: 'Browse Files Before Downloading (Virtual Drive)' });
+  const driveBarSub = el('div', { className: 'text-xs muted', textContent: 'Browse remote peer files and preview slices on-demand with zero disk consumption.' });
   driveBarLeft.append(driveBarTitle, driveBarSub);
 
   const vfsFileInput = el('input', {
@@ -1320,7 +1272,106 @@ export function createConnectedWorkspace(
   const remoteVfsContainer = el('div', { className: 'vfs-remote-container' });
 
   drivePanel.append(driveTopBar, localVfsContainer, remoteVfsContainer);
-  container.append(header, tabRow, activityPanel, drivePanel);
+  centerStage.append(centerHeader, activityPanel, drivePanel);
+
+  // ── RIGHT PANE: Quick Chat & Clipboard ──
+  const rightPane = el('div', { className: 'app-pane app-pane-right' });
+
+  const rightHeader = el('div', { className: 'pane-header' });
+  rightHeader.innerHTML = `<span class="pane-title">Quick Chat & Clipboard</span>`;
+
+  const chatFeed = el('div', { className: 'chat-feed' });
+
+  const scrollToChatBottom = () => {
+    requestAnimationFrame(() => {
+      chatFeed.scrollTop = chatFeed.scrollHeight;
+    });
+  };
+
+  const inputRow = el('div', { className: 'chat-input-row' });
+
+  const attachBtn = el('button', {
+    className: 'btn-attach',
+    type: 'button',
+    title: 'Attach file (or drag & drop anywhere)',
+  });
+  attachBtn.innerHTML = `${iconPaperclip({ size: 14 })} <span class="attach-label">File</span>`;
+  attachBtn.addEventListener('click', () => fileInput.click());
+
+  const modeBtn = el('button', {
+    type: 'button',
+    className: 'btn-mode-toggle push-active',
+    title: 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.',
+  });
+  modeBtn.innerHTML = `${iconZap({ size: 13 })} <span class="mode-label">Push</span>`;
+  modeBtn.addEventListener('click', () => {
+    isMountMode = !isMountMode;
+    if (isMountMode) {
+      modeBtn.className = 'btn-mode-toggle mount-active';
+      modeBtn.innerHTML = `${iconHardDrive({ size: 13 })} <span class="mode-label">Mount</span>`;
+      modeBtn.title = 'Mode: Mount as Virtual Drive. Click to toggle Push Immediately.';
+    } else {
+      modeBtn.className = 'btn-mode-toggle push-active';
+      modeBtn.innerHTML = `${iconZap({ size: 13 })} <span class="mode-label">Push</span>`;
+      modeBtn.title = 'Mode: Push Immediately. Click to toggle Mount as Virtual Drive.';
+    }
+  });
+
+  const textInput = el('input', {
+    type: 'text',
+    className: 'chat-input',
+    placeholder: 'Type an end-to-end encrypted note...',
+    autocomplete: 'off',
+    title: 'End-to-End Encrypted via WebRTC DTLS',
+  }) as HTMLInputElement;
+
+  const sendBtn = el('button', {
+    className: 'btn btn-primary chat-send-btn',
+    textContent: 'Send',
+    type: 'button',
+  });
+
+  const handleSend = () => {
+    const text = textInput.value.trim();
+    if (!text) return;
+    callbacks.onSendMessage(text);
+    textInput.value = '';
+    textInput.focus();
+  };
+
+  sendBtn.addEventListener('click', handleSend);
+  textInput.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  const toolsBar = el('div', { className: 'workspace-tools-bar row-between' });
+
+  const clipboardBtn = el('button', {
+    type: 'button',
+    className: 'btn-clipboard-sync mono text-xs',
+    title: 'Send device clipboard content to peer (or press Ctrl+V / Cmd+V anywhere)',
+  });
+  clipboardBtn.innerHTML = `${iconCopy({ size: 13 })} <span class="tools-btn-label">Send Clipboard</span>`;
+  clipboardBtn.addEventListener('click', () => {
+    callbacks.onSendClipboard?.();
+  });
+
+  const toolsHint = el('span', {
+    className: 'tools-hint mono text-xs muted',
+    textContent: 'Ctrl+V anywhere to sync clipboard',
+  });
+
+  const toolsLeft = el('div', { className: 'tools-left' });
+  toolsLeft.append(clipboardBtn, toolsHint);
+  toolsBar.append(toolsLeft);
+
+  inputRow.append(attachBtn, modeBtn, textInput, sendBtn);
+  rightPane.append(rightHeader, chatFeed, toolsBar, inputRow);
+
+  container.append(leftPane, centerStage, rightPane);
 
   let localVfsList: VfsFileEntry[] = [];
   let remoteVfsList: VfsFileEntry[] = [];
@@ -1373,8 +1424,8 @@ export function createConnectedWorkspace(
     },
     addSystemNotice(text: string) {
       const notice = el('div', { className: 'system-notice mono text-xs', textContent: text });
-      feed.append(notice);
-      scrollToBottom();
+      chatFeed.append(notice);
+      scrollToChatBottom();
     },
     addChatMessage(msg: { sender: string; text: string; timestamp: number; isMine: boolean }) {
       const row = el('div', { className: `chat-msg ${msg.isMine ? 'mine' : 'peer'}` });
@@ -1387,8 +1438,8 @@ export function createConnectedWorkspace(
       const bubble = el('div', { className: 'chat-bubble', textContent: msg.text });
       row.append(meta, bubble);
 
-      feed.append(row);
-      scrollToBottom();
+      chatFeed.append(row);
+      scrollToChatBottom();
     },
     getPrivacyShieldEnabled() {
       return privacyCheckbox.checked;
@@ -1438,8 +1489,8 @@ export function createConnectedWorkspace(
       card.append(head, content, actions);
       row.append(meta, card);
 
-      feed.append(row);
-      scrollToBottom();
+      chatFeed.append(row);
+      scrollToChatBottom();
     },
     addFileTransfer(opts: {
       fileId?: string;
@@ -1493,23 +1544,8 @@ export function createConnectedWorkspace(
       info.append(privacyBadge, zeroTraceBadge);
       head.append(icon, info);
 
-      // Progress bar and parallel lanes
+      // Single Clean Smooth Progress Bar
       const progWrap = el('div', { className: 'feed-file-progress' });
-
-      // 4-Channel Parallel Visualizer Deck
-      const lanesWrap = el('div', { className: 'parallel-lanes-bar', title: '4-Channel Parallel WebRTC Transfer Pipeline' });
-      const laneFills: HTMLElement[] = [];
-      for (let ch = 0; ch < 4; ch++) {
-        const lane = el('div', { className: `channel-lane lane-${ch}` });
-        const laneTag = el('span', { className: 'lane-tag mono tabular-nums', textContent: `CH-${ch}` });
-        const laneTrack = el('div', { className: 'lane-meter' });
-        const laneFill = el('div', { className: 'lane-fill' });
-        laneFills.push(laneFill);
-        laneTrack.append(laneFill);
-        lane.append(laneTag, laneTrack);
-        lanesWrap.append(lane);
-      }
-
       const track = el('div', { className: 'feed-file-track' });
       const fill = el('div', { className: 'feed-file-fill' });
       track.append(fill);
@@ -1563,12 +1599,11 @@ export function createConnectedWorkspace(
       });
 
       controls.append(statusBadge, btnPause, btnResume, btnCancel);
-      progWrap.append(lanesWrap, track, stats, controls);
+      progWrap.append(track, stats, controls);
       card.append(head, progWrap);
       row.append(card);
 
-      feed.append(row);
-      scrollToBottom();
+      fileFeed.append(row);
 
       return {
         updateProgress(p: TransferProgress) {
@@ -1576,13 +1611,7 @@ export function createConnectedWorkspace(
           fill.style.width = `${pct}%`;
           percentEl.textContent = `${Math.round(pct)}%`;
           speedEl.textContent = formatSpeed(p.speedBps);
-          etaEl.textContent = formatETA(p.etaSeconds);
-
-          // Update multi-lane activity bars proportionally
-          laneFills.forEach((lf, idx) => {
-            const lanePct = Math.min(100, Math.max(0, pct + ((idx % 2 === 0 ? 1 : -1) * (pct > 0 && pct < 100 ? 6 : 0))));
-            lf.style.width = `${lanePct}%`;
-          });
+          etaEl.textContent = `${formatETA(p.etaSeconds)} left`;
         },
         setMetadataStripped(stripped: boolean) {
           isMetadataStripped = stripped;
