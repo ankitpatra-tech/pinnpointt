@@ -9,7 +9,21 @@
  *   - Direct In-App Contact Form with 2-per-week rate limit (email hidden from plain view)
  */
 
-import { iconX, iconMail, iconCheck, iconShield } from './icons';
+import {
+  iconX,
+  iconMail,
+  iconCheck,
+  iconShield,
+  iconLock,
+  iconHardDrive,
+  iconRefresh,
+  iconEye,
+  iconAlertTriangle,
+  iconAlertCircle,
+  iconTerminal,
+  iconWifi,
+  iconShare,
+} from './icons';
 
 export type DocTab = 'privacy' | 'fair-usage' | 'disclaimer' | 'changelog' | 'contact';
 
@@ -154,32 +168,50 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>PinnPointt is engineered from first principles on a zero-knowledge, zero-retention foundation. Your files and conversations belong solely to you and your recipient.</p>
 
         <div class="policy-card">
-          <h4>1. Zero Cloud Storage &amp; Direct Device-to-Device Link</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconHardDrive({ size: 15 })}</span>
+            <h4>1. Zero Cloud Storage &amp; Direct Device-to-Device Link</h4>
+          </div>
           <p>PinnPointt does not maintain file servers, databases, or intermediary cloud storage. When you send files or chat messages, data streams straight from your device's memory to your recipient's device via WebRTC.</p>
         </div>
 
         <div class="policy-card">
-          <h4>2. Transport-Layer Encryption (DTLS 1.3 / SRTP)</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconLock({ size: 15 })}</span>
+            <h4>2. Transport-Layer Encryption (DTLS 1.3 / SRTP)</h4>
+          </div>
           <p>Every direct peer-to-peer connection is protected by cryptographic transport-layer encryption using modern TLS-grade cipher suites (AES-GCM). Intermediary network nodes, Wi-Fi operators, ISPs, and signaling relays cannot inspect, intercept, or decrypt your transferred payloads.</p>
         </div>
 
         <div class="policy-card">
-          <h4>3. Ephemeral Signaling Relay</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconRefresh({ size: 15 })}</span>
+            <h4>3. Ephemeral Signaling Relay</h4>
+          </div>
           <p>The lightweight relay functions solely to introduce devices (brokering initial network handshakes). <strong>No file data, file chunks, filenames, or chat messages ever pass through the signaling server.</strong> Rooms automatically expire after 120 seconds of inactivity and clear state upon disconnect.</p>
         </div>
 
         <div class="policy-card">
-          <h4>4. In-Browser Integrity Verification &amp; Safety Triage</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconCheck({ size: 15 })}</span>
+            <h4>4. In-Browser Integrity Verification &amp; Safety Triage</h4>
+          </div>
           <p>Before any file is dispatched, an in-browser cryptographic SHA-256 hash is calculated. Upon arrival, the receiving device re-verifies the hash before saving. Corrupted, modified, or quarantined payloads are immediately caught in browser memory.</p>
         </div>
 
         <div class="policy-card">
-          <h4>5. Zero Tracking &amp; No Third-Party Cookies</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconEye({ size: 15 })}</span>
+            <h4>5. Zero Tracking &amp; No Third-Party Cookies</h4>
+          </div>
           <p>PinnPointt contains zero analytics trackers, zero advertising pixels, and zero profiling cookies. Your display name and visual theme preferences reside strictly in your device's local storage.</p>
         </div>
 
         <div class="policy-card">
-          <h4>6. Intended Use Cases</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconShare({ size: 15 })}</span>
+            <h4>6. Intended Use Cases</h4>
+          </div>
           <p>• <strong>Confidential Document Sharing:</strong> Transfer sensitive documents or archives directly without uploading to third-party cloud drives.<br/>
           • <strong>Uncompressed Large Media:</strong> Send raw video, photography, or software packages directly between phones, laptops, and PCs.<br/>
           • <strong>Private Collaboration:</strong> Real-time messaging and direct file attachments between colleagues or personal devices.</p>
@@ -193,23 +225,45 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>PinnPointt provides a decentralized, direct transport utility for lawful, productive, and constructive collaboration. By using PinnPointt, you agree to this Fair Usage Policy.</p>
 
         <div class="policy-card">
-          <h4>Permitted Usage</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconCheck({ size: 15 })}</span>
+            <h4>Permitted Usage</h4>
+          </div>
           <p>You may use PinnPointt for personal, educational, research, and legitimate commercial file exchange and communication between consenting parties.</p>
         </div>
 
-        <div class="policy-card">
-          <h4>Zero-Tolerance Prohibited Activities</h4>
-          <p>PinnPointt is engineered strictly for lawful file exchange. You strictly agree NOT to use PinnPointt to transmit, distribute, facilitate, or store:</p>
-          <ul style="padding-left: 20px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
-            <li><strong>Malware &amp; Cyberattacks:</strong> Any computer viruses, worms, trojans, ransomware, spyware, keyloggers, exploit scripts, or malicious payloads designed to damage, compromise, or intercept hardware, networks, or devices.</li>
-            <li><strong>CSAM &amp; Exploitation:</strong> Child Sexual Abuse Material (CSAM), non-consensual explicit imagery, or unlawful harassment of any kind. Zero tolerance is strictly enforced.</li>
-            <li><strong>Illicit Data &amp; Stolen Assets:</strong> Stolen credentials, exfiltrated personal data, illicit financial databases, credit card dumps, or copyrighted materials in violation of applicable laws.</li>
-            <li><strong>Network Infiltration:</strong> Automated scripts, port scanners, denial-of-service payloads, or any attempt to exploit PinnPointt for unauthorized network infiltration.</li>
-          </ul>
+        <div class="policy-card prohibited-activities-card">
+          <div class="policy-card-header">
+            <span class="policy-icon warning">${iconAlertTriangle({ size: 16 })}</span>
+            <h4>Zero-Tolerance Prohibited Activities</h4>
+            <span class="prohibited-badge">Strictly Enforced</span>
+          </div>
+          <p class="prohibited-intro">PinnPointt is engineered exclusively for lawful, ethical file exchange. You strictly agree <strong>NOT</strong> to use the service to transmit, distribute, facilitate, or store:</p>
+          <div class="prohibited-grid">
+            <div class="prohibited-item">
+              <div class="prohibited-item-head">${iconAlertCircle({ size: 14 })} <strong>Malware &amp; Cyberattacks</strong></div>
+              <p>Any computer viruses, worms, trojans, ransomware, spyware, keyloggers, exploit scripts, or payloads designed to damage, compromise, or intercept hardware, networks, or devices.</p>
+            </div>
+            <div class="prohibited-item">
+              <div class="prohibited-item-head">${iconAlertCircle({ size: 14 })} <strong>CSAM &amp; Exploitation</strong></div>
+              <p>Child Sexual Abuse Material (CSAM), non-consensual explicit imagery, or unlawful harassment of any kind. Zero tolerance is strictly enforced.</p>
+            </div>
+            <div class="prohibited-item">
+              <div class="prohibited-item-head">${iconAlertCircle({ size: 14 })} <strong>Illicit Data &amp; Stolen Assets</strong></div>
+              <p>Stolen credentials, exfiltrated personal data, illicit financial dumps, credit card databases, or copyrighted materials in violation of applicable laws.</p>
+            </div>
+            <div class="prohibited-item">
+              <div class="prohibited-item-head">${iconAlertCircle({ size: 14 })} <strong>Network Infiltration</strong></div>
+              <p>Automated scripts, port scanners, denial-of-service payloads, or any attempt to exploit PinnPointt for unauthorized network infiltration.</p>
+            </div>
+          </div>
         </div>
 
         <div class="policy-card">
-          <h4>User Responsibility</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconShield({ size: 15 })}</span>
+            <h4>User Responsibility</h4>
+          </div>
           <p>Because PinnPointt is a direct peer-to-peer transport with zero centralized content inspection or storage, you bear full and exclusive legal responsibility for all files and communications transmitted from your device.</p>
         </div>
       `;
@@ -221,7 +275,10 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <p>Please review this disclaimer before utilizing PinnPointt.</p>
 
         <div class="policy-card">
-          <h4>Statutory Safe Harbor &amp; Neutral Conduit Status</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconShield({ size: 15 })}</span>
+            <h4>Statutory Safe Harbor &amp; Neutral Conduit Status</h4>
+          </div>
           <p>PinnPointt operates strictly as a decentralized, zero-knowledge peer-to-peer transport utility (analogous to a neutral fiber optic cable, local network switch, or Wi-Fi radio). Under US CDA Section 230, DMCA Section 512(a), and the EU Digital Services Act / E-Commerce Directive, PinnPointt and its developer (Ankit Patra) qualify as a passive, neutral conduit:
           <br/>• We do not initiate, host, store, inspect, modify, or curate peer-to-peer data transfers.
           <br/>• All data streams encrypted directly from sender device memory to recipient device memory.
@@ -230,17 +287,26 @@ function renderTabContent(tab: DocTab): HTMLElement {
         </div>
 
         <div class="policy-card">
-          <h4>"AS IS" Software License</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconTerminal({ size: 15 })}</span>
+            <h4>"AS IS" Software License</h4>
+          </div>
           <p>PinnPointt is provided free of charge on an "AS IS" and "AS AVAILABLE" basis without warranties of any kind, whether express, statutory, or implied, including fitness for a particular purpose or non-infringement.</p>
         </div>
 
         <div class="policy-card">
-          <h4>Complete Limitation of Liability</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconAlertTriangle({ size: 15 })}</span>
+            <h4>Complete Limitation of Liability</h4>
+          </div>
           <p>To the maximum extent permitted by applicable law, the author (Ankit Patra) and open-source contributors expressly disclaim all liability for any direct, indirect, incidental, punitive, or consequential damages resulting from peer-to-peer file exchanges, user transmissions, malware infection, network interruptions, or data loss. Users bear sole and exclusive legal accountability for all data transmitted from their devices.</p>
         </div>
 
         <div class="policy-card">
-          <h4>Network &amp; Firewall Traversal</h4>
+          <div class="policy-card-header">
+            <span class="policy-icon">${iconWifi({ size: 15 })}</span>
+            <h4>Network &amp; Firewall Traversal</h4>
+          </div>
           <p>Direct peer connections rely on local network topologies and NAT configurations. While standard STUN traversal is provided, restrictive corporate firewalls or symmetric NATs may occasionally prevent direct connectivity.</p>
         </div>
       `;
@@ -480,7 +546,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <div class="contact-privacy-note">
           <div class="contact-privacy-icon">${iconShield({ size: 14 })}</div>
           <div class="contact-privacy-text">
-            <strong>Private &amp; Direct Routing:</strong> Submissions launch your native email client addressed directly to the developer's verified inbox (<code>work.ankitpatra@gmail.com</code>). PinnPointt does not maintain intermediate servers, log message bodies, or store your contact information.
+            <strong>Private &amp; Direct Routing:</strong> Submissions prepare a verified mail draft in your native email client addressed directly to the developer's mailbox. PinnPointt does not maintain intermediate servers, log message contents, or store your contact details.
           </div>
         </div>
       `;

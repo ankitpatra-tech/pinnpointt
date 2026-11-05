@@ -187,8 +187,7 @@ export function createNavbar(
   const nav = el('header', { className: 'app-navbar' });
   const inner = el('div', { className: 'app-navbar-inner' });
 
-  // Left Brand Area with Integrated Direct Share Pill
-  const brandGroup = el('div', { className: 'nav-brand-group' });
+  // Left Brand Area
   const brand = el('div', { className: 'nav-brand' });
   const logo = el('div', { className: 'nav-logo' });
   logo.innerHTML = iconLogo(20);
@@ -200,24 +199,6 @@ export function createNavbar(
   if (onBrandClick) {
     brand.addEventListener('click', onBrandClick);
   }
-
-  // Functional Direct Share Button (Next to PinnPointt brand, NO LED dot)
-  const directSharePill = el('button', {
-    type: 'button',
-    className: 'nav-direct-share-btn',
-    title: 'Switch to or Reset Direct P2P Share Mode',
-  });
-  directSharePill.innerHTML = `
-    <span class="direct-share-text">${statusLabel}</span>
-    <span class="direct-share-mode mono">P2P</span>
-  `;
-  directSharePill.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (onBrandClick) onBrandClick();
-    showToast('Direct P2P Sharing Mode Ready');
-  });
-
-  brandGroup.append(brand, directSharePill);
 
   // Center Connection Area (Only displays active connected peer info)
   const centerArea = el('div', { className: 'nav-center-area' });
@@ -274,7 +255,7 @@ export function createNavbar(
   themeBtn.addEventListener('click', onToggleTheme);
 
   actions.append(aboutLink, themeBtn);
-  inner.append(brandGroup, centerArea, actions);
+  inner.append(brand, centerArea, actions);
   nav.append(inner);
   return nav;
 }
