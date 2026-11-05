@@ -9,6 +9,13 @@
  *   - Integration with legal & rate-limited contact modal
  */
 
+// If landing on / with ?room= or #room=, immediately redirect to /app to join room
+const searchParams = new URLSearchParams(window.location.search);
+const incomingRoom = searchParams.get('room');
+if (incomingRoom && /^[A-Za-z0-9]{4,8}$/.test(incomingRoom.trim())) {
+  window.location.replace(`/app?room=${encodeURIComponent(incomingRoom.trim().toUpperCase())}`);
+}
+
 import { getInitialTheme, applyTheme, toggleTheme, type ThemeMode } from '../ui/theme';
 import { QREngine } from '../lib/qr/QREngine';
 import { QRCanvas } from '../lib/qr/QRCanvas';

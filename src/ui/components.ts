@@ -41,7 +41,9 @@ import {
   iconKey,
   iconQrCode,
   iconRefresh,
+  iconCamera,
 } from './icons';
+import { startCameraQRScanner, extractRoomCode, type QRScannerSession } from '../lib/qrScanner';
 
 // ─── DOM Helper ─────────────────────────────────────
 
@@ -621,15 +623,15 @@ export function createRoomDisplay(
   if (onBack) {
     const headerRow = el('div', { className: 'room-header-row row-between' });
     const backBtn = el('button', {
-      className: 'btn btn-sm btn-ghost btn-back-room',
+      className: 'btn-subtle-back btn-back-room',
       type: 'button',
-      textContent: '← Back',
       title: 'Return to pairing setup',
     });
+    backBtn.innerHTML = `<span>←</span> <span>Back</span>`;
     backBtn.addEventListener('click', onBack);
 
-    const titleBadge = el('span', { className: 'status-badge text-xs' });
-    titleBadge.innerHTML = `<span class="status-dot connected"></span> Ready to Connect`;
+    const titleBadge = el('div', { className: 'ready-to-connect-badge' });
+    titleBadge.innerHTML = `<span class="ready-status-dot"></span> <span>Ready to Connect</span>`;
     headerRow.append(backBtn, titleBadge);
     container.append(headerRow);
   }
@@ -727,11 +729,112 @@ export function createJoinInputWithBack(onSubmit: (code: string) => void): {
   element: HTMLElement;
   backBtn: HTMLButtonElement;
 } {
-  const container = el('div', { className: 'stack stack-md text-center fade-in' });
+  const container = el('div', { className: 'stack stack-md text-center fade-in receive-join-container' });
 
-  const label = el('h2', { className: 'font-semibold', textContent: 'Enter 6-Character Room Code' });
-  const desc = el('p', { className: 'text-xs muted', textContent: 'Type the 6-character code shown on your other device:' });
+  // Top Header Row with prominent Back Button & Status Badge
+  const headerRow = el('div', { className: 'room-header-row row-between' });
+  const backBtn = el('button', {
+    className: 'btn-subtle-back btn-back-room',
+    type: 'button',
+    title: 'Return to pairing setup',
+  }) as HTMLButtonElement;
+  backBtn.innerHTML = `<span>←</span> <span>Back</span>`;
 
+  const statusBadge = el('div', { className: 'ready-to-connect-badge' });
+  statusBadge.innerHTML = `<span class="ready-status-dot"></span> <span>Ready to Connect</span>`;
+  headerRow.append(backBtn, statusBadge);
+
+  const titleWrap = el('div', { className: 'stack stack-xs text-left' });
+  const title = el('h2', { className: 'pairing-title font-semibold text-base', textContent: 'Receive Files' });
+  const subtitle = el('p', {
+    className: 'pairing-subtitle text-xs muted',
+    textContent: 'Scan the sender device QR code with your camera, or enter their 6-letter room code below.',
+  });
+  titleWrap.append(title, subtitle);
+
+  // 1. Camera QR Scanner Section
+  const scannerCard = el('div', { className: 'camera-scanner-card' });
+  const scanTriggerBtn = el('button', {
+    type: 'button',
+    className: 'btn-scan-qr',
+    title: 'Open camera to scan QR code and connect instantly',
+  });
+  scanTriggerBtn.innerHTML = `${iconCamera({ size: 16 })} <span>Scan QR Code with Camera</span>`;
+
+  const scannerLiveWrap = el('div', { className: 'scanner-live-wrap' });
+  scannerLiveWrap.style.display = 'none';
+
+  const video = el('video', { className: 'scanner-video' }) as HTMLVideoElement;
+  video.autoplay = true;
+  video.muted = true;
+
+  const reticle = el('div', { className: 'scanner-reticle' });
+  reticle.innerHTML = `
+    <div class="reticle-corner top-left"></div>
+    <div class="reticle-corner top-right"></div>
+    <div class="reticle-corner bottom-left"></div>
+    <div class="reticle-corner bottom-right"></div>
+    <div class="reticle-laser"></div>
+  `;
+
+  const scannerHint = el('div', {
+    className: 'scanner-hint text-xs',
+    textContent: 'Aim camera at the QR code on the sender screen',
+  });
+
+  const stopCameraBtn = el('button', {
+    type: 'button',
+    className: 'btn-stop-camera',
+    textContent: '✕ Stop Camera',
+  });
+
+  scannerLiveWrap.append(video, reticle, scannerHint, stopCameraBtn);
+  scannerCard.append(scanTriggerBtn, scannerLiveWrap);
+
+  let activeSession: QRScannerSession | null = null;
+
+  const stopScanner = () => {
+    if (activeSession) {
+      activeSession.stop();
+      activeSession = null;
+    }
+    scannerLiveWrap.style.display = 'none';
+    scanTriggerBtn.style.display = 'inline-flex';
+  };
+
+  scanTriggerBtn.addEventListener('click', async () => {
+    scanTriggerBtn.style.display = 'none';
+    scannerLiveWrap.style.display = 'flex';
+    scannerHint.textContent = 'Requesting camera access...';
+
+    activeSession = await startCameraQRScanner(
+      video,
+      (detectedCode) => {
+        showToast(`QR Code Detected! Joining Room ${detectedCode}...`);
+        stopScanner();
+        onSubmit(detectedCode);
+      },
+      (err) => {
+        console.warn('Camera scan error:', err);
+        showToast('Camera access denied or unavailable. Enter code below.');
+        stopScanner();
+      }
+    );
+  });
+
+  stopCameraBtn.addEventListener('click', () => {
+    stopScanner();
+  });
+
+  backBtn.addEventListener('click', () => {
+    stopScanner();
+  });
+
+  // 2. Divider
+  const divider = el('div', { className: 'pairing-divider' });
+  divider.innerHTML = `<span>OR ENTER 6-LETTER CODE</span>`;
+
+  // 3. Manual 6-character Code Inputs
   const inputRow = el('div', { className: 'room-code-input' });
   const inputs: HTMLInputElement[] = [];
 
@@ -758,7 +861,24 @@ export function createJoinInputWithBack(onSubmit: (code: string) => void): {
       }
       if (e.key === 'Enter') {
         const code = inputs.map((inp) => inp.value).join('');
-        if (code.length === 6) onSubmit(code);
+        if (code.length === 6) {
+          stopScanner();
+          onSubmit(code);
+        }
+      }
+    });
+
+    // Handle full paste into any box
+    input.addEventListener('paste', (e: ClipboardEvent) => {
+      e.preventDefault();
+      const pasted = e.clipboardData?.getData('text') || '';
+      const parsed = extractRoomCode(pasted);
+      if (parsed) {
+        for (let j = 0; j < 6; j++) {
+          inputs[j].value = parsed[j] || '';
+        }
+        stopScanner();
+        onSubmit(parsed);
       }
     });
 
@@ -768,16 +888,19 @@ export function createJoinInputWithBack(onSubmit: (code: string) => void): {
 
   const submitBtn = el('button', {
     className: 'btn btn-primary w-full mt-md btn-connect-room',
-    textContent: 'Connect',
+    textContent: 'Connect to Room →',
   });
   submitBtn.addEventListener('click', () => {
     const code = inputs.map((inp) => inp.value).join('');
-    if (code.length === 6) onSubmit(code);
+    if (code.length === 6) {
+      stopScanner();
+      onSubmit(code);
+    } else {
+      showToast('Please enter all 6 letters of the room code.');
+    }
   });
 
-  const backBtn = el('button', { className: 'btn btn-ghost w-full', textContent: '← Back' }) as HTMLButtonElement;
-
-  container.append(label, desc, inputRow, submitBtn, backBtn);
+  container.append(headerRow, titleWrap, scannerCard, divider, inputRow, submitBtn);
   return { element: container, backBtn };
 }
 

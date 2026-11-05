@@ -127,8 +127,12 @@ export class App {
     applyTheme(this.currentTheme);
     this.render();
 
-    // Show onboarding guide on first visit
-    if (shouldShowOnboardingOnStartup()) {
+    // Show onboarding guide on first visit, unless auto-joining via room URL
+    const hasRoomInURL = Boolean(
+      new URLSearchParams(window.location.search).get('room') ||
+      window.location.hash.includes('room=')
+    );
+    if (!hasRoomInURL && shouldShowOnboardingOnStartup()) {
       setTimeout(() => openOnboardingModal(), 350);
     }
   }

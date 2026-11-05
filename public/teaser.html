@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinnpoint — Kinetic Typography Teaser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background-color: #070708;
+      color: #ededed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    #grain-canvas {
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      z-index: 50;
+    }
+
+    .scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: 45;
+      opacity: 0.35;
+    }
+
+    .typewriter-cursor {
+      display: inline-block;
+      width: 0.55em;
+      height: 1.1em;
+      background-color: #f5f5f5;
+      vertical-align: -0.15em;
+      margin-left: 2px;
+      animation: blink 0.85s steps(2, start) infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .outro-question-mark {
+      animation: subtlePulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.95; transform: scale(1); }
+      50% { opacity: 0.2; transform: scale(0.99); }
+    }
+
+    .video-viewport {
+      background-color: #050506;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 1px 1px rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#070708] text-[#e0e0e0] flex flex-col items-center justify-start p-4 sm:p-6 md:p-8">
+
+  <!-- Header Info -->
+  <header class="w-full max-w-4xl flex items-center justify-between pb-6 border-b border-white/10 mb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+      <span class="font-mono-code text-xs uppercase tracking-widest text-neutral-400 font-semibold">Pinnpoint // Official Teaser</span>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-mono-code text-neutral-400">
+      <span>Duration: <strong class="text-white">26.0s</strong></span>
+      <span>By <strong class="text-white">Ankit Patra</strong></span>
+    </div>
+  </header>
+
+  <!-- Video Stage Container -->
+  <main class="w-full max-w-4xl flex flex-col items-center">
+    
+    <!-- Aspect Ratio & Preset Controls -->
+    <div class="w-full flex items-center justify-between mb-3 text-xs font-mono-code">
+      <div class="flex items-center gap-2">
+        <span class="text-neutral-500">Aspect Ratio:</span>
+        <button id="btn-aspect-16-9" onclick="setAspectRatio('16-9')" class="px-2.5 py-1 rounded border border-white/20 bg-white/10 text-white transition hover:bg-white/20">16:9 Landscape</button>
+        <button id="btn-aspect-9-16" onclick="setAspectRatio('9-16')" class="px-2.5 py-1 rounded border border-white/10 bg-transparent text-neutral-400 transition hover:bg-white/10">9:16 Shorts / Reels</button>
+        <button id="btn-aspect-1-1" onclick="setAspectRatio('1-1')" class="px-2.5 py-1 rounded border border-white/10 bg-transparent text-neutral-400 transition hover:bg-white/10">1:1 Square</button>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button id="btn-sound-toggle" onclick="toggleAudio()" class="flex items-center gap-1.5 px-3 py-1 rounded border border-white/15 bg-neutral-900 text-neutral-300 hover:text-white transition">
+          <span id="sound-icon">🔇</span>
+          <span id="sound-status">Lo-Fi Beat: OFF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- The Kinetic Display Viewport -->
+    <div id="video-frame" class="relative video-viewport w-full aspect-video rounded-lg overflow-hidden flex items-center justify-center transition-all duration-300">
+      
+      <!-- Grain Canvas -->
+      <canvas id="grain-canvas"></canvas>
+      <div class="scanlines"></div>
+
+      <!-- Watermark / Micro Header (Editorial look) -->
+      <div class="absolute top-5 left-6 z-20 flex items-center gap-2 pointer-events-none opacity-40">
+        <span class="font-mono-code text-[11px] uppercase tracking-widest text-neutral-300">PINNPOINT // ARCHIVE_01</span>
+      </div>
+      <div class="absolute top-5 right-6 z-20 pointer-events-none opacity-40">
+        <span id="live-timecode" class="font-mono-code text-[11px] tracking-wider text-neutral-300">00:00:00</span>
+      </div>
+
+      <!-- Kinetic Screen Content Area -->
+      <div id="screen-stage" class="relative z-10 w-full h-full p-8 md:p-14 flex flex-col justify-center items-start text-left">
+        <!-- Dynamic kinetic typography injected here -->
+      </div>
+
+      <!-- Bottom Audio Visualizer Bar -->
+      <div id="visualizer-bar" class="absolute bottom-4 left-6 right-6 z-20 flex items-center justify-between opacity-30 pointer-events-none">
+        <div class="font-mono-code text-[10px] text-neutral-400">P2P DIRECT ENCRYPTED TRANSFERS</div>
+        <div class="flex items-end gap-1 h-3" id="audio-bars">
+          <div class="w-1 bg-white h-1.5 rounded-xs transition-all duration-75"></div>
+          <div class="w-1 bg-white h-2.5 rounded-xs transition-all duration-75"></div>
+          <div class="w-1 bg-white h-1 rounded-xs transition-all duration-75"></div>
+          <div class="w-1 bg-white h-3 rounded-xs transition-all duration-75"></div>
+          <div class="w-1 bg-white h-2 rounded-xs transition-all duration-75"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Timeline & Playback Bar -->
+    <div class="w-full bg-[#111113] border border-white/10 rounded-lg p-4 mt-4 flex flex-col gap-3 font-mono-code text-xs">
+      
+      <!-- Scrubber Track -->
+      <div class="relative w-full h-2 bg-neutral-800 rounded-full cursor-pointer group" id="scrubber-track" onclick="seekTimeline(event)">
+        <!-- Scene cues on timeline -->
+        <div class="absolute left-[0%] top-0 bottom-0 w-0.5 bg-neutral-600" title="Hook (0:00)"></div>
+        <div class="absolute left-[15.38%] top-0 bottom-0 w-0.5 bg-neutral-600" title="Reality Check (0:04)"></div>
+        <div class="absolute left-[38.46%] top-0 bottom-0 w-0.5 bg-neutral-600" title="The Flex (0:10)"></div>
+        <div class="absolute left-[65.38%] top-0 bottom-0 w-0.5 bg-neutral-600" title="Community Outro (0:17)"></div>
+        <div class="absolute left-[94.23%] top-0 bottom-0 w-0.5 bg-neutral-600" title="Blinking ? (0:24.5)"></div>
+
+        <!-- Progress Fill -->
+        <div id="scrubber-progress" class="absolute top-0 left-0 bottom-0 bg-neutral-200 rounded-full w-0 transition-all duration-75"></div>
+        <div id="scrubber-thumb" class="absolute top-1/2 -translate-y-1/2 left-0 w-3.5 h-3.5 bg-white rounded-full shadow -ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>
+
+      <!-- Controls Row -->
+      <div class="flex items-center justify-between text-neutral-300">
+        <div class="flex items-center gap-3">
+          <button id="btn-play" onclick="togglePlay()" class="px-4 py-1.5 bg-white text-black font-semibold rounded hover:bg-neutral-200 transition flex items-center gap-1.5">
+            <span id="play-icon">▶</span>
+            <span id="play-text">Play</span>
+          </button>
+          <button onclick="resetPlayback()" class="px-3 py-1.5 border border-white/15 rounded hover:bg-white/10 text-neutral-300 transition">
+            ↺ Reset
+          </button>
+          <span class="text-neutral-500 font-mono-code pl-2">
+            <span id="current-time-display" class="text-white">00.0s</span> / 26.0s
+          </span>
+        </div>
+
+        <!-- Scene Indicator Pill -->
+        <div class="flex items-center gap-3">
+          <span id="scene-badge" class="px-2.5 py-1 bg-white/5 border border-white/10 rounded text-[11px] text-neutral-400">
+            [Scene 1: The Hook]
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scene Breakdown & Director Notes -->
+    <section class="w-full mt-8 grid grid-cols-1 md:grid-cols-4 gap-3 font-mono-code text-xs">
+      <div class="p-3.5 rounded border border-white/10 bg-[#0d0d0f] flex flex-col gap-1.5">
+        <div class="flex items-center justify-between text-neutral-400">
+          <span class="font-bold text-white">0:00 - 0:04</span>
+          <span class="text-[10px] uppercase text-emerald-400">Scene 1</span>
+        </div>
+        <h4 class="font-semibold text-neutral-200">The Hook</h4>
+        <p class="text-[11px] text-neutral-400 leading-relaxed font-sans">Left-aligned monospace typewriter tracking. Raw anti-AI cloud fatigue question.</p>
+      </div>
+
+      <div class="p-3.5 rounded border border-white/10 bg-[#0d0d0f] flex flex-col gap-1.5">
+        <div class="flex items-center justify-between text-neutral-400">
+          <span class="font-bold text-white">0:04 - 0:10</span>
+          <span class="text-[10px] uppercase text-amber-400">Scene 2</span>
+        </div>
+        <h4 class="font-semibold text-neutral-200">The Reality Check</h4>
+        <p class="text-[11px] text-neutral-400 leading-relaxed font-sans">Rapid-fire, punchy cut-ins: servers, downloads, surveillance with sharp strikethroughs.</p>
+      </div>
+
+      <div class="p-3.5 rounded border border-white/10 bg-[#0d0d0f] flex flex-col gap-1.5">
+        <div class="flex items-center justify-between text-neutral-400">
+          <span class="font-bold text-white">0:10 - 0:17</span>
+          <span class="text-[10px] uppercase text-sky-400">Scene 3</span>
+        </div>
+        <h4 class="font-semibold text-neutral-200">The Flex</h4>
+        <p class="text-[11px] text-neutral-400 leading-relaxed font-sans">Effortless center-aligned Swiss sans-serif. Expansion beyond just simple local transfers.</p>
+      </div>
+
+      <div class="p-3.5 rounded border border-white/10 bg-[#0d0d0f] flex flex-col gap-1.5">
+        <div class="flex items-center justify-between text-neutral-400">
+          <span class="font-bold text-white">0:17 - 0:26</span>
+          <span class="text-[10px] uppercase text-purple-400">Scene 4</span>
+        </div>
+        <h4 class="font-semibold text-neutral-200">Community Outro</h4>
+        <p class="text-[11px] text-neutral-400 leading-relaxed font-sans">Warm human invitation signed by Ankit Patra, fading into a solitary blinking ? mark.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- STATE MANAGEMENT ---
+    const TOTAL_DURATION = 26.0;
+    let currentTime = 0.0;
+    let isPlaying = false;
+    let animationFrameId = null;
+    let lastTimestamp = null;
+    let currentAspect = '16-9';
+
+    // Elements
+    const screenStage = document.getElementById('screen-stage');
+    const timeDisplay = document.getElementById('current-time-display');
+    const liveTimecode = document.getElementById('live-timecode');
+    const progressBar = document.getElementById('scrubber-progress');
+    const progressThumb = document.getElementById('scrubber-thumb');
+    const playText = document.getElementById('play-text');
+    const playIcon = document.getElementById('play-icon');
+    const sceneBadge = document.getElementById('scene-badge');
+    const videoFrame = document.getElementById('video-frame');
+    const audioBars = document.getElementById('audio-bars').children;
+
+    // --- PROCEDURAL FILM GRAIN GENERATOR ---
+    const grainCanvas = document.getElementById('grain-canvas');
+    const grainCtx = grainCanvas.getContext('2d');
+    function resizeGrain() {
+      grainCanvas.width = 320;
+      grainCanvas.height = 180;
+    }
+    resizeGrain();
+    window.addEventListener('resize', resizeGrain);
+
+    function updateGrain() {
+      const w = grainCanvas.width;
+      const h = grainCanvas.height;
+      const imgData = grainCtx.createImageData(w, h);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const val = (Math.random() * 255) | 0;
+        data[i] = val;
+        data[i + 1] = val;
+        data[i + 2] = val;
+        data[i + 3] = 48; // alpha
+      }
+      grainCtx.putImageData(imgData, 0, 0);
+    }
+
+    // --- WEB AUDIO API: SYNTHESIZED BEDROOM LO-FI BEAT ---
+    let audioCtx = null;
+    let isAudioEnabled = false;
+    let beatTimer = null;
+    let currentBeatStep = 0;
+    const BPM = 78;
+    const stepDuration = (60 / BPM) / 4;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      isAudioEnabled = !isAudioEnabled;
+      const soundIcon = document.getElementById('sound-icon');
+      const soundStatus = document.getElementById('sound-status');
+      if (isAudioEnabled) {
+        soundIcon.textContent = '🔊';
+        soundStatus.textContent = 'Lo-Fi Beat: ON';
+        if (isPlaying) startBeat();
+      } else {
+        soundIcon.textContent = '🔇';
+        soundStatus.textContent = 'Lo-Fi Beat: OFF';
+        stopBeat();
+      }
+    }
+
+    function playKick(time) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(110, time);
+      osc.frequency.exponentialRampToValueAtTime(32, time + 0.18);
+      gain.gain.setValueAtTime(0.7, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.25);
+    }
+
+    function playRim(time) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(180, time);
+      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.1);
+
+      const bufferSize = audioCtx.sampleRate * 0.05;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 1200;
+      const nGain = audioCtx.createGain();
+      nGain.gain.setValueAtTime(0.2, time);
+      nGain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+      noise.connect(filter);
+      filter.connect(nGain);
+      nGain.connect(audioCtx.destination);
+      noise.start(time);
+    }
+
+    function playHihat(time, open = false) {
+      if (!audioCtx) return;
+      const bufferSize = audioCtx.sampleRate * (open ? 0.15 : 0.04);
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 6500;
+      filter.Q.value = 2.5;
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.12, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + (open ? 0.12 : 0.035));
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(time);
+    }
+
+    function playRhodesChord(freqs, time, dur = 1.4) {
+      if (!audioCtx) return;
+      freqs.forEach(f => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, time);
+        osc.frequency.linearRampToValueAtTime(f * 1.002, time + dur);
+        gain.gain.setValueAtTime(0.065, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(time);
+        osc.stop(time + dur + 0.1);
+      });
+    }
+
+    const chords = [
+      [155.56, 196.00, 233.08, 293.66],
+      [146.83, 174.61, 220.00, 261.63],
+      [130.81, 164.81, 196.00, 246.94],
+      [116.54, 146.83, 174.61, 220.00]
+    ];
+
+    function scheduleBeat() {
+      if (!isPlaying || !isAudioEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const step = currentBeatStep % 16;
+      
+      if (step === 0 || step === 10) playKick(now);
+      if (step === 4 || step === 12) playRim(now);
+      if (step % 2 === 0) playHihat(now, step === 14);
+
+      if (step === 0) {
+        const chordIdx = Math.floor((currentBeatStep / 16) % chords.length);
+        playRhodesChord(chords[chordIdx], now, 2.0);
+      }
+
+      for (let b = 0; b < audioBars.length; b++) {
+        const h = Math.floor(Math.random() * 12 + 4);
+        audioBars[b].style.height = `${h}px`;
+      }
+
+      currentBeatStep++;
+      beatTimer = setTimeout(scheduleBeat, stepDuration * 1000);
+    }
+
+    function startBeat() {
+      if (!isAudioEnabled) return;
+      currentBeatStep = Math.floor(currentTime / stepDuration);
+      scheduleBeat();
+    }
+
+    function stopBeat() {
+      if (beatTimer) clearTimeout(beatTimer);
+    }
+
+    function renderFrame(t) {
+      let html = '';
+      let sceneLabel = '';
+
+      const minutes = Math.floor(t / 60);
+      const seconds = Math.floor(t % 60);
+      const frames = Math.floor((t % 1) * 60);
+      liveTimecode.textContent = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}:${String(frames).padStart(2,'0')}`;
+      timeDisplay.textContent = `${t.toFixed(1)}s`;
+      
+      const pct = (t / TOTAL_DURATION) * 100;
+      progressBar.style.width = `${pct}%`;
+      progressThumb.style.left = `${pct}%`;
+
+      // ─── SCENE 1: THE HOOK [0:00 - 4:00] ───
+      if (t >= 0.0 && t < 4.0) {
+        sceneLabel = '[0:00 - 0:04] The Hook (Cloud Fatigue)';
+        const fullText = "since when did sending a file require three cloud accounts, a bloated install, and a monthly subscription?";
+        const charProgress = Math.min(1.0, t / 3.1);
+        const charCount = Math.floor(charProgress * fullText.length);
+        const typedText = fullText.slice(0, charCount);
+
+        html = `
+          <div class="max-w-2xl text-left font-mono-code transition-all duration-150">
+            <div class="text-neutral-500 text-xs sm:text-sm tracking-widest uppercase mb-4 opacity-75">
+              // [query_01]
+            </div>
+            <p class="text-xl sm:text-2xl md:text-3xl text-neutral-100 font-normal leading-relaxed tracking-tight">
+              ${typedText}<span class="typewriter-cursor"></span>
+            </p>
+          </div>
+        `;
+      }
+
+      // ─── SCENE 2: THE REALITY CHECK [4:00 - 10:00] ───
+      else if (t >= 4.0 && t < 10.0) {
+        sceneLabel = '[0:04 - 0:10] The Reality Check';
+        const subPhase = t - 4.0;
+        let line1Active = subPhase >= 0.0;
+        let line2Active = subPhase >= 2.0;
+        let line3Active = subPhase >= 4.0;
+
+        html = `
+          <div class="w-full max-w-3xl flex flex-col items-start gap-4 font-mono-code">
+            <div class="text-neutral-500 text-xs tracking-widest uppercase mb-1">
+              // reality_check.log
+            </div>
+
+            <div class="transition-all duration-100 ${line1Active ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3'}">
+              <div class="flex items-center gap-3">
+                <span class="text-red-500 text-sm font-bold">01/</span>
+                <span class="text-lg sm:text-2xl md:text-3xl text-neutral-200 tracking-tight">
+                  uploading to strangers' servers<span class="text-neutral-500">...</span>
+                </span>
+                ${subPhase >= 1.6 ? '<span class="text-xs bg-red-900/60 text-red-300 px-2 py-0.5 rounded uppercase font-semibold">Slow</span>' : ''}
+              </div>
+            </div>
+
+            <div class="transition-all duration-100 ${line2Active ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3'}">
+              <div class="flex items-center gap-3">
+                <span class="text-amber-500 text-sm font-bold">02/</span>
+                <span class="text-lg sm:text-2xl md:text-3xl text-neutral-200 tracking-tight">
+                  waiting on downloads<span class="text-neutral-500">...</span>
+                </span>
+                ${subPhase >= 3.6 ? '<span class="text-xs bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded uppercase font-semibold">Bottleneck</span>' : ''}
+              </div>
+            </div>
+
+            <div class="transition-all duration-100 ${line3Active ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3'}">
+              <div class="flex items-center gap-3">
+                <span class="text-rose-500 text-sm font-bold">03/</span>
+                <span class="text-lg sm:text-2xl md:text-3xl text-white font-semibold tracking-tight">
+                  third parties snooping on your data<span class="text-neutral-500">...</span>
+                </span>
+                ${subPhase >= 5.2 ? '<span class="text-xs bg-rose-950 border border-rose-500/50 text-rose-300 px-2 py-0.5 rounded uppercase font-semibold">Unencrypted</span>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ─── SCENE 3: THE FLEX [10:00 - 17:00] ───
+      else if (t >= 10.0 && t < 17.0) {
+        sceneLabel = '[0:10 - 0:17] The Flex (More Than Local)';
+        const subPhase = t - 10.0;
+
+        let textPart1 = "and honestly?";
+        let textPart2 = "it's not just local file sharing.";
+        let textPart3 = "we're cooking up a whole lot more.";
+
+        let show1 = subPhase >= 0.0;
+        let show2 = subPhase >= 2.0;
+        let show3 = subPhase >= 4.5;
+
+        html = `
+          <div class="w-full h-full flex flex-col items-center justify-center text-center font-sans px-4">
+            
+            <div class="transition-all duration-500 ${show1 ? 'opacity-70 scale-100' : 'opacity-0 scale-95'} mb-3">
+              <span class="font-mono-code text-sm sm:text-base text-neutral-400 font-light tracking-wide">
+                ${textPart1}
+              </span>
+            </div>
+
+            <div class="transition-all duration-500 ${show2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} mb-4">
+              <h2 class="text-2xl sm:text-4xl md:text-5xl font-medium tracking-tight text-neutral-200">
+                ${textPart2}
+              </h2>
+            </div>
+
+            <div class="transition-all duration-500 ${show3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} mt-2">
+              <p class="text-xl sm:text-3xl md:text-4xl font-semibold text-white tracking-tight bg-gradient-to-r from-neutral-100 via-white to-neutral-300 bg-clip-text">
+                ${textPart3}
+              </p>
+            </div>
+
+            ${show3 ? `
+              <div class="mt-6 flex items-center gap-2 font-mono-code text-xs text-neutral-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span>encrypted direct streams • multi-device • zero telemetry</span>
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+      }
+
+      // ─── SCENE 4: THE COMMUNITY OUTRO [17:00 - 26:00] ───
+      else if (t >= 17.0 && t <= TOTAL_DURATION) {
+        sceneLabel = '[0:17 - 0:26] The Community Outro';
+        const subPhase = t - 17.0;
+
+        if (subPhase < 7.5) {
+          let line1 = subPhase >= 0.0;
+          let line2 = subPhase >= 3.0;
+          let line3 = subPhase >= 5.5;
+
+          html = `
+            <div class="w-full h-full flex flex-col items-center justify-center text-center font-sans px-4">
+              
+              <div class="transition-all duration-700 ${line1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'} mb-4">
+                <p class="text-xl sm:text-3xl md:text-4xl font-normal text-neutral-200 tracking-tight">
+                  launching soon for the community.
+                </p>
+              </div>
+
+              <div class="transition-all duration-700 ${line2 ? 'opacity-90 translate-y-0' : 'opacity-0 translate-y-3'} mb-6">
+                <p class="text-lg sm:text-2xl text-neutral-400 font-light tracking-tight">
+                  wanna contribute or build with us? let me know.
+                </p>
+              </div>
+
+              <div class="transition-all duration-700 ${line3 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} mt-4">
+                <p class="font-mono-code text-sm sm:text-base text-neutral-300 font-medium tracking-wider">
+                  with love, <span class="text-white font-semibold underline decoration-neutral-600 underline-offset-4">Ankit Patra</span>
+                </p>
+              </div>
+
+            </div>
+          `;
+        } else {
+          html = `
+            <div class="w-full h-full flex items-center justify-center">
+              <span class="font-mono-code text-5xl sm:text-7xl md:text-8xl text-neutral-200 font-light outro-question-mark select-none">
+                ?
+              </span>
+            </div>
+          `;
+        }
+      }
+
+      screenStage.innerHTML = html;
+      sceneBadge.textContent = sceneLabel;
+    }
+
+    function animateTimeline(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      currentTime += delta;
+      updateGrain();
+
+      if (currentTime >= TOTAL_DURATION) {
+        currentTime = TOTAL_DURATION;
+        renderFrame(currentTime);
+        pausePlayback();
+        return;
+      }
+
+      renderFrame(currentTime);
+      animationFrameId = requestAnimationFrame(animateTimeline);
+    }
+
+    function togglePlay() {
+      initAudio();
+      if (isPlaying) {
+        pausePlayback();
+      } else {
+        if (currentTime >= TOTAL_DURATION) currentTime = 0;
+        startPlayback();
+      }
+    }
+
+    function startPlayback() {
+      isPlaying = true;
+      playText.textContent = 'Pause';
+      playIcon.textContent = '⏸';
+      lastTimestamp = performance.now();
+      startBeat();
+      animationFrameId = requestAnimationFrame(animateTimeline);
+    }
+
+    function pausePlayback() {
+      isPlaying = false;
+      playText.textContent = 'Play';
+      playIcon.textContent = '▶';
+      stopBeat();
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      lastTimestamp = null;
+    }
+
+    function resetPlayback() {
+      pausePlayback();
+      currentTime = 0;
+      renderFrame(currentTime);
+    }
+
+    function seekTimeline(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+      currentTime = ratio * TOTAL_DURATION;
+      renderFrame(currentTime);
+    }
+
+    function setAspectRatio(ratio) {
+      currentAspect = ratio;
+      const b169 = document.getElementById('btn-aspect-16-9');
+      const b916 = document.getElementById('btn-aspect-9-16');
+      const b11 = document.getElementById('btn-aspect-1-1');
+
+      [b169, b916, b11].forEach(b => {
+        b.className = 'px-2.5 py-1 rounded border border-white/10 bg-transparent text-neutral-400 transition hover:bg-white/10';
+      });
+
+      videoFrame.classList.remove('aspect-video', 'aspect-[9/16]', 'aspect-square', 'max-w-[380px]', 'max-w-2xl');
+
+      if (ratio === '16-9') {
+        videoFrame.classList.add('aspect-video');
+        b169.className = 'px-2.5 py-1 rounded border border-white/20 bg-white/10 text-white transition hover:bg-white/20';
+      } else if (ratio === '9-16') {
+        videoFrame.classList.add('aspect-[9/16]', 'max-w-[380px]');
+        b916.className = 'px-2.5 py-1 rounded border border-white/20 bg-white/10 text-white transition hover:bg-white/20';
+      } else if (ratio === '1-1') {
+        videoFrame.classList.add('aspect-square', 'max-w-2xl');
+        b11.className = 'px-2.5 py-1 rounded border border-white/20 bg-white/10 text-white transition hover:bg-white/20';
+      }
+      resizeGrain();
+    }
+
+    renderFrame(0);
+    updateGrain();
+  </script>
+</body>
+</html>

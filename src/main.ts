@@ -20,20 +20,39 @@ if ('serviceWorker' in navigator) {
   }
 }
 
-// Handle ?room= query parameter for QR code deep links
+// Handle ?room= or #room= parameter for QR code deep links
 function getRoomFromURL(): string | null {
   const params = new URLSearchParams(window.location.search);
-  return params.get('room');
+  const qRoom = params.get('room');
+  if (qRoom && /^[A-Za-z0-9]{4,8}$/.test(qRoom.trim())) {
+    return qRoom.trim().toUpperCase();
+  }
+  const hash = window.location.hash.replace(/^#/, '');
+  if (hash) {
+    const hashParams = new URLSearchParams(hash);
+    const hRoom = hashParams.get('room');
+    if (hRoom && /^[A-Za-z0-9]{4,8}$/.test(hRoom.trim())) {
+      return hRoom.trim().toUpperCase();
+    }
+    const directMatch = hash.match(/^([A-Za-z0-9]{6})$/);
+    if (directMatch) return directMatch[1].toUpperCase();
+  }
+  return null;
 }
 
 // Initialize app
 const rootEl = document.getElementById('app');
 if (rootEl) {
+  const roomCode = getRoomFromURL();
+  if (roomCode) {
+    // Suppress onboarding popup on direct room join
+    localStorage.setItem('pinnpointt_onboarding_dismissed', '1');
+  }
+
   const app = new App(rootEl);
   app.init();
 
-  // If URL contains room code, auto-join
-  const roomCode = getRoomFromURL();
+  // If URL contains room code, auto-join immediately
   if (roomCode) {
     // Clean URL without reload
     window.history.replaceState({}, '', window.location.pathname);

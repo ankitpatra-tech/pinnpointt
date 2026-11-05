@@ -181,11 +181,13 @@ p {
 
 /* ── Full Desktop Application Shell ────────────────── */
 .app-shell {
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-canvas);
+  overflow-x: hidden;
 }
 
 /* ── Top Header Bar (Floating Squircle Island) ─────── */
@@ -951,6 +953,232 @@ p {
   .step-title {
     font-size: 10px;
   }
+}
+
+/* ── Room Header Row, Back Button & Ready Badge ─────── */
+.room-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.btn-subtle-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-ambient);
+  border: 1px solid var(--border-hairline);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-bright);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+  user-select: none;
+}
+
+.btn-subtle-back:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-subtle-back:active {
+  transform: translateY(0);
+}
+
+.ready-to-connect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-ambient);
+  border: 1px solid var(--border-hairline);
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.ready-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-online);
+  box-shadow: 0 0 6px var(--status-online);
+  flex-shrink: 0;
+}
+
+/* ── Live Camera QR Scanner Viewfinder ─────────────── */
+.camera-scanner-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-scan-qr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 12px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.25);
+  width: 100%;
+}
+
+.btn-scan-qr:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.35);
+}
+
+.scanner-live-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000000;
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.scanner-video {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #000000;
+}
+
+.scanner-reticle {
+  position: absolute;
+  top: 105px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+}
+
+.reticle-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: #30D158;
+}
+
+.reticle-corner.top-left {
+  top: 0;
+  left: 0;
+  border-top: 3px solid #30D158;
+  border-left: 3px solid #30D158;
+  border-top-left-radius: 6px;
+}
+
+.reticle-corner.top-right {
+  top: 0;
+  right: 0;
+  border-top: 3px solid #30D158;
+  border-right: 3px solid #30D158;
+  border-top-right-radius: 6px;
+}
+
+.reticle-corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom: 3px solid #30D158;
+  border-left: 3px solid #30D158;
+  border-bottom-left-radius: 6px;
+}
+
+.reticle-corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom: 3px solid #30D158;
+  border-right: 3px solid #30D158;
+  border-bottom-right-radius: 6px;
+}
+
+.reticle-laser {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #30D158, transparent);
+  box-shadow: 0 0 8px #30D158;
+  animation: laserScan 2s linear infinite;
+}
+
+@keyframes laserScan {
+  0% { top: 10%; opacity: 0.8; }
+  50% { top: 90%; opacity: 1; }
+  100% { top: 10%; opacity: 0.8; }
+}
+
+.scanner-hint {
+  color: #FFFFFF;
+  margin-top: 10px;
+  text-align: center;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.btn-stop-camera {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-stop-camera:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.pairing-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 10px 0 6px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.pairing-divider::before,
+.pairing-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.pairing-divider span {
+  padding: 0 10px;
 }
 
 /* QR Code & Room Display */
