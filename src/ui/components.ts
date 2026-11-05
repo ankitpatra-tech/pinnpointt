@@ -187,7 +187,8 @@ export function createNavbar(
   const nav = el('header', { className: 'app-navbar' });
   const inner = el('div', { className: 'app-navbar-inner' });
 
-  // Left Brand Area
+  // Left Brand Area with Integrated Direct Share Pill
+  const brandGroup = el('div', { className: 'nav-brand-group' });
   const brand = el('div', { className: 'nav-brand' });
   const logo = el('div', { className: 'nav-logo' });
   logo.innerHTML = iconLogo(20);
@@ -200,7 +201,25 @@ export function createNavbar(
     brand.addEventListener('click', onBrandClick);
   }
 
-  // Center Connection Pill (Direct Share Status OR Connected Peer)
+  // Functional Direct Share Button (Next to PinnPointt brand, NO LED dot)
+  const directSharePill = el('button', {
+    type: 'button',
+    className: 'nav-direct-share-btn',
+    title: 'Switch to or Reset Direct P2P Share Mode',
+  });
+  directSharePill.innerHTML = `
+    <span class="direct-share-text">${statusLabel}</span>
+    <span class="direct-share-mode mono">P2P</span>
+  `;
+  directSharePill.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (onBrandClick) onBrandClick();
+    showToast('Direct P2P Sharing Mode Ready');
+  });
+
+  brandGroup.append(brand, directSharePill);
+
+  // Center Connection Area (Only displays active connected peer info)
   const centerArea = el('div', { className: 'nav-center-area' });
   if (peerInfo) {
     const pill = el('div', { className: 'header-connected-pill workspace-peer-badge' });
@@ -220,22 +239,6 @@ export function createNavbar(
     discBtn.addEventListener('click', peerInfo.onDisconnect);
     pill.append(discBtn);
     centerArea.append(pill);
-  } else {
-    // Redesigned Squircle Direct Share Button
-    const directSharePill = el('button', {
-      type: 'button',
-      className: 'nav-direct-share-btn',
-      title: 'PinnPointt Direct P2P Channel Ready',
-    });
-    directSharePill.innerHTML = `
-      <span class="direct-share-status-dot"></span>
-      <span class="direct-share-text">${statusLabel}</span>
-      <span class="direct-share-mode mono">P2P</span>
-    `;
-    if (onOpenGuide) {
-      directSharePill.addEventListener('click', onOpenGuide);
-    }
-    centerArea.append(directSharePill);
   }
 
   // Right Actions
@@ -271,7 +274,7 @@ export function createNavbar(
   themeBtn.addEventListener('click', onToggleTheme);
 
   actions.append(aboutLink, themeBtn);
-  inner.append(brand, centerArea, actions);
+  inner.append(brandGroup, centerArea, actions);
   nav.append(inner);
   return nav;
 }

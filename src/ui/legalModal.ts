@@ -9,7 +9,7 @@
  *   - Direct In-App Contact Form with 2-per-week rate limit (email hidden from plain view)
  */
 
-import { iconX, iconMail, iconCheck } from './icons';
+import { iconX, iconMail, iconCheck, iconShield } from './icons';
 
 export type DocTab = 'privacy' | 'fair-usage' | 'disclaimer' | 'changelog' | 'contact';
 
@@ -249,7 +249,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
     case 'changelog':
       container.innerHTML = `
         <h3>Application Changelog</h3>
-        <p>Engineering updates and release history for PinnPointt.</p>
+        <p>Complete engineering update timeline and release history for PinnPointt.</p>
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
@@ -272,13 +272,96 @@ function renderTabContent(tab: DocTab): HTMLElement {
         <div class="changelog-release">
           <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.56-beta</span>
-            <span class="changelog-date">Previous Release</span>
+            <span class="changelog-date">Virtual Drive Release</span>
           </div>
           <ul class="changelog-list">
             <li><strong>P2P Virtual Drive (Live Remote Mount):</strong> Senders can mount files or entire folder trees as a browsable Virtual Drive without pushing gigabytes over the wire upfront.</li>
             <li><strong>Interactive Remote Explorer Table:</strong> Receivers explore remote directory structures with file names, relative paths, types, and exact sizes rendered with jitter-free tabular numbers.</li>
             <li><strong>On-Demand Byte-Slice Previewing:</strong> Instant ephemeral modal preview for images, markdown/text, JSON, code, audio, and video via byte slicing from peer disk with zero permanent storage on receiver device.</li>
             <li><strong>Selective On-Demand File Pulling:</strong> Receivers click [Pull File] to stream individual files on demand over the high-speed chunk streamer.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.55-beta</span>
+            <span class="changelog-date">Performance &amp; Battery</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Screen WakeLock API Integration:</strong> Automatically acquires a screen lock during active transfers to prevent mobile and laptop displays from sleeping during multi-gigabyte transfers.</li>
+            <li><strong>Tiered Zero-RAM OPFS Streaming:</strong> Direct disk writing using the File System Access API with origin private filesystem (OPFS), maintaining sub-50MB RAM footprint even on 10GB+ transfers.</li>
+            <li><strong>Backpressure Hysteresis Monitor:</strong> Dynamically throttles chunk reads when RTCDataChannel bufferedAmount crosses high watermark, preventing browser tab crashes.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.54-beta</span>
+            <span class="changelog-date">Signaling &amp; Handshake</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Auto-Scaling High-Density QR Engine:</strong> High-resolution vector-rendered QR codes with dynamic ECC level optimization for camera scanning at steep angles and low light.</li>
+            <li><strong>Simultaneous ICE Candidate Race Fix:</strong> Resolved race conditions during simultaneous WebRTC answer/offer exchange across asymmetric network topologies.</li>
+            <li><strong>Multi-STUN Server Pre-Gathering:</strong> Parallel STUN pre-gathering across Google and Cloudflare endpoints to traverse restrictive corporate NAT firewalls.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.53-beta</span>
+            <span class="changelog-date">Reliability &amp; Verification</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>100MB+ Large File Transfer Stability:</strong> Resolved socket drops and buffer overruns on multi-gigabyte transfers with dynamic chunk pooling.</li>
+            <li><strong>Streaming SHA-256 Checksum Engine:</strong> Real-time hardware-accelerated WebCrypto SHA-256 calculation running concurrently with file streaming.</li>
+            <li><strong>Automatic ICE Disconnect Grace Period:</strong> Graceful 5-second recovery window on transient Wi-Fi drops before terminating the active transfer session.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.52-beta</span>
+            <span class="changelog-date">UX &amp; Onboarding</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Tactile Mobile Chat Interface:</strong> Redesigned mobile chat feed with integrated keyboard avoidance and ergonomic bottom send bar.</li>
+            <li><strong>Guided 3-Step Setup Stepper:</strong> Clean visual onboarding ('1. Name', '2. Connect', '3. Send') clarifying connection status for new users.</li>
+            <li><strong>WebSocket Signaling Keepalive:</strong> Periodic heartbeat ping to keep free-tier cloud relays active during idle pairing sessions.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.51-beta</span>
+            <span class="changelog-date">Security &amp; Safety</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Client-Side File Safety Triage:</strong> Pre-download heuristic sandbox that inspects magic bytes, flags executables (.exe, .bat, .sh), and warns on double extensions (.pdf.exe).</li>
+            <li><strong>Comprehensive Legal Policy Shields:</strong> Privacy Policy (Zero Cloud Storage), Fair Usage Policy, and Neutral Conduit Statutory Safe Harbor disclaimers.</li>
+            <li><strong>In-App Rate-Limited Developer Contact:</strong> Built-in feedback conduit with rolling 2-per-week rate limit and obfuscated recipient routing.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.50-beta</span>
+            <span class="changelog-date">Architecture Rewrite</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Core WebRTC DataChannel Engine:</strong> Direct browser-to-browser peer connections with DTLS 1.3 / SRTP transport encryption.</li>
+            <li><strong>Zero Cloud Intermediary Architecture:</strong> Zero server file retention; all payloads flow strictly in memory and direct peer sockets.</li>
+            <li><strong>6-Character Room PIN Protocol:</strong> Ephemeral 120-second room codes for rapid ad-hoc device pairing without accounts.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.1-beta</span>
+            <span class="changelog-date">Initial Prototype</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Initial Protocol Prototype:</strong> Proof-of-concept WebRTC direct browser-to-browser file transfer and text messaging.</li>
+            <li><strong>Lightweight Node.js Signaling Broker:</strong> Minimalist WebSocket relay for SDP offer/answer exchange and ICE candidates.</li>
           </ul>
         </div>
       `;
@@ -296,48 +379,63 @@ function renderTabContent(tab: DocTab): HTMLElement {
       formWrap.className = 'contact-form-wrap';
 
       formWrap.innerHTML = `
-        <h3>Contact Developer</h3>
-        <p>Send feedback, report a bug, or suggest a feature directly from PinnPointt to Ankit Patra.</p>
+        <div class="contact-header">
+          <div class="contact-badge-pill">
+            ${iconMail({ size: 13 })} <span>Developer Direct Channel</span>
+          </div>
+          <h3 class="contact-title">Contact Developer</h3>
+          <p class="contact-subtitle">
+            Send feedback, report bugs, or discuss architecture directly with Ankit Patra. All inquiries are securely prepared for direct email dispatch.
+          </p>
 
-        <div class="contact-meta-row">
-          <span class="rate-limit-pill ${isRateLimited ? 'limited' : ''}">
-            ${
-              isRateLimited
-                ? `Weekly limit reached (2 of 2 used) • Reopens in ${daysUntilReset}d`
-                : `${remaining} of 2 inquiries remaining this week`
-            }
-          </span>
-          <span class="text-xs muted mono">Rate limit: 2 / week</span>
+          <div class="contact-meta-row">
+            <span class="rate-limit-pill ${isRateLimited ? 'limited' : ''}">
+              ${
+                isRateLimited
+                  ? `Weekly limit reached (2 of 2 used) • Reopens in ${daysUntilReset}d`
+                  : `${remaining} of 2 weekly inquiries remaining`
+              }
+            </span>
+            <span class="contact-developer-pill">
+              Developer: <strong>Ankit Patra</strong>
+            </span>
+          </div>
         </div>
 
         <div class="contact-card">
-          <form id="pinnpointt-contact-form" class="stack stack-sm w-full" style="text-align: left;">
-            <div>
-              <label class="form-label" for="contact-name">Your Name / Handle</label>
-              <input
-                id="contact-name"
-                class="form-input"
-                type="text"
-                value="${savedName}"
-                placeholder="e.g. Gropius-42"
-                maxlength="50"
-                ${isRateLimited ? 'disabled' : ''}
-              />
+          <form id="pinnpointt-contact-form" class="contact-form">
+            <div class="contact-grid-row">
+              <div class="form-group">
+                <label class="form-label" for="contact-name">Your Name / Handle</label>
+                <input
+                  id="contact-name"
+                  class="form-input"
+                  type="text"
+                  value="${savedName}"
+                  placeholder="e.g. Gropius-42"
+                  maxlength="50"
+                  ${isRateLimited ? 'disabled' : ''}
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="contact-category">Topic</label>
+                <div class="form-select-wrapper">
+                  <select id="contact-category" class="form-select" ${isRateLimited ? 'disabled' : ''}>
+                    <option value="General Feedback">General Feedback</option>
+                    <option value="Bug Report">Bug Report</option>
+                    <option value="Feature Request">Feature Request</option>
+                    <option value="Architecture & Security">Architecture & Security</option>
+                    <option value="Other Inquiry">Other Inquiry</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="form-label" for="contact-category">Topic</label>
-              <select id="contact-category" class="form-select" ${isRateLimited ? 'disabled' : ''}>
-                <option value="Feedback">General Feedback</option>
-                <option value="Bug Report">Bug Report</option>
-                <option value="Feature Request">Feature Request</option>
-                <option value="Architecture & Security">Architecture & Security</option>
-                <option value="Other">Other Inquiry</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="form-label" for="contact-email">Reply Email <span class="muted" style="font-weight: 400;">(optional, if you'd like a response)</span></label>
+            <div class="form-group">
+              <label class="form-label" for="contact-email">
+                Reply Email <span class="form-label-optional">(optional, if you'd like a response)</span>
+              </label>
               <input
                 id="contact-email"
                 class="form-input"
@@ -348,13 +446,15 @@ function renderTabContent(tab: DocTab): HTMLElement {
               />
             </div>
 
-            <div>
-              <label class="form-label" for="contact-message">Message <span class="accent">*</span></label>
+            <div class="form-group">
+              <label class="form-label" for="contact-message">
+                Message <span class="accent">*</span>
+              </label>
               <textarea
                 id="contact-message"
                 class="form-textarea"
-                rows="4"
-                placeholder="Write your message here..."
+                rows="5"
+                placeholder="Describe your feedback, suggestion, or steps to reproduce a bug in detail..."
                 required
                 minlength="5"
                 maxlength="2000"
@@ -364,15 +464,24 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
             <div id="contact-status-msg" style="display: none;"></div>
 
-            <button
-              type="submit"
-              class="btn btn-primary w-full mt-sm"
-              id="btn-submit-contact"
-              ${isRateLimited ? 'disabled' : ''}
-            >
-              ${iconMail({ size: 14 })} <span>Submit Message</span>
-            </button>
+            <div class="contact-actions">
+              <button
+                type="submit"
+                class="btn-contact-submit"
+                id="btn-submit-contact"
+                ${isRateLimited ? 'disabled' : ''}
+              >
+                ${iconMail({ size: 15 })} <span>Send Message to Developer</span>
+              </button>
+            </div>
           </form>
+        </div>
+
+        <div class="contact-privacy-note">
+          <div class="contact-privacy-icon">${iconShield({ size: 14 })}</div>
+          <div class="contact-privacy-text">
+            <strong>Private &amp; Direct Routing:</strong> Submissions launch your native email client addressed directly to the developer's verified inbox (<code>work.ankitpatra@gmail.com</code>). PinnPointt does not maintain intermediate servers, log message bodies, or store your contact information.
+          </div>
         </div>
       `;
 
