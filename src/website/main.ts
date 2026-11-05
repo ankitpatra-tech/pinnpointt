@@ -33,10 +33,10 @@ function renderHeroQR(): void {
     const matrix = qrEngine.encode('ROOM:P88XYZ');
     const qrCanvas = new QRCanvas(canvas);
     qrCanvas.render(matrix, {
-      moduleSize: 5,
-      quietZone: 3,
+      moduleSize: 4.5,
+      quietZone: 2,
       darkColor: currentTheme === 'light' ? '#111110' : '#F3F4F6',
-      lightColor: currentTheme === 'light' ? '#FFFFFF' : '#181A1D',
+      lightColor: currentTheme === 'light' ? '#FFFFFF' : '#15181C',
     });
   } catch (err) {
     console.warn('Hero QR render notice:', err);

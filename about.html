@@ -7,10 +7,11 @@
   <meta name="description" content="PinnPointt — Share files of any size, straight between your devices. No cloud uploads, no sign-ups, and no file size limits." />
   <title>PinnPointt — Share Files Directly Between Devices</title>
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='4' y='4' width='24' height='24' rx='6' fill='%230052FF'/><circle cx='16' cy='16' r='6' fill='%23FFFFFF'/></svg>" />
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+  <link rel="apple-touch-icon" href="/icons/icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/website/website.css" />
 </head>
 <body>
@@ -19,10 +20,13 @@
     <div class="site-navbar-inner">
       <div class="nav-brand" onclick="window.location.href='/'">
         <div class="nav-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" class="brand-mark">
-            <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.75" fill="none"/>
-            <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
-            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="brand-mark">
+            <rect x="2.5" y="2.5" width="19" height="19" rx="6" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M7 15.5C7.8 13.8 9.2 12.5 11 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            <path d="M17 8.5C16.2 10.2 14.8 11.5 13 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2.25" fill="currentColor"/>
+            <circle cx="7" cy="15.5" r="1.25" fill="currentColor"/>
+            <circle cx="17" cy="8.5" r="1.25" fill="currentColor"/>
           </svg>
         </div>
         <div class="nav-title-wrap">
@@ -36,6 +40,7 @@
         <a href="#why" class="site-nav-link">Why Direct Sharing</a>
         <a href="#comparison" class="site-nav-link">Compare</a>
         <a href="#faq" class="site-nav-link">FAQ</a>
+        <a href="/app" class="site-nav-link mobile-only-cta">Start Sharing Now →</a>
       </nav>
 
       <div class="nav-actions">
@@ -195,7 +200,12 @@
         <div class="step-card">
           <div class="step-badge">1</div>
           <div class="step-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="13" height="9" rx="2"/>
+              <path d="M1 13h15"/>
+              <rect x="15" y="7" width="7" height="13" rx="2"/>
+              <circle cx="18.5" cy="17.5" r="0.75" fill="currentColor"/>
+            </svg>
           </div>
           <h3>Open on both devices</h3>
           <p>Open PinnPointt in any web browser on your phone, laptop, or tablet. There is nothing to install and no account to create.</p>
@@ -204,7 +214,10 @@
         <div class="step-card">
           <div class="step-badge">2</div>
           <div class="step-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="5" height="5" x="3" y="3" rx="1.5"/><rect width="5" height="5" x="16" y="3" rx="1.5"/><rect width="5" height="5" x="3" y="16" rx="1.5"/>
+              <path d="M21 16h-3a2 2 0 0 0-2 2v3"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="12" y1="7" x2="12" y2="17"/>
+            </svg>
           </div>
           <h3>Scan the QR code</h3>
           <p>Point your phone camera at the screen or type the 6-character room code. Devices link together in one second.</p>
@@ -213,7 +226,9 @@
         <div class="step-card">
           <div class="step-badge">3</div>
           <div class="step-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
           </div>
           <h3>Drop your files</h3>
           <p>Select photos, 4K videos, or entire folders. Everything streams straight between your devices at full local Wi-Fi speed.</p>

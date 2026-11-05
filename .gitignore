@@ -9,3 +9,4 @@ Thumbs.db
 test/*.bin
 test/profile*
 .vercel/
+scratch/

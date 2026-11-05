@@ -1,36 +1,36 @@
 /**
- * PinnPointt Design System — Swiss Architectural Daylight & Refined Slate
- * Zero orange, pure geometric utility.
+ * PinnPointt Design System — Apple & Google Human Interface System Colors
+ * Clean, tactile, authentic system tokens.
  */
 
 export type ThemeMode = 'dark' | 'light';
 
 export const THEME_DARK = {
-  bg: '#111315',
-  surface: '#181A1D',
-  surfaceHover: '#1F2227',
-  border: '#26292E',
-  borderFocus: '#3A3F47',
-  text: '#F3F4F6',
-  muted: '#9CA3AF',
-  accent: '#3B82F6',
-  accentDim: 'rgba(59, 130, 246, 0.12)',
-  danger: '#EF4444',
-  success: '#10B981',
+  bg: '#000000',
+  surface: '#1C1C1E',
+  surfaceHover: '#2C2C2E',
+  border: 'rgba(255, 255, 255, 0.12)',
+  borderFocus: '#0A84FF',
+  text: '#F5F5F7',
+  muted: '#A1A1A6',
+  accent: '#0A84FF',
+  accentDim: 'rgba(10, 132, 255, 0.14)',
+  danger: '#FF453A',
+  success: '#30D158',
 } as const;
 
 export const THEME_LIGHT = {
-  bg: '#F6F5F0',
+  bg: '#F5F5F7',
   surface: '#FFFFFF',
-  surfaceHover: '#EFECE6',
-  border: '#E2E0D8',
-  borderFocus: '#C8C5BC',
-  text: '#111110',
-  muted: '#85837E',
-  accent: '#0047FF',
-  accentDim: 'rgba(0, 71, 255, 0.08)',
-  danger: '#DC2626',
-  success: '#059669',
+  surfaceHover: '#F2F2F7',
+  border: 'rgba(0, 0, 0, 0.08)',
+  borderFocus: '#0071E3',
+  text: '#1D1D1F',
+  muted: '#86868B',
+  accent: '#0071E3',
+  accentDim: 'rgba(0, 113, 227, 0.08)',
+  danger: '#FF3B30',
+  success: '#34C759',
 } as const;
 
 const THEME_STORAGE_KEY = 'pinnpointt_theme';
@@ -42,9 +42,7 @@ export function getInitialTheme(): ThemeMode {
   if (saved === 'light' || saved === 'dark') {
     return saved;
   }
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
-    ? 'light'
-    : 'dark';
+  return 'dark';
 }
 
 export function applyTheme(mode: ThemeMode): void {

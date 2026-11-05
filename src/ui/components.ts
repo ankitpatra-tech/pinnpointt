@@ -38,6 +38,9 @@ import {
   iconActivity,
   iconShare,
   iconUpload,
+  iconKey,
+  iconQrCode,
+  iconRefresh,
 } from './icons';
 
 // ─── DOM Helper ─────────────────────────────────────
@@ -434,8 +437,8 @@ export function createUsernameBar(
     className: 'btn-randomize',
     type: 'button',
     title: 'Generate random name',
-    textContent: '↻',
   });
+  randBtn.innerHTML = iconRefresh({ size: 14 });
 
   randBtn.addEventListener('click', () => {
     const generated = generateDefaultUsername();
@@ -586,17 +589,21 @@ export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
 
   const createOpt = el('div', { className: 'pair-option' });
   createOpt.innerHTML = `
-    <span class="pair-option-icon">${iconShare({ size: 20 })}</span>
-    <span class="pair-option-label">Share from This Device</span>
-    <span class="pair-option-desc">Display a QR code and 6-letter room code for your other device to connect</span>
+    <div class="pair-option-icon">${iconShare({ size: 20 })}</div>
+    <div class="pair-option-content">
+      <span class="pair-option-label">Share Files</span>
+      <span class="pair-option-desc">Display a QR code and 6-letter room PIN for your other device to connect</span>
+    </div>
   `;
   createOpt.addEventListener('click', callbacks.onCreateRoom);
 
   const joinOpt = el('div', { className: 'pair-option' });
   joinOpt.innerHTML = `
-    <span class="pair-option-icon">${iconTerminal({ size: 20 })}</span>
-    <span class="pair-option-label">Connect with Code</span>
-    <span class="pair-option-desc">Enter the 6-character room code shown on your other computer or phone</span>
+    <div class="pair-option-icon">${iconKey({ size: 20 })}</div>
+    <div class="pair-option-content">
+      <span class="pair-option-label">Receive Files</span>
+      <span class="pair-option-desc">Enter the 6-character room PIN shown on your sender computer or phone</span>
+    </div>
   `;
   joinOpt.addEventListener('click', callbacks.onJoinRoom);
 
@@ -847,8 +854,8 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
   const browseFilesBtn = el('button', {
     type: 'button',
     className: 'btn btn-primary btn-sm',
-    textContent: 'Select Files',
   });
+  browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Select Files</span>`;
   browseFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     fileInput.click();
@@ -857,8 +864,8 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
   const browseFolderBtn = el('button', {
     type: 'button',
     className: 'btn btn-secondary btn-sm',
-    textContent: 'Select Folder',
   });
+  browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Select Folder</span>`;
   browseFolderBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     folderInput.click();
@@ -1252,8 +1259,8 @@ export function createConnectedWorkspace(
   const browseFilesBtn = el('button', {
     type: 'button',
     className: 'btn btn-primary btn-sm stage-dropzone-btn',
-    textContent: 'Browse Files',
   });
+  browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Browse Files</span>`;
   browseFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     fileInput.click();
@@ -1262,14 +1269,33 @@ export function createConnectedWorkspace(
   const browseFolderBtn = el('button', {
     type: 'button',
     className: 'btn btn-secondary btn-sm',
-    textContent: 'Add Folder',
   });
+  browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Add Folder</span>`;
   browseFolderBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     folderInput.click();
   });
 
-  dropActions.append(browseFilesBtn, browseFolderBtn);
+  const privacyPill = el('label', {
+    className: 'clean-toggle-pill stage-privacy-toggle',
+    title: 'Remove camera and location metadata from photos before sending',
+  });
+  const privacyCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'toggle-zero-trace',
+    className: 'toggle-checkbox',
+  }) as HTMLInputElement;
+  privacyCheckbox.checked = true;
+  privacyCheckbox.addEventListener('change', (e) => {
+    e.stopPropagation();
+    privacyShieldChecked = privacyCheckbox.checked;
+  });
+  const privacyLabel = el('span', { className: 'toggle-pill-label text-xs' });
+  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Strip photo GPS</span>`;
+  privacyPill.append(privacyCheckbox, privacyLabel);
+  privacyPill.addEventListener('click', (e) => e.stopPropagation());
+
+  dropActions.append(browseFilesBtn, browseFolderBtn, privacyPill);
   dropzone.append(dropActions);
 
   dropzone.addEventListener('click', () => fileInput.click());
@@ -1473,7 +1499,7 @@ export function createConnectedWorkspace(
       return privacyShieldChecked;
     },
     getZeroTraceEnabled() {
-      return false;
+      return privacyCheckbox.checked;
     },
     addClipboardItem(item: ClipboardItemData, isMine: boolean) {
       const row = el('div', { className: `chat-msg ${isMine ? 'mine' : 'peer'}` });

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" class="pinnpointt-logo">
+  <defs>
+    <linearGradient id="pointGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DDD6FE"/>
+      <stop offset="30%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#6D28D9"/>
+    </linearGradient>
+    <filter id="glowFilter" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  
+
+  <!-- Vertical Stem of 'P' -->
+  <line x1="199" y1="106" x2="199" y2="302" 
+        stroke="#F8F7F4" stroke-width="34" stroke-linecap="round"/>
+
+  <!-- Squircle Bowl of 'P' / Question Mark Hook with calibrated Gap -->
+  <path d="M 199 106
+           L 300 106
+           Q 346 106 346 152
+           L 346 190
+           Q 346 236 300 236
+           L 260 236"
+        fill="none" 
+        stroke="#F8F7F4" 
+        stroke-width="34" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+
+  <!-- DNA Double Helix Dots in the Gap -->
+  <g class="dna-helix-stream">
+    
+      <line x1="254.0" y1="126.0" x2="254.0" y2="126.0" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.35" stroke-dasharray="2 2" />
+      <circle cx="254.0" cy="126.0" r="8.8" fill="#7C3AED" fill-opacity="1.00">
+        
+      </circle>
+      <circle cx="254.0" cy="126.0" r="7.4" fill="#C4B5FD" fill-opacity="0.85">
+        
+      </circle>
+      <line x1="265.7" y1="141.1" x2="237.2" y2="141.1" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.32" stroke-dasharray="2 2" />
+      <circle cx="265.7" cy="141.1" r="8.0" fill="#7C3AED" fill-opacity="0.96">
+        
+      </circle>
+      <circle cx="237.2" cy="141.1" r="6.7" fill="#C4B5FD" fill-opacity="0.81">
+        
+      </circle>
+      <line x1="257.7" y1="156.3" x2="240.0" y2="156.3" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.29" stroke-dasharray="2 2" />
+      <circle cx="257.7" cy="156.3" r="7.2" fill="#7C3AED" fill-opacity="0.93">
+        
+      </circle>
+      <circle cx="240.0" cy="156.3" r="6.1" fill="#C4B5FD" fill-opacity="0.76">
+        
+      </circle>
+      <line x1="237.5" y1="171.4" x2="255.1" y2="171.4" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.26" stroke-dasharray="2 2" />
+      <circle cx="237.5" cy="171.4" r="6.4" fill="#7C3AED" fill-opacity="0.89">
+        
+      </circle>
+      <circle cx="255.1" cy="171.4" r="5.4" fill="#C4B5FD" fill-opacity="0.72">
+        
+      </circle>
+      <line x1="229.4" y1="186.6" x2="258.0" y2="186.6" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.22" stroke-dasharray="2 2" />
+      <circle cx="229.4" cy="186.6" r="5.6" fill="#7C3AED" fill-opacity="0.86">
+        
+      </circle>
+      <circle cx="258.0" cy="186.6" r="4.8" fill="#C4B5FD" fill-opacity="0.68">
+        
+      </circle>
+      <line x1="241.1" y1="201.7" x2="241.1" y2="201.7" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.19" stroke-dasharray="2 2" />
+      <circle cx="241.1" cy="201.7" r="4.8" fill="#7C3AED" fill-opacity="0.82">
+        
+      </circle>
+      <circle cx="241.1" cy="201.7" r="4.1" fill="#C4B5FD" fill-opacity="0.64">
+        
+      </circle>
+      <line x1="252.8" y1="216.9" x2="224.3" y2="216.9" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.16" stroke-dasharray="2 2" />
+      <circle cx="252.8" cy="216.9" r="4.0" fill="#7C3AED" fill-opacity="0.79">
+        
+      </circle>
+      <circle cx="224.3" cy="216.9" r="3.5" fill="#C4B5FD" fill-opacity="0.59">
+        
+      </circle>
+      <line x1="244.8" y1="232.0" x2="227.2" y2="232.0" 
+            stroke="#C4B5FD" stroke-width="1.4" stroke-opacity="0.13" stroke-dasharray="2 2" />
+      <circle cx="244.8" cy="232.0" r="3.2" fill="#7C3AED" fill-opacity="0.75">
+        
+      </circle>
+      <circle cx="227.2" cy="232.0" r="2.8" fill="#C4B5FD" fill-opacity="0.55">
+        
+      </circle>
+  </g>
+
+  <!-- The Point (Bottom dot of question mark / PinnPointt anchor) -->
+  <g class="brand-anchor-point">
+    <circle cx="199" cy="372" r="31" fill="#7C3AED" fill-opacity="0.28" filter="url(#glowFilter)"/>
+    <circle cx="199" cy="372" r="26" fill="url(#pointGrad)"/>
+    <circle cx="191.2" cy="364.2" r="7.280000000000001" fill="#FFFFFF" fill-opacity="0.65"/>
+  </g>
+</svg>

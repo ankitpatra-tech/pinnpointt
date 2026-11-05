@@ -931,7 +931,14 @@ export class App {
   }> {
     let fileToSend = rawFile;
     let isMetadataStripped = false;
-    const isZeroTrace = false;
+    let isZeroTrace = false;
+
+    if (this.workspace?.getZeroTraceEnabled()) {
+      isZeroTrace = true;
+    } else {
+      const zt = document.querySelector('#toggle-zero-trace') as HTMLInputElement | null;
+      if (zt && zt.checked) isZeroTrace = true;
+    }
 
     if (this.privacyShieldEnabled && isMetadataStrippable(rawFile)) {
       const stripResult = await stripImageMetadata(rawFile);
