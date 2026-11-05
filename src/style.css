@@ -421,12 +421,12 @@ p {
    STATE A: NOT CONNECTED YET (FULL-SCREEN SPLIT LAYOUT)
    ═══════════════════════════════════════════════════ */
 .app-pairing-layout {
-  max-width: 1360px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding: 32px 4vw;
+  padding: 32px clamp(20px, 3.5vw, 48px);
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 420px minmax(0, 1fr);
   gap: 32px;
   align-items: stretch;
   flex: 1;
@@ -452,6 +452,8 @@ p {
   flex-direction: column;
   gap: 18px;
   transition: border-color var(--transition);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (max-width: 680px) {
@@ -700,8 +702,12 @@ p {
   background: var(--bg-surface);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 10px 12px;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .stepper-header,
@@ -709,7 +715,9 @@ p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stepper-label {
@@ -724,7 +732,7 @@ p {
 .onboarding-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .stepper-guide-btn,
@@ -741,7 +749,8 @@ p {
   gap: 4px;
   padding: 2px 6px;
   border-radius: var(--radius-xs);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .stepper-guide-btn:hover,
@@ -757,20 +766,27 @@ p {
 
 .onboarding-steps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .onboarding-step {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 6px;
   border-radius: var(--radius-sm);
   background: var(--bg-ambient);
   border: 1px solid var(--border-hairline);
   cursor: pointer;
   transition: all var(--transition-fast);
+  min-width: 0;
+  box-sizing: border-box;
+  user-select: none;
+  overflow: hidden;
 }
 
 .onboarding-step:hover {
@@ -780,19 +796,19 @@ p {
 
 .onboarding-step.active {
   background: var(--accent-dim);
-  border-color: rgba(0, 113, 227, 0.3);
+  border-color: rgba(0, 113, 227, 0.35);
 }
 
 .step-badge {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--border-strong);
   color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   flex-shrink: 0;
   transition: all var(--transition-fast);
@@ -806,12 +822,13 @@ p {
 
 .step-content {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   min-width: 0;
+  overflow: hidden;
 }
 
 .step-title {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-bright);
   white-space: nowrap;
@@ -820,17 +837,16 @@ p {
 }
 
 .step-desc {
-  font-size: 10px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
 }
 
 @media (max-width: 480px) {
   .onboarding-steps {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
+  }
+  .step-title {
+    font-size: 10px;
   }
 }
 

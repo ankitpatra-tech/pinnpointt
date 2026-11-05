@@ -508,7 +508,7 @@ export function createOnboarding(
   const stepData = [
     {
       num: 1 as const,
-      title: '1. Device Name',
+      title: '1. Name',
       desc: 'Name this device',
     },
     {
@@ -518,7 +518,7 @@ export function createOnboarding(
     },
     {
       num: 3 as const,
-      title: '3. Send Files',
+      title: '3. Send',
       desc: 'Drop files directly',
     },
   ];
@@ -539,9 +539,8 @@ export function createOnboarding(
       textContent: String(num),
     });
     const content = el('div', { className: 'step-content' });
-    const titleEl = el('div', { className: 'step-title font-semibold', textContent: title });
-    const descEl = el('div', { className: 'step-desc text-xs muted', textContent: desc });
-    content.append(titleEl, descEl);
+    const titleEl = el('span', { className: 'step-title font-semibold', textContent: title });
+    content.append(titleEl);
     step.append(badge, content);
 
     if (onSelectStep) {
