@@ -385,7 +385,7 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   const meta = el('div', { className: 'footer-meta' });
   const subtitle = el('span', {
     className: 'footer-subtitle',
-    textContent: 'Direct device-to-device transfers • Zero cloud storage • 100% private',
+    textContent: 'Direct device-to-device transfers • Fast & private',
   });
   const version = el('span', {
     className: 'footer-version tabular-nums',
@@ -474,26 +474,26 @@ export function createUsernameBar(
   return card;
 }
 
-// ─── Simple Quick-Start Guide (Clickable Navigation) ─
+// ─── Intuitive 3-Step Setup Tracker ─────────────────
 
 export function createOnboarding(
   activeStep: number,
   onSelectStep?: (step: 1 | 2 | 3) => void,
   onOpenTour?: () => void
 ): HTMLElement {
-  const wrap = el('div', { className: 'onboarding' });
+  const wrap = el('div', { className: 'onboarding-stepper onboarding' });
 
-  const headerRow = el('div', { className: 'onboarding-header' });
-  const titleSpan = el('span', { className: 'text-xs font-semibold', textContent: 'Quick Start Guide' });
-  const controls = el('div', { className: 'onboarding-controls' });
+  const headerRow = el('div', { className: 'stepper-header onboarding-header' });
+  const titleSpan = el('span', { className: 'stepper-label text-xs font-semibold', textContent: 'Quick Transfer Setup' });
+  const controls = el('div', { className: 'stepper-controls onboarding-controls' });
 
   if (onOpenTour) {
     const tourBtn = el('button', {
-      className: 'onboarding-guide-btn text-xs',
+      className: 'stepper-guide-btn onboarding-guide-btn text-xs',
       type: 'button',
-      title: 'Open step-by-step walkthrough',
+      title: 'Open visual walkthrough guide',
     });
-    tourBtn.innerHTML = `${iconHelpCircle({ size: 13 })} <span>Guide</span>`;
+    tourBtn.innerHTML = `${iconHelpCircle({ size: 13 })} <span>How it works</span>`;
     tourBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       onOpenTour();
@@ -501,12 +501,6 @@ export function createOnboarding(
     controls.append(tourBtn);
   }
 
-  const toggleBtn = el('button', {
-    className: 'onboarding-toggle text-xs',
-    type: 'button',
-    textContent: 'collapse',
-  });
-  controls.append(toggleBtn);
   headerRow.append(titleSpan, controls);
 
   const steps = el('div', { className: 'onboarding-steps' });
@@ -514,18 +508,18 @@ export function createOnboarding(
   const stepData = [
     {
       num: 1 as const,
-      title: '1. Set Your Name',
+      title: '1. Device Name',
       desc: 'Name this device',
     },
     {
       num: 2 as const,
-      title: '2. Pair Devices',
-      desc: 'Scan QR or enter code',
+      title: '2. Connect',
+      desc: 'Pair code or QR',
     },
     {
       num: 3 as const,
-      title: '3. Drop Files',
-      desc: 'Share straight across',
+      title: '3. Send Files',
+      desc: 'Drop files directly',
     },
   ];
 
@@ -533,7 +527,7 @@ export function createOnboarding(
     const isActive = num === activeStep;
     const stepAttrs: Record<string, string> = {
       className: `onboarding-step ${isActive ? 'active' : ''} ${onSelectStep ? 'clickable' : ''}`,
-      title: `Navigate to: ${title}`,
+      title: `Step ${num}: ${desc}`,
     };
     if (onSelectStep) {
       stepAttrs.role = 'button';
@@ -564,13 +558,6 @@ export function createOnboarding(
   });
 
   wrap.append(headerRow, steps);
-
-  toggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    wrap.classList.toggle('collapsed');
-    toggleBtn.textContent = wrap.classList.contains('collapsed') ? 'expand' : 'collapse';
-  });
-
   return wrap;
 }
 

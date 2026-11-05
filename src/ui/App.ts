@@ -283,6 +283,28 @@ export class App {
     });
     leftCard.append(radar);
 
+    // 3-Step Process Stepper at the TOP of the setup card
+    leftCard.append(
+      createOnboarding(
+        this.state === 'creating' || this.state === 'joining' ? 2 : 1,
+        (step) => {
+          if (step === 1) {
+            const input = document.querySelector('.identity-input') as HTMLInputElement | null;
+            input?.focus();
+            input?.select();
+            const card = document.querySelector('.identity-card') as HTMLElement | null;
+            card?.classList.add('identity-pulse');
+            setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
+          } else if (step === 2) {
+            this.handleCreateRoom();
+          } else if (step === 3) {
+            this.startPreviewMode();
+          }
+        },
+        () => openOnboardingModal()
+      )
+    );
+
     // Operator display name row
     const userBar = createUsernameBar(this.myUsername, (newName) => {
       this.updateMyUsername(newName);
@@ -291,35 +313,13 @@ export class App {
 
     // Pairing controls depending on state
     if (this.state === 'idle') {
-      // Show Pair Selection Options + Quick Start + Quick Join Input
+      // Show Pair Selection Options + Quick Join Input
       const pairSelection = createPairSelection({
         onCreateRoom: () => this.handleCreateRoom(),
         onJoinRoom: () => this.transition('joining'),
         onPreviewWorkspace: () => this.startPreviewMode(),
       });
       leftCard.append(pairSelection);
-
-      // Micro-onboarding steps
-      leftCard.append(
-        createOnboarding(
-          1,
-          (step) => {
-            if (step === 1) {
-              const input = document.querySelector('.identity-input') as HTMLInputElement | null;
-              input?.focus();
-              input?.select();
-              const card = document.querySelector('.identity-card') as HTMLElement | null;
-              card?.classList.add('identity-pulse');
-              setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
-            } else if (step === 2) {
-              this.handleCreateRoom();
-            } else if (step === 3) {
-              this.startPreviewMode();
-            }
-          },
-          () => openOnboardingModal()
-        )
-      );
 
       // Quick Join row at bottom: "Connecting from another computer? Enter code..." + Join
       const quickJoinWrap = document.createElement('div');

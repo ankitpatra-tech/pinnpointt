@@ -22,9 +22,9 @@ export function openOnboardingModal(onStart?: () => void): void {
 
   modal.innerHTML = `
     <div class="onboarding-modal-header">
-      <div class="onboarding-modal-badge mono text-xs">PROTOCOL v0.1 • ZERO CLOUD</div>
-      <h2 id="onboarding-title" class="onboarding-modal-title">Fast, Private &amp; Direct Device-to-Device Sharing</h2>
-      <p class="onboarding-modal-sub">Everything streams direct peer-to-peer. No cloud storage, no account needed, and no file size limits.</p>
+      <div class="onboarding-modal-badge text-xs">How It Works</div>
+      <h2 id="onboarding-title" class="onboarding-modal-title">Fast, Direct Device-to-Device Sharing</h2>
+      <p class="onboarding-modal-sub">Transfer files of any size directly between phones, tablets, and computers on your local Wi-Fi or across the internet. No servers storing your data, no accounts, and 100% private.</p>
       <button class="onboarding-close-btn" type="button" aria-label="Close guide">${iconX({ size: 16 })}</button>
     </div>
 
@@ -32,9 +32,9 @@ export function openOnboardingModal(onStart?: () => void): void {
       <div class="onboarding-card-step">
         <div class="step-num-badge">1</div>
         <div class="step-details">
-          <div class="step-header-text">Set Your Name</div>
+          <div class="step-header-text">Set Your Device Name</div>
           <div class="step-body-text">
-            Choose your display name or click <strong>↻</strong> for a generated moniker so your peer knows who is connecting.
+            Choose your device's display name or tap <strong>↻</strong> so peers recognize your device.
           </div>
         </div>
       </div>
@@ -42,9 +42,9 @@ export function openOnboardingModal(onStart?: () => void): void {
       <div class="onboarding-card-step">
         <div class="step-num-badge">2</div>
         <div class="step-details">
-          <div class="step-header-text">Pair Devices with Code or QR</div>
+          <div class="step-header-text">Connect with Code or QR</div>
           <div class="step-body-text">
-            One device taps <strong>Create Room</strong> to generate a 6-digit code and QR code. The second device taps <strong>Join Room</strong> or scans the QR code with their camera.
+            Tap <strong>Start New Room</strong> to display a 6-letter room code and QR. The second device taps <strong>Join Room</strong> or scans the code.
           </div>
         </div>
       </div>
@@ -52,9 +52,9 @@ export function openOnboardingModal(onStart?: () => void): void {
       <div class="onboarding-card-step">
         <div class="step-num-badge">3</div>
         <div class="step-details">
-          <div class="step-header-text">Stream Files &amp; Chat (100% E2EE)</div>
+          <div class="step-header-text">Transfer Files &amp; Clipboard Notes</div>
           <div class="step-body-text">
-            Send files of any size directly between browsers. All chat and files are <strong>End-to-End Encrypted (WebRTC DTLS)</strong> with zero server storage.
+            Drag and drop files of any size directly to the other screen. All transfers are end-to-end encrypted with zero intermediary servers.
           </div>
         </div>
       </div>
@@ -63,10 +63,10 @@ export function openOnboardingModal(onStart?: () => void): void {
     <div class="onboarding-modal-footer">
       <label class="onboarding-dismiss-label">
         <input type="checkbox" id="onboarding-dont-show" />
-        <span>Don't show this guide on startup</span>
+        <span>Don't show this again on startup</span>
       </label>
       <button type="button" class="btn btn-primary onboarding-cta-btn">
-        ${iconZap({ size: 14 })} <span>Got It, Let's Transfer</span>
+        ${iconZap({ size: 14 })} <span>Got It</span>
       </button>
     </div>
   `;
