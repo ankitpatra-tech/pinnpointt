@@ -184,7 +184,8 @@ export function createNavbar(
   onOpenGuide?: () => void,
   peerInfo?: NavbarPeerInfo
 ): HTMLElement {
-  const nav = el('nav', { className: 'app-navbar' });
+  const nav = el('header', { className: 'app-navbar' });
+  const inner = el('div', { className: 'app-navbar-inner' });
 
   // Left Brand Area
   const brand = el('div', { className: 'nav-brand' });
@@ -199,7 +200,7 @@ export function createNavbar(
     brand.addEventListener('click', onBrandClick);
   }
 
-  // Center Connection Pill (State B Connected Pill OR State A Status)
+  // Center Connection Pill (Direct Share Status OR Connected Peer)
   const centerArea = el('div', { className: 'nav-center-area' });
   if (peerInfo) {
     const pill = el('div', { className: 'header-connected-pill workspace-peer-badge' });
@@ -220,8 +221,21 @@ export function createNavbar(
     pill.append(discBtn);
     centerArea.append(pill);
   } else {
-    const badge = el('span', { className: 'nav-badge text-xs', textContent: statusLabel });
-    centerArea.append(badge);
+    // Redesigned Squircle Direct Share Button
+    const directSharePill = el('button', {
+      type: 'button',
+      className: 'nav-direct-share-btn',
+      title: 'PinnPointt Direct P2P Channel Ready',
+    });
+    directSharePill.innerHTML = `
+      <span class="direct-share-status-dot"></span>
+      <span class="direct-share-text">${statusLabel}</span>
+      <span class="direct-share-mode mono">P2P</span>
+    `;
+    if (onOpenGuide) {
+      directSharePill.addEventListener('click', onOpenGuide);
+    }
+    centerArea.append(directSharePill);
   }
 
   // Right Actions
@@ -257,7 +271,8 @@ export function createNavbar(
   themeBtn.addEventListener('click', onToggleTheme);
 
   actions.append(aboutLink, themeBtn);
-  nav.append(brand, centerArea, actions);
+  inner.append(brand, centerArea, actions);
+  nav.append(inner);
   return nav;
 }
 
@@ -329,22 +344,17 @@ export function createInstallBanner(): HTMLElement {
 
 export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElement {
   const footer = el('footer', { className: 'app-footer' });
-
-  const credit = el('div', { className: 'footer-credit' });
-  credit.innerHTML = `Developed by <span>Ankit Patra</span> for the community`;
+  const inner = el('div', { className: 'app-footer-inner' });
 
   const linksRow = el('div', { className: 'footer-links' });
 
   const siteLink = el('a', {
-    className: 'footer-link',
+    className: 'footer-link footer-pill-link',
     href: '/',
     textContent: 'Home & Roadmap',
     title: 'Why PinnPointt, Features & Open Source Roadmap',
   });
   linksRow.append(siteLink);
-
-  const initialSep = el('span', { className: 'footer-sep', textContent: '•' });
-  linksRow.append(initialSep);
 
   const docLinks: { id: DocTab; label: string }[] = [
     { id: 'privacy', label: 'Privacy Policy' },
@@ -355,7 +365,7 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
 
   docLinks.forEach(({ id, label }) => {
     const btn = el('button', {
-      className: 'footer-link',
+      className: 'footer-link footer-pill-link',
       type: 'button',
       textContent: label,
       title: `View ${label}`,
@@ -365,13 +375,10 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
       else openDocModal(id);
     });
     linksRow.append(btn);
-
-    const sep = el('span', { className: 'footer-sep', textContent: '•' });
-    linksRow.append(sep);
   });
 
   const contactBtn = el('button', {
-    className: 'footer-link',
+    className: 'footer-link footer-pill-link',
     type: 'button',
     textContent: 'Contact',
     title: 'Send a message directly from PinnPointt',
@@ -381,6 +388,11 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
     else openDocModal('contact');
   });
   linksRow.append(contactBtn);
+
+  const bottomRow = el('div', { className: 'footer-bottom-row' });
+
+  const credit = el('div', { className: 'footer-credit' });
+  credit.innerHTML = `Developed by <span>Ankit Patra</span> for the community`;
 
   const meta = el('div', { className: 'footer-meta' });
   const subtitle = el('span', {
@@ -394,7 +406,9 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   meta.append(subtitle, version);
 
-  footer.append(credit, linksRow, meta);
+  bottomRow.append(credit, meta);
+  inner.append(linksRow, bottomRow);
+  footer.append(inner);
   return footer;
 }
 

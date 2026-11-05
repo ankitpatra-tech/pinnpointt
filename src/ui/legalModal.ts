@@ -76,7 +76,7 @@ export function openDocModal(initialTab: DocTab = 'privacy'): void {
     { id: 'fair-usage', label: 'Fair Usage' },
     { id: 'disclaimer', label: 'Disclaimer' },
     { id: 'changelog', label: 'Changelog' },
-    { id: 'contact', label: 'Contact Developer' },
+    { id: 'contact', label: 'Contact' },
   ];
 
   tabsConfig.forEach(({ id, label }) => {
