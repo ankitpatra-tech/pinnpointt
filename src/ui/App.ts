@@ -108,7 +108,6 @@ export class App {
   private peerUsername: string = 'Other Device';
   private workspace: WorkspaceController | null = null;
   private isSendingFile: boolean = false;
-  private isPreviewMode: boolean = false;
   private errorMessage: string = 'Connection lost.';
   private currentTheme: ThemeMode = getInitialTheme();
   private dcKeepaliveTimer: ReturnType<typeof setInterval> | null = null;
@@ -193,9 +192,7 @@ export class App {
 
     // Status label for top navigation bar
     let statusLabel = 'Direct Share';
-    if (this.isPreviewMode) {
-      statusLabel = 'Demo Mode';
-    } else if (this.state === 'connected') {
+    if (this.state === 'connected') {
       statusLabel = 'Connected';
     } else if (this.state === 'creating') {
       statusLabel = 'Ready to Pair';
@@ -302,7 +299,9 @@ export class App {
           } else if (step === 2) {
             this.handleCreateRoom();
           } else if (step === 3) {
-            this.startPreviewMode();
+            const dropzone = document.querySelector('.dropzone-ready-canvas') as HTMLElement | null;
+            dropzone?.scrollIntoView({ behavior: 'smooth' });
+            showToast('Connect with another device to transfer files');
           }
         },
         () => openOnboardingModal()
@@ -321,7 +320,6 @@ export class App {
       const pairSelection = createPairSelection({
         onCreateRoom: () => this.handleCreateRoom(),
         onJoinRoom: () => this.transition('joining'),
-        onPreviewWorkspace: () => this.startPreviewMode(),
       });
       leftCard.append(pairSelection);
 
@@ -443,8 +441,8 @@ export class App {
   // ── STATE B: Connected Workspace ─────────────────
 
   private renderConnectedWorkspace(): HTMLElement {
-    const myRole = this.isPreviewMode ? 'YOU' : (this.peer?.role === 'offerer' ? 'HOST' : 'GUEST');
-    const peerRole = this.isPreviewMode ? 'SIMULATED' : (myRole === 'HOST' ? 'GUEST' : 'HOST');
+    const myRole = this.peer?.role === 'offerer' ? 'HOST' : 'GUEST';
+    const peerRole = myRole === 'HOST' ? 'GUEST' : 'HOST';
 
     this.workspace = createConnectedWorkspace(
       this.peerUsername,
@@ -457,21 +455,6 @@ export class App {
             const mounted = this.virtualDrive.mountLocalFiles(files);
             this.workspace?.setLocalVfsEntries(mounted);
             this.workspace?.addSystemNotice(`Shared ${mounted.length} file(s) with the other device`);
-          } else if (this.isPreviewMode) {
-            const entries: VfsFileEntry[] = [];
-            for (let i = 0; i < files.length; i++) {
-              const file = files[i];
-              entries.push({
-                id: `demo_${i}`,
-                name: file.name,
-                relativePath: (file as unknown as { webkitRelativePath?: string }).webkitRelativePath || file.name,
-                size: file.size,
-                mimeType: file.type || 'application/octet-stream',
-                lastModified: file.lastModified || Date.now(),
-              });
-            }
-            this.workspace?.setLocalVfsEntries(entries);
-            this.workspace?.addSystemNotice(`Demo: Shared ${entries.length} file(s) with simulated device`);
           }
         },
         onUnmountDrive: () => {
@@ -479,18 +462,12 @@ export class App {
             this.virtualDrive.unmountLocal();
             this.workspace?.setLocalVfsEntries([]);
             this.workspace?.addSystemNotice(`Stopped sharing local files`);
-          } else if (this.isPreviewMode) {
-            this.workspace?.setLocalVfsEntries([]);
-            this.workspace?.addSystemNotice(`Demo: Stopped sharing files`);
           }
         },
         onPullRemoteFile: (fileId: string) => {
           if (this.virtualDrive) {
             this.virtualDrive.pullRemoteFile(fileId);
             this.workspace?.addSystemNotice(`Requesting file from other device...`);
-            this.workspace?.switchTab('activity');
-          } else if (this.isPreviewMode) {
-            this.workspace?.addSystemNotice(`Demo: Pulled file (${fileId})`);
             this.workspace?.switchTab('activity');
           }
         },
@@ -506,25 +483,6 @@ export class App {
                 this.workspace?.switchTab('activity');
               },
             });
-          } else if (this.isPreviewMode) {
-            const sampleText = `# PinnPointt Virtual Drive Preview\n\nLive on-demand preview streamed directly from device memory with ZERO cloud storage.\n\nFile Name: ${entry.name}\nSize: ${formatBytes(entry.size)}\n`;
-            const mockSlice = Promise.resolve({
-              fileId: entry.id,
-              offset: 0,
-              length: Math.min(entry.size, 1024),
-              totalSize: entry.size,
-              mimeType: entry.mimeType,
-              dataBase64: btoa(sampleText),
-              text: sampleText,
-            });
-            openVfsPreviewModal({
-              entry,
-              slicePromise: mockSlice,
-              onPullFile: () => {
-                this.workspace?.addSystemNotice(`Demo: Requested pull of file "${entry.name}"`);
-                this.workspace?.switchTab('activity');
-              },
-            });
           }
         },
         onSendClipboard: () => {
@@ -534,8 +492,7 @@ export class App {
           this.cleanup();
           this.transition('idle');
         },
-      },
-      this.isPreviewMode
+      }
     );
 
     if (this.wakeLockUnsub) {
@@ -547,55 +504,8 @@ export class App {
       this.workspace?.setWakeLockActive(active);
     });
 
-    this.workspace.addSystemNotice(
-      this.isPreviewMode
-        ? 'Interactive demo ready — Simulated peer connected'
-        : 'Direct peer-to-peer connection secured'
-    );
+    this.workspace.addSystemNotice('Direct peer-to-peer connection secured');
     return this.workspace.element;
-  }
-
-  private startPreviewMode(): void {
-    this.isPreviewMode = true;
-    this.peerUsername = 'Kandinsky (Simulated)';
-    void wakeLock.acquire('webrtc');
-    this.transition('connected');
-
-    setTimeout(() => {
-      this.workspace?.addChatMessage({
-        sender: this.peerUsername,
-        text: `Hello ${this.myUsername}! Welcome to PinnPointt. Send a note or attach files of any size to test live direct streaming.`,
-        timestamp: Date.now(),
-        isMine: false,
-      });
-
-      this.workspace?.setRemoteVfsEntries([
-        {
-          id: 'demo_f1',
-          name: 'project_notes.md',
-          relativePath: 'notes/project_notes.md',
-          size: 4096,
-          mimeType: 'text/markdown',
-          lastModified: Date.now() - 3600000,
-        },
-        {
-          id: 'demo_f2',
-          name: 'brand_artwork.svg',
-          relativePath: 'artwork/brand_artwork.svg',
-          size: 16384,
-          mimeType: 'image/svg+xml',
-          lastModified: Date.now() - 7200000,
-        },
-        {
-          id: 'demo_f3',
-          name: 'trip_expenses.csv',
-          relativePath: 'spreadsheets/trip_expenses.csv',
-          size: 102400,
-          mimeType: 'text/csv',
-          lastModified: Date.now() - 10800000,
-        },
-      ]);
-    }, 150);
   }
 
   private renderError(): HTMLElement {
@@ -783,31 +693,6 @@ export class App {
   private handleSendChatMessage(text: string): void {
     const timestamp = Date.now();
 
-    if (this.isPreviewMode) {
-      this.workspace?.addChatMessage({
-        sender: this.myUsername,
-        text,
-        timestamp,
-        isMine: true,
-      });
-
-      setTimeout(() => {
-        const responses = [
-          `Received your message: "${text}". The direct link is live and private.`,
-          `Message delivered instantly across device memory. You can drop files to test transfers.`,
-          `All communication stays strictly between your two devices with zero cloud logs.`,
-        ];
-        const reply = responses[Math.floor(Math.random() * responses.length)];
-        this.workspace?.addChatMessage({
-          sender: this.peerUsername,
-          text: reply,
-          timestamp: Date.now(),
-          isMine: false,
-        });
-      }, 500);
-      return;
-    }
-
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
 
     const payload = {
@@ -841,7 +726,7 @@ export class App {
   // ── Universal Clipboard Sync ──────────────────────
 
   private handleGlobalPaste = (e: ClipboardEvent): void => {
-    if (this.state !== 'connected' && !this.isPreviewMode) return;
+    if (this.state !== 'connected') return;
 
     const items = e.clipboardData?.items;
     if (items) {
@@ -909,12 +794,6 @@ export class App {
       sender: this.myUsername,
     };
 
-    if (this.isPreviewMode) {
-      this.workspace?.addClipboardItem(item, true);
-      showToast('Copied to live notes');
-      return;
-    }
-
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
 
     this.sendJSON({
@@ -970,50 +849,6 @@ export class App {
   }
 
   private async handleSendFiles(files: FileList): Promise<void> {
-    if (this.isPreviewMode) {
-      void wakeLock.acquire('transfer');
-      try {
-        for (let i = 0; i < files.length; i++) {
-          const rawFile = files[i];
-          const { file, isMetadataStripped, isZeroTrace } = await this.processFileToSend(rawFile);
-
-          const card = this.workspace?.addFileTransfer({
-            fileName: file.name,
-            fileSize: file.size,
-            isMine: true,
-            isMetadataStripped,
-            isZeroTrace,
-          });
-
-          const buf = await file.arrayBuffer();
-          const sha256 = await computeSHA256(buf);
-
-          const totalSteps = 8;
-          for (let s = 1; s <= totalSteps; s++) {
-            await new Promise((r) => setTimeout(r, 80));
-            const sent = Math.round((file.size * s) / totalSteps);
-            card?.updateProgress({
-              bytesSent: sent,
-              bytesTotal: file.size,
-              chunksComplete: s * 10,
-              chunksTotal: totalSteps * 10,
-              speedBps: file.size / 0.6,
-              etaSeconds: (totalSteps - s) * 0.08,
-            });
-          }
-
-          card?.complete({
-            sha256,
-            isMetadataStripped,
-            onDownload: () => downloadFile(new Blob([buf], { type: file.type }), file.name),
-          });
-        }
-      } finally {
-        void wakeLock.release('transfer');
-      }
-      return;
-    }
-
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') return;
     if (this.isSendingFile) {
       alert('Another file transfer is already in progress.');
@@ -1329,7 +1164,6 @@ export class App {
     this.workspace = null;
     this.roomCode = '';
     this.isSendingFile = false;
-    this.isPreviewMode = false;
     if (this.virtualDrive) {
       this.virtualDrive.cleanup();
       this.virtualDrive = null;

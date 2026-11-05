@@ -5,7 +5,7 @@
  *   - Privacy Policy (Zero cloud storage, transport encryption, SHA-256 verification, use cases)
  *   - Fair Usage Policy (Lawful personal/professional use, prohibited abuse)
  *   - Disclaimer ("AS IS", limitation of liability, peer-to-peer nature)
- *   - Changelog (v0.0.57-beta through v0.0.1-beta)
+ *   - Changelog (v0.0.60-beta through v0.0.1-beta)
  *   - Direct In-App Contact Form with 2-per-week rate limit (email hidden from plain view)
  */
 
@@ -319,8 +319,26 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
-            <span class="changelog-version">v0.0.57-beta</span>
+            <span class="changelog-version">v0.0.60-beta</span>
             <span class="changelog-date">Current Release</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>In-App Camera QR Code Scanner:</strong> Integrated direct camera QR scanner into the Receive Files section using hardware-accelerated <code>BarcodeDetector</code> with universal <code>jsQR</code> fallback for instant 1-tap room connection without manual code entry.</li>
+            <li><strong>Direct Deep-Link Room Auto-Join:</strong> Scanning sender QR codes externally or visiting <code>?room=XYZ</code> / <code>#room=XYZ</code> links now joins the room immediately, bypassing onboarding dialogues.</li>
+            <li><strong>Streamlined True P2P Architecture (Removed Demo Mode):</strong> Completely removed the simulated demo chat and demo file transfer mode so the application operates strictly on authentic end-to-end encrypted direct peer channels.</li>
+            <li><strong>Apple &amp; Google HIG Squircle Navbar:</strong> Redesigned navigation bar with floating squircle island geometry, removed redundant "Direct Share" navbar button, and polished responsive mobile dock.</li>
+            <li><strong>Stepper Layout Overflow Guard:</strong> Compact responsive Quick Transfer setup steps (<code>1. Name</code>, <code>2. Connect</code>, <code>3. Send</code>) with strict <code>min-width: 0</code> and ellipsis clipping, eliminating container boundary overflow.</li>
+            <li><strong>Prominent Navigation Controls:</strong> Styled high-contrast <code>← Back</code> pill buttons in both Share and Receive file screens.</li>
+            <li><strong>Cohesive Emerald Status System:</strong> Uniform glowing emerald status indicators across connection radars, setup cards, and active pairing headers.</li>
+            <li><strong>Privacy &amp; Security Enhancements:</strong> Obfuscated developer contact email to prevent web scraper harvesting, added 1.5px geometric SVG icons to all policy cards, and restructured Prohibited Activities with high-contrast safety badges.</li>
+            <li><strong>Slim Squircle Modal Scrollbars:</strong> Standardized custom 6px squircle scrollbars across all legal policy and changelog dialogs.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.57-beta</span>
+            <span class="changelog-date">Multi-Stream Engine</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Swiss Architectural Daylight &amp; Slate Design System:</strong> Overhauled visual design with clean daylight default (#F6F5F0), refined slate dark mode, crisp 1.5px geometric SVGs, and zero orange or emoji artifacts.</li>
@@ -591,7 +609,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.57-beta\n` +
+            `App Version:   v0.0.60-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

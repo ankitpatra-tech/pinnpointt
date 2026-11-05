@@ -387,8 +387,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version tabular-nums',
-    textContent: 'v0.0.57-beta',
-    title: 'PinnPointt Version 0.0.57 Beta',
+    textContent: 'v0.0.60-beta',
+    title: 'PinnPointt Version 0.0.60 Beta',
   });
   meta.append(subtitle, version);
 
@@ -565,7 +565,6 @@ export function createOnboarding(
 export interface PairCallbacks {
   onCreateRoom: () => void;
   onJoinRoom: () => void;
-  onPreviewWorkspace?: () => void;
 }
 
 export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
@@ -595,17 +594,6 @@ export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
 
   options.append(createOpt, joinOpt);
   container.append(options);
-
-  if (callbacks.onPreviewWorkspace) {
-    const previewBtn = el('button', {
-      className: 'btn-preview',
-      type: 'button',
-      title: 'Test file transfer and live notes in interactive demo mode',
-    });
-    previewBtn.innerHTML = `${iconPlay({ size: 14 })} <span>Try Interactive Demo (Chat &amp; File Sharing)</span>`;
-    previewBtn.addEventListener('click', callbacks.onPreviewWorkspace);
-    container.append(previewBtn);
-  }
 
   return container;
 }
