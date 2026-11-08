@@ -127,11 +127,15 @@ export function openDocModal(initialTab: DocTab = 'privacy'): void {
 
   // Close on Escape key
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      window.removeEventListener('keydown', handleKeydown);
+      closeModal();
+    }
   };
   window.addEventListener('keydown', handleKeydown);
 
   document.body.append(overlay);
+  document.body.classList.add('modal-open');
   activeOverlay = overlay;
 }
 
@@ -139,6 +143,7 @@ export function closeModal(): void {
   if (activeOverlay) {
     activeOverlay.remove();
     activeOverlay = null;
+    document.body.classList.remove('modal-open');
   }
 }
 

@@ -73,8 +73,11 @@ export function openOnboardingModal(onStart?: () => void): void {
 
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
+  document.body.classList.add('modal-open');
 
   const close = () => {
+    window.removeEventListener('keydown', handleKeydown);
+    document.body.classList.remove('modal-open');
     const checkbox = modal.querySelector('#onboarding-dont-show') as HTMLInputElement | null;
     if (checkbox?.checked) {
       localStorage.setItem('pinnpointt_onboarding_dismissed', '1');

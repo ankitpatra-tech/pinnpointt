@@ -102,6 +102,7 @@ export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Prom
   modal.append(header, banner, body, footer);
   backdrop.append(modal);
   document.body.append(backdrop);
+  document.body.classList.add('modal-open');
 
   let bitmap: ImageBitmap | null = null;
   let objectUrl: string | null = null;
@@ -128,6 +129,8 @@ export async function openZeroTraceViewer(options: ZeroTraceViewerOptions): Prom
   };
 
   const closeViewer = () => {
+    window.removeEventListener('keydown', handleKeydown);
+    document.body.classList.remove('modal-open');
     wipeMemory();
     backdrop.remove();
     options.onClose?.();

@@ -92,8 +92,19 @@ export function openVfsPreviewModal(options: {
   modal.append(header, body, notice, footer);
   backdrop.append(modal);
   document.body.append(backdrop);
+  document.body.classList.add('modal-open');
+
+  const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      window.removeEventListener('keydown', handleKeydown);
+      close();
+    }
+  };
+  window.addEventListener('keydown', handleKeydown);
 
   const close = () => {
+    window.removeEventListener('keydown', handleKeydown);
+    document.body.classList.remove('modal-open');
     backdrop.remove();
     options.onClose?.();
   };
