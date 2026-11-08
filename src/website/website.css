@@ -801,6 +801,85 @@
   color: var(--warning);
 }
 
+/* ── Security & Proof Grid ─────────────────────────── */
+.security-section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.security-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.proof-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.proof-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.proof-metric {
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 3.5vw, 30px);
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.6px;
+  line-height: 1.1;
+}
+
+.proof-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.proof-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.proof-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .security-proof-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .security-proof-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Threat Sandbox File Shield ────────────────────── */
 .threat-sandbox-card {
   background: var(--bg-surface);
@@ -1131,6 +1210,36 @@
 }
 
 /* ── Roadmap Section ───────────────────────────────── */
+.roadmap-disclaimer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 720px;
+  margin: 14px auto 0;
+  line-height: 1.5;
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.roadmap-disclaimer-pill .disclaimer-badge {
+  background: var(--warning-dim);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
 .roadmap-timeline {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

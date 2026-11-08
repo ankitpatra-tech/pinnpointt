@@ -1279,16 +1279,14 @@ export class App {
               sha256: received.sha256,
               isDirectDiskSave: received.isDirectDiskSave,
               isMetadataStripped: received.isMetadataStripped,
-              onDownload: received.isDirectDiskSave
-                ? undefined
-                : () => {
-                    downloadFile(received.blob, received.name);
-                    if (received.cleanup) {
-                      setTimeout(() => {
-                        void received.cleanup?.();
-                      }, 2500);
-                    }
-                  },
+              onDownload: () => {
+                downloadFile(received.blob, received.name);
+                if (received.cleanup) {
+                  setTimeout(() => {
+                    void received.cleanup?.();
+                  }, 2500);
+                }
+              },
             });
           }
           listenNext();

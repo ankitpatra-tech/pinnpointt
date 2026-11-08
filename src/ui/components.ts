@@ -206,17 +206,21 @@ export function createNavbar(
   if (peerInfo) {
     const pill = el('div', { className: 'header-connected-pill workspace-peer-badge' });
     pill.innerHTML = `
-      <span class="status-dot connected"></span>
-      <span class="peer-text">Connected to <strong class="peer-name">${peerInfo.name}</strong></span>
-      <span class="pill-divider">•</span>
-      <span class="room-pill-code mono">Room ${peerInfo.roomCode}</span>
-      <span class="workspace-e2e-badge text-xs">${iconLock({ size: 11 })} Direct &amp; Private</span>
+      <div class="header-peer-chip">
+        <span class="status-dot connected"></span>
+        <span class="peer-text">Connected: <strong class="peer-name">${peerInfo.name}</strong></span>
+      </div>
+      <div class="header-meta-group">
+        <span class="room-pill-code mono">Room ${peerInfo.roomCode}</span>
+        <span class="workspace-e2e-badge text-xs">${iconLock({ size: 11 })} Direct &amp; Private</span>
+      </div>
     `;
 
     const discBtn = el('button', {
       type: 'button',
       className: 'btn-pill-disconnect text-xs',
       textContent: 'Disconnect',
+      title: 'Disconnect and end secure session',
     });
     discBtn.addEventListener('click', peerInfo.onDisconnect);
     pill.append(discBtn);
@@ -248,7 +252,7 @@ export function createNavbar(
   const aboutLink = el('a', {
     className: 'nav-website-link text-xs',
     href: '/',
-    textContent: 'About & Roadmap ↗',
+    textContent: 'Roadmap ↗',
     title: 'Why PinnPointt, Features & Open Source Roadmap',
   });
 
@@ -1265,10 +1269,48 @@ export function createConnectedWorkspace(
 ): WorkspaceController {
   const container = el('div', { className: 'app-connected-workspace fade-in' });
 
-  // ── MAIN SHARING STAGE (Left / Center 1fr) ──
-  const mainStage = el('div', { className: 'connected-main-stage' });
+  // ── MOBILE TAB SWITCHER (Transfers | Chat & Notes | Virtual Drive) ──
+  const mobileTabRow = el('div', { className: 'mobile-workspace-tabs' });
+  const mobTransfersBtn = el('button', {
+    type: 'button',
+    className: 'mobile-tab-btn active',
+  });
+  mobTransfersBtn.innerHTML = `<span>Transfers &amp; Activity</span>`;
 
-  // Top Switcher Tabs (Send & Receive Files | Browse Other Device's Files)
+  const mobChatBtn = el('button', {
+    type: 'button',
+    className: 'mobile-tab-btn',
+  });
+  mobChatBtn.innerHTML = `<span>Chat &amp; Notes</span>`;
+
+  const mobDriveBtn = el('button', {
+    type: 'button',
+    className: 'mobile-tab-btn',
+  });
+  mobDriveBtn.innerHTML = `<span>Virtual Drive</span>`;
+
+  mobileTabRow.append(mobTransfersBtn, mobChatBtn, mobDriveBtn);
+
+  function setMobileView(view: 'transfers' | 'chat' | 'drive') {
+    mobTransfersBtn.classList.toggle('active', view === 'transfers');
+    mobChatBtn.classList.toggle('active', view === 'chat');
+    mobDriveBtn.classList.toggle('active', view === 'drive');
+    container.setAttribute('data-mobile-view', view);
+    if (view === 'transfers') {
+      switchTab('activity');
+    } else if (view === 'drive') {
+      switchTab('drive');
+    }
+  }
+
+  mobTransfersBtn.addEventListener('click', () => setMobileView('transfers'));
+  mobChatBtn.addEventListener('click', () => setMobileView('chat'));
+  mobDriveBtn.addEventListener('click', () => setMobileView('drive'));
+
+  // ── MAIN SHARING STAGE (Left / Center 1fr) ──
+  const mainStage = el('div', { className: 'connected-main-stage studio-pane' });
+
+  // Top Switcher Tabs (File Transfers & Activity | Virtual Drive Explorer)
   const tabRow = el('div', { className: 'workspace-tab-row' });
   const activityTabBtn = el('button', {
     type: 'button',
@@ -1282,7 +1324,7 @@ export function createConnectedWorkspace(
     className: 'workspace-tab-btn',
   });
   driveTabBtn.setAttribute('data-tab', 'drive');
-  const driveTabTitle = el('span', {}, 'Explore Other Device');
+  const driveTabTitle = el('span', {}, 'Virtual Drive Explorer');
   const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums' });
   driveTabBadge.style.display = 'none';
   driveTabBtn.append(driveTabTitle, driveTabBadge);
@@ -1308,7 +1350,7 @@ export function createConnectedWorkspace(
 
   let isMountMode = false;
   const handleIncomingFiles = (files: FileList) => {
-    if (isMountMode) {
+    if (isMountMode || drivePanel.style.display !== 'none') {
       callbacks.onMountFiles?.(files);
       switchTab('drive');
     } else {
@@ -1330,8 +1372,6 @@ export function createConnectedWorkspace(
     }
   });
 
-  mainStage.append(fileInput, folderInput);
-
   // Panels
   const activityPanel = el('div', { className: 'workspace-panel activity-panel stack stack-md' });
   const drivePanel = el('div', { className: 'workspace-panel drive-panel stack stack-md' });
@@ -1343,23 +1383,29 @@ export function createConnectedWorkspace(
       driveTabBtn.classList.remove('active');
       activityPanel.style.display = 'flex';
       drivePanel.style.display = 'none';
+      isMountMode = false;
     } else {
       driveTabBtn.classList.add('active');
       activityTabBtn.classList.remove('active');
       activityPanel.style.display = 'none';
       drivePanel.style.display = 'flex';
+      isMountMode = true;
     }
   }
 
   activityTabBtn.addEventListener('click', () => switchTab('activity'));
   driveTabBtn.addEventListener('click', () => switchTab('drive'));
 
-  // Clean Dropzone Banner at Top of Stage
+  // Sleek Glass Dropzone Staging Bar
   const dropzone = el('div', { className: 'stage-dropzone' });
   dropzone.innerHTML = `
-    <div class="stage-dropzone-icon">${iconUpload({ size: 24 })}</div>
-    <div class="stage-dropzone-title">Add More Files or Folders</div>
-    <div class="stage-dropzone-sub">Drop files anywhere, or select to stream immediately across your direct link.</div>
+    <div class="stage-dropzone-left">
+      <div class="stage-dropzone-icon">${iconUpload({ size: 20 })}</div>
+      <div class="stage-dropzone-text">
+        <div class="stage-dropzone-title font-semibold text-xs">Drop Files to Stream</div>
+        <div class="stage-dropzone-sub text-xs muted">Unlimited size • Direct P2P stream</div>
+      </div>
+    </div>
   `;
 
   const dropActions = el('div', { className: 'stage-dropzone-actions' });
@@ -1367,9 +1413,10 @@ export function createConnectedWorkspace(
     type: 'button',
     className: 'btn btn-primary btn-sm stage-dropzone-btn',
   });
-  browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Browse Files</span>`;
+  browseFilesBtn.innerHTML = `${iconFile({ size: 13 })} <span>Browse Files</span>`;
   browseFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    isMountMode = false;
     fileInput.click();
   });
 
@@ -1377,9 +1424,10 @@ export function createConnectedWorkspace(
     type: 'button',
     className: 'btn btn-secondary btn-sm',
   });
-  browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Add Folder</span>`;
+  browseFolderBtn.innerHTML = `${iconFolder({ size: 13 })} <span>Add Folder</span>`;
   browseFolderBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    isMountMode = false;
     folderInput.click();
   });
 
@@ -1389,7 +1437,7 @@ export function createConnectedWorkspace(
   });
   const privacyCheckbox = el('input', {
     type: 'checkbox',
-    id: 'toggle-zero-trace',
+    id: 'toggle-privacy-shield',
     className: 'toggle-checkbox',
   }) as HTMLInputElement;
   privacyCheckbox.checked = true;
@@ -1398,11 +1446,29 @@ export function createConnectedWorkspace(
     privacyShieldChecked = privacyCheckbox.checked;
   });
   const privacyLabel = el('span', { className: 'toggle-pill-label text-xs' });
-  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Remove Photo Locations</span>`;
+  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Remove Locations</span>`;
   privacyPill.append(privacyCheckbox, privacyLabel);
   privacyPill.addEventListener('click', (e) => e.stopPropagation());
 
-  dropActions.append(browseFilesBtn, browseFolderBtn, privacyPill);
+  const zeroTracePill = el('label', {
+    className: 'clean-toggle-pill stage-zero-trace-toggle',
+    title: 'Ephemeral view-only mode: preview directly in memory without saving to disk',
+  });
+  const zeroTraceCheckbox = el('input', {
+    type: 'checkbox',
+    id: 'toggle-zero-trace',
+    className: 'toggle-checkbox',
+  }) as HTMLInputElement;
+  zeroTraceCheckbox.checked = false;
+  zeroTraceCheckbox.addEventListener('change', (e) => {
+    e.stopPropagation();
+  });
+  const zeroTraceLabel = el('span', { className: 'toggle-pill-label text-xs' });
+  zeroTraceLabel.innerHTML = `${iconEye({ size: 12 })} <span>Zero-Trace</span>`;
+  zeroTracePill.append(zeroTraceCheckbox, zeroTraceLabel);
+  zeroTracePill.addEventListener('click', (e) => e.stopPropagation());
+
+  dropActions.append(browseFilesBtn, browseFolderBtn, privacyPill, zeroTracePill);
   dropzone.append(dropActions);
 
   dropzone.addEventListener('click', () => fileInput.click());
@@ -1444,16 +1510,22 @@ export function createConnectedWorkspace(
     className: 'btn btn-secondary btn-sm',
   });
   mountFilesBtn.innerHTML = `${iconFile({ size: 13 })} <span>Mount Files</span>`;
-  mountFilesBtn.addEventListener('click', () => fileInput.click());
+  mountFilesBtn.addEventListener('click', () => {
+    isMountMode = true;
+    fileInput.click();
+  });
 
   const mountFolderBtn = el('button', {
     type: 'button',
     className: 'btn btn-secondary btn-sm',
   });
   mountFolderBtn.innerHTML = `${iconFolder({ size: 13 })} <span>Mount Folder</span>`;
-  mountFolderBtn.addEventListener('click', () => folderInput.click());
+  mountFolderBtn.addEventListener('click', () => {
+    isMountMode = true;
+    folderInput.click();
+  });
 
-  mountActions.append(mountFilesBtn, mountFolderBtn);
+  mountActions.append(mountFilesBtn, mountFolderBtn, fileInput, folderInput);
   driveTopBar.append(driveBarLeft, mountActions);
 
   const localVfsContainer = el('div', { className: 'vfs-local-container' });
@@ -1462,13 +1534,25 @@ export function createConnectedWorkspace(
   drivePanel.append(driveTopBar, localVfsContainer, remoteVfsContainer);
   mainStage.append(activityPanel, drivePanel);
 
-  // ── RIGHT DRAWER: Shared Notes & Links (340px) ──
-  const rightDrawer = el('div', { className: 'connected-notes-drawer' });
+  // ── RIGHT DRAWER: Shared Notes & Links (Studio Pane) ──
+  const rightDrawer = el('div', { className: 'connected-notes-drawer studio-pane' });
 
-  const drawerHeader = el('div', { className: 'drawer-header stack stack-xs' });
+  const drawerHeader = el('div', { className: 'drawer-header row-between' });
+  const drawerTitleGroup = el('div', { className: 'drawer-title-group stack stack-xs' });
   const drawerTitle = el('div', { className: 'drawer-title font-semibold text-sm', textContent: 'Shared Notes & Links' });
-  const drawerSubtitle = el('div', { className: 'drawer-subtitle text-xs muted', textContent: 'Send a quick link or message to the other device' });
-  drawerHeader.append(drawerTitle, drawerSubtitle);
+  const drawerSubtitle = el('div', { className: 'drawer-subtitle text-xs muted', textContent: 'Instant peer-to-peer messaging & clipboard' });
+  drawerTitleGroup.append(drawerTitle, drawerSubtitle);
+
+  const clipboardBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-secondary btn-sm btn-clipboard-sync text-xs',
+    title: 'Share clipboard content with other device',
+  });
+  clipboardBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Sync Clipboard</span>`;
+  clipboardBtn.addEventListener('click', () => {
+    callbacks.onSendClipboard?.();
+  });
+  drawerHeader.append(drawerTitleGroup, clipboardBtn);
 
   const chatFeed = el('div', { className: 'chat-feed' });
   const scrollToChatBottom = () => {
@@ -1477,28 +1561,11 @@ export function createConnectedWorkspace(
     });
   };
 
-  const toolsBar = el('div', { className: 'workspace-tools-bar row-between' });
-  const clipboardBtn = el('button', {
-    type: 'button',
-    className: 'btn-clipboard-sync text-xs',
-    title: 'Share clipboard content with other device',
-  });
-  clipboardBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Share Clipboard</span>`;
-  clipboardBtn.addEventListener('click', () => {
-    callbacks.onSendClipboard?.();
-  });
-
-  const toolsHint = el('span', {
-    className: 'tools-hint text-xs muted',
-    textContent: 'Ctrl+V anywhere to send',
-  });
-  toolsBar.append(clipboardBtn, toolsHint);
-
   const inputRow = el('div', { className: 'chat-input-row' });
   const attachBtn = el('button', {
     className: 'btn-attach',
     type: 'button',
-    title: 'Attach file',
+    title: 'Attach file to send',
   });
   attachBtn.innerHTML = `${iconPaperclip({ size: 14 })}`;
   attachBtn.addEventListener('click', () => fileInput.click());
@@ -1533,9 +1600,9 @@ export function createConnectedWorkspace(
   });
 
   inputRow.append(attachBtn, textInput, sendBtn);
-  rightDrawer.append(drawerHeader, chatFeed, toolsBar, inputRow);
+  rightDrawer.append(drawerHeader, chatFeed, inputRow);
 
-  container.append(mainStage, rightDrawer);
+  container.append(mobileTabRow, mainStage, rightDrawer);
 
   let localVfsList: VfsFileEntry[] = [];
   let remoteVfsList: VfsFileEntry[] = [];
@@ -1606,7 +1673,7 @@ export function createConnectedWorkspace(
       return privacyShieldChecked;
     },
     getZeroTraceEnabled() {
-      return privacyCheckbox.checked;
+      return zeroTraceCheckbox.checked;
     },
     addClipboardItem(item: ClipboardItemData, isMine: boolean) {
       const row = el('div', { className: `chat-msg ${isMine ? 'mine' : 'peer'}` });
@@ -1838,7 +1905,9 @@ export function createConnectedWorkspace(
               });
               savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk</span>`;
               doneRow.append(savedBadge);
-            } else if (safety.riskLevel === 'warning') {
+            }
+
+            if (safety.riskLevel === 'warning') {
               const warningBadge = el('div', { className: 'feed-file-threat warning text-xs' });
               warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Executable</span>`;
               doneRow.append(warningBadge);
