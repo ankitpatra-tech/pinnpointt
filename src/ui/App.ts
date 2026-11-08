@@ -26,7 +26,7 @@ import {
   formatBytes,
   type WorkspaceController,
 } from './components';
-import { iconSun, iconMoon, iconUpload, iconShare, iconKey } from './icons';
+import { iconSun, iconMoon, iconUpload, iconShare, iconKey, iconCamera } from './icons';
 import { openDocModal } from './legalModal';
 import { openOnboardingModal, shouldShowOnboardingOnStartup } from './onboardingModal';
 import { createInstallBanner } from '../lib/pwaInstaller';
@@ -255,35 +255,49 @@ export class App {
 
     // PRIMARY CARD: Single Unified Apple/Linear-Grade Glass Surface
     const card = document.createElement('div');
-    card.className = 'card pairing-card stack stack-md unified-pairing-system';
+    card.className = 'card pairing-card unified-pairing-system';
 
-    // 1. Unified Glass Header inside Card (System Indicator + Sliding Segmented Control)
+    // 1. Unified Glass Header inside Card (System Indicator / Back Action on Left, Device Name on Right)
     const glassHeader = document.createElement('div');
     glassHeader.className = 'pairing-glass-header-row';
 
-    const systemStatus = document.createElement('div');
-    systemStatus.className = 'pairing-system-status';
-    systemStatus.innerHTML = `
-      <span class="ready-status-dot"></span>
-      <span class="font-semibold text-xs">Direct P2P Link</span>
-      <span class="text-xs muted">• End-to-End Encrypted</span>
-    `;
-
-    const pairSelection = createPairSelection({
-      activeMode: this.state === 'joining' ? 'receive' : this.state === 'creating' ? 'share' : 'idle',
-      onCreateRoom: () => {
-        if (this.state !== 'creating') {
-          this.handleCreateRoom();
-        }
-      },
-      onJoinRoom: () => {
-        if (this.state !== 'joining') {
-          this.transition('joining');
-        }
-      },
+    const userBar = createUsernameBar(this.myUsername, (newName) => {
+      this.updateMyUsername(newName);
     });
 
-    glassHeader.append(systemStatus, pairSelection);
+    if (this.state === 'idle') {
+      const systemStatus = document.createElement('div');
+      systemStatus.className = 'pairing-system-status';
+      systemStatus.innerHTML = `
+        <span class="ready-status-dot"></span>
+        <span class="font-semibold text-xs">Direct P2P Link</span>
+        <span class="text-xs muted">• End-to-End Encrypted</span>
+      `;
+      glassHeader.append(systemStatus, userBar);
+    } else {
+      const leftHeader = document.createElement('div');
+      leftHeader.className = 'pairing-active-header-left';
+
+      const backBtn = document.createElement('button');
+      backBtn.className = 'btn-subtle-back btn-back-room';
+      backBtn.type = 'button';
+      backBtn.title = 'Return to mode selection';
+      backBtn.innerHTML = `<span>←</span> <span>Back</span>`;
+      backBtn.addEventListener('click', () => {
+        this.cleanup();
+        this.transition('idle');
+      });
+
+      const modeBadge = document.createElement('div');
+      modeBadge.className = 'ready-to-connect-badge';
+      modeBadge.innerHTML = `
+        <span class="ready-status-dot"></span>
+        <span>${this.state === 'creating' ? 'Send Files' : 'Receive Files'}</span>
+      `;
+
+      leftHeader.append(backBtn, modeBadge);
+      glassHeader.append(leftHeader, userBar);
+    }
     card.append(glassHeader);
 
     // Hidden backward-compatibility elements for automated DOM selectors
@@ -294,64 +308,76 @@ export class App {
 
     if (this.state === 'idle') {
       const dualStation = document.createElement('div');
-      dualStation.className = 'desktop-dual-station fade-in';
+      dualStation.className = 'desktop-dual-station pair-options fade-in';
 
-      // Left Wing: Send Files Station
+      // Left Wing: Send Files Station (Has class .pair-option and data-mode="share")
       const sendWing = document.createElement('div');
-      sendWing.className = 'dual-station-wing send-wing';
+      sendWing.className = 'dual-station-wing send-wing pair-option';
+      sendWing.setAttribute('data-mode', 'share');
       sendWing.innerHTML = `
         <div class="wing-header">
+          <div class="wing-icon-circle send-icon-circle">
+            ${iconShare({ size: 24 })}
+          </div>
           <span class="wing-badge-pill send-badge">SEND FILES</span>
-          <h3 class="wing-title font-semibold">Share Files Directly</h3>
-          <p class="wing-desc text-xs muted">Instant encrypted peer-to-peer stream without size limits or server storage.</p>
+          <h3 class="wing-title font-semibold">Send Files Directly</h3>
+          <p class="wing-desc text-xs muted">Create an encrypted direct peer connection to stream files of any size without server storage.</p>
         </div>
       `;
 
       const sendBtn = document.createElement('button');
       sendBtn.type = 'button';
       sendBtn.className = 'btn btn-primary btn-lg w-full btn-start-send';
-      sendBtn.innerHTML = `${iconShare({ size: 18 })} <span>Start Sending Files</span>`;
-      sendBtn.addEventListener('click', () => this.handleCreateRoom());
-
-      const userBarLeft = createUsernameBar(this.myUsername, (newName) => {
-        this.updateMyUsername(newName);
+      sendBtn.innerHTML = `${iconShare({ size: 18 })} <span>Start Sending Files →</span>`;
+      sendBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.handleCreateRoom();
       });
 
-      sendWing.append(sendBtn, userBarLeft);
+      sendWing.append(sendBtn);
+      sendWing.addEventListener('click', () => this.handleCreateRoom());
 
       // Center Divider
       const divider = document.createElement('div');
       divider.className = 'dual-station-divider';
       divider.innerHTML = `<div class="divider-line"></div><span class="divider-pill">OR</span><div class="divider-line"></div>`;
 
-      // Right Wing: Receive Files Station
+      // Right Wing: Receive Files Station (Has class .pair-option and data-mode="receive")
       const receiveWing = document.createElement('div');
-      receiveWing.className = 'dual-station-wing receive-wing';
+      receiveWing.className = 'dual-station-wing receive-wing pair-option';
+      receiveWing.setAttribute('data-mode', 'receive');
       receiveWing.innerHTML = `
         <div class="wing-header">
+          <div class="wing-icon-circle receive-icon-circle">
+            ${iconKey({ size: 24 })}
+          </div>
           <span class="wing-badge-pill receive-badge">RECEIVE FILES</span>
           <h3 class="wing-title font-semibold">Receive on this Device</h3>
-          <p class="wing-desc text-xs muted">Open your camera to scan a QR code, or enter a 6-letter room PIN below.</p>
+          <p class="wing-desc text-xs muted">Scan sender's QR code with your camera, or enter their 6-letter room PIN below.</p>
         </div>
       `;
 
       const receiveBtn = document.createElement('button');
       receiveBtn.type = 'button';
       receiveBtn.className = 'btn btn-secondary w-full btn-start-receive';
-      receiveBtn.innerHTML = `${iconKey({ size: 16 })} <span>Scan QR Code with Camera</span>`;
-      receiveBtn.addEventListener('click', () => this.transition('joining'));
+      receiveBtn.innerHTML = `${iconCamera({ size: 16 })} <span>Scan QR Code with Camera</span>`;
+      receiveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.transition('joining');
+      });
 
       const quickJoinWrap = document.createElement('div');
       quickJoinWrap.className = 'quick-join-row-wrap';
-      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs font-semibold">Instant 6-Letter PIN:</div>`;
+      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs font-semibold">Or enter 6-letter PIN:</div>`;
       const inputGroup = document.createElement('div');
       inputGroup.className = 'quick-join-input-group';
       const quickInput = document.createElement('input');
       quickInput.type = 'text';
       quickInput.className = 'quick-join-input mono';
-      quickInput.placeholder = 'Enter 6-letter PIN...';
+      quickInput.placeholder = '6-LETTER PIN...';
       quickInput.maxLength = 6;
       quickInput.autocomplete = 'off';
+      quickInput.addEventListener('click', (e) => e.stopPropagation());
 
       const quickBtn = document.createElement('button');
       quickBtn.type = 'button';
@@ -364,7 +390,10 @@ export class App {
           this.handleJoinRoom(val);
         }
       };
-      quickBtn.addEventListener('click', submitQuick);
+      quickBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        submitQuick();
+      });
       quickInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') submitQuick();
       });
@@ -373,6 +402,11 @@ export class App {
       quickJoinWrap.append(inputGroup);
 
       receiveWing.append(receiveBtn, quickJoinWrap);
+      receiveWing.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'BUTTON') {
+          this.transition('joining');
+        }
+      });
 
       dualStation.append(sendWing, divider, receiveWing);
       card.append(dualStation);
@@ -388,23 +422,12 @@ export class App {
       canvas.height = 180;
       setTimeout(() => this.renderQRCodeIntoCanvas(canvas), 10);
 
-      const roomDisplay = createRoomDisplay(
-        this.roomCode,
-        canvas,
-        () => {
-          this.cleanup();
-          this.transition('idle');
-        },
-        (code) => this.handleJoinRoom(code)
-      );
+      // Dedicated Room Connection Display (clean QR, PIN, and copy links without duplicate back row)
+      const roomDisplay = createRoomDisplay(this.roomCode, canvas);
       leftCol.append(roomDisplay);
 
       const rightCol = document.createElement('div');
       rightCol.className = 'split-col split-col-right stack stack-md';
-
-      const userBar = createUsernameBar(this.myUsername, (newName) => {
-        this.updateMyUsername(newName);
-      });
 
       const dropSurface = createDropZoneReadySurface({
         onFilesSelected: (files) => this.handleQueueOrSendFiles(files),
@@ -420,7 +443,7 @@ export class App {
         },
       });
 
-      rightCol.append(userBar, dropSurface);
+      rightCol.append(dropSurface);
       splitView.append(leftCol, rightCol);
       card.append(splitView);
     } else if (this.state === 'joining') {
@@ -449,6 +472,9 @@ export class App {
           this.cleanup();
           this.transition('idle');
         });
+        // Hide duplicate inner header row since card header already has ← Back and mode badge
+        const innerHeader = element.querySelector('.room-header-row') as HTMLElement | null;
+        if (innerHeader) innerHeader.style.display = 'none';
 
         const splitView = document.createElement('div');
         splitView.className = 'pairing-split-view fade-in';
@@ -460,21 +486,22 @@ export class App {
         const rightCol = document.createElement('div');
         rightCol.className = 'split-col split-col-right stack stack-md';
 
-        const userBar = createUsernameBar(this.myUsername, (newName) => {
-          this.updateMyUsername(newName);
-        });
-
         const securityBadge = document.createElement('div');
-        securityBadge.className = 'dual-station-wing';
+        securityBadge.className = 'dual-station-wing receive-wing';
         securityBadge.innerHTML = `
           <div class="wing-header">
             <span class="wing-badge-pill receive-badge">SECURE RECEPTION</span>
             <h4 class="font-semibold" style="margin: 0; color: var(--text-bright);">Direct Memory Stream</h4>
-            <p class="text-xs muted" style="margin: 0; line-height: 1.45;">Transfers travel directly between peer memories via WebRTC DTLS encryption. No intermediate servers ever store your files or keys.</p>
+            <p class="text-xs muted" style="margin: 0; line-height: 1.5;">Transfers travel directly between peer memories via WebRTC DTLS 1.3 encryption. No intermediate servers ever store your files or keys.</p>
+          </div>
+          <div class="security-feature-list stack stack-xs mt-sm text-xs muted">
+            <div class="row-start gap-xs"><span>🔒</span> <span>Authenticated peer handshake</span></div>
+            <div class="row-start gap-xs"><span>⚡</span> <span>Multi-channel chunk pipeline</span></div>
+            <div class="row-start gap-xs"><span>🛡️</span> <span>Local SHA-256 integrity check</span></div>
           </div>
         `;
 
-        rightCol.append(userBar, securityBadge);
+        rightCol.append(securityBadge);
         splitView.append(leftCol, rightCol);
         card.append(splitView);
       }

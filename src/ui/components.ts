@@ -201,7 +201,7 @@ export function createNavbar(
     brand.addEventListener('click', onBrandClick);
   }
 
-  // Center Connection Area (Only displays active connected peer info)
+  // Center Connection Area (Active connected peer info or dynamic live telemetry)
   const centerArea = el('div', { className: 'nav-center-area' });
   if (peerInfo) {
     const pill = el('div', { className: 'header-connected-pill workspace-peer-badge' });
@@ -221,6 +221,14 @@ export function createNavbar(
     discBtn.addEventListener('click', peerInfo.onDisconnect);
     pill.append(discBtn);
     centerArea.append(pill);
+  } else {
+    const telemetry = el('div', { className: 'header-dynamic-telemetry' });
+    telemetry.innerHTML = `
+      <span class="nav-status-beacon"></span>
+      <span class="telemetry-bold text-xs">Direct P2P Link</span>
+      <span class="telemetry-sub text-xs muted">• End-to-End Encrypted</span>
+    `;
+    centerArea.append(telemetry);
   }
 
   // Right Actions
@@ -386,8 +394,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version tabular-nums',
-    textContent: 'v0.0.60-beta',
-    title: 'PinnPointt Version 0.0.60 Beta',
+    textContent: 'v0.0.61-beta',
+    title: 'PinnPointt Version 0.0.61 Beta',
   });
   meta.append(subtitle, version);
 
@@ -413,13 +421,9 @@ export function createUsernameBar(
   username: string,
   onUpdate: (newName: string) => void
 ): HTMLElement {
-  const card = el('div', { className: 'identity-card' });
+  const card = el('div', { className: 'identity-card identity-chip' });
 
-  const headerRow = el('div', { className: 'identity-card-header' });
-  const tag = el('div', { className: 'identity-tag text-xs font-semibold', textContent: 'Your Device Name' });
-  headerRow.append(tag);
-
-  const bodyRow = el('div', { className: 'identity-body' });
+  const labelTag = el('span', { className: 'identity-chip-label text-xs muted font-semibold', textContent: 'Device:' });
   const avatar = el('div', { className: 'avatar-monogram', textContent: getMonogram(username) });
 
   const inputWrap = el('div', { className: 'identity-input-wrap' });
@@ -427,9 +431,9 @@ export function createUsernameBar(
     className: 'identity-input username-input',
     type: 'text',
     value: username,
-    placeholder: 'Enter your device name...',
+    placeholder: 'Device name...',
     maxlength: '24',
-    title: 'Click to edit your display name',
+    title: 'Click to edit your device name',
   }) as HTMLInputElement;
 
   const randBtn = el('button', {
@@ -462,14 +466,7 @@ export function createUsernameBar(
   });
 
   inputWrap.append(input, randBtn);
-  bodyRow.append(avatar, inputWrap);
-
-  const hint = el('div', {
-    className: 'identity-hint text-xs muted',
-    textContent: 'This name is shown to your other device when connecting.',
-  });
-
-  card.append(headerRow, bodyRow, hint);
+  card.append(labelTag, avatar, inputWrap);
   return card;
 }
 
