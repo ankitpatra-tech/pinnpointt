@@ -319,8 +319,22 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.61-beta</span>
+            <span class="changelog-date">Current Release • Milestone 1</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Apple &amp; Linear-Grade Segmented Control:</strong> Replaced the cluttered multi-widget pairing card with an authentic Apple-style sliding segmented control (<code>Send Files</code> / <code>Receive Files</code>) with fluid spring physics.</li>
+            <li><strong>De-Cluttered State A Layout:</strong> Eliminated artificial setup steppers and fake radar alert banners. The pairing interface is now cleanly centered with balanced spatial proportions and zero off-center cutoffs.</li>
+            <li><strong>Specular Hardware Depth &amp; Tactile Scale Physics:</strong> Applied macOS/iOS-grade inner specular rim highlights (<code>inset 0 1px 0 rgba(255, 255, 255, 0.08)</code>), diffuse multi-layer drop shadows, and <code>scale(0.975)</code> tactile compression on all interactive buttons and tabs.</li>
+            <li><strong>Global Ambient Drag-and-Drop Surface:</strong> Dragging files anywhere into the browser window summons an ambient blurred backdrop scrim, staging files for immediate peer streaming the moment connection occurs.</li>
+            <li><strong>Unified Multi-Stage Container Image:</strong> Upgraded Docker deployment to a self-contained multi-stage build that compiles Vite assets directly in container builds, ensuring 100% production consistency across Render and cloud hosts.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.60-beta</span>
-            <span class="changelog-date">Current Release</span>
+            <span class="changelog-date">P2P Core</span>
           </div>
           <ul class="changelog-list">
             <li><strong>In-App Camera QR Code Scanner:</strong> Integrated direct camera QR scanner into the Receive Files section using hardware-accelerated <code>BarcodeDetector</code> with universal <code>jsQR</code> fallback for instant 1-tap room connection without manual code entry.</li>
@@ -609,7 +623,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.60-beta\n` +
+            `App Version:   v0.0.61-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

@@ -1,20 +1,28 @@
 # ═════════════════════════════════════════════════════════════════
-# PinnPointt Ephemeral Signaling Server — Container Image
-# Ultra-lightweight Node.js Alpine container for 1-click free hosting
-# (Render.com, Koyeb, Fly.io, Railway, or Self-Hosted Docker)
+# PinnPointt Full-Stack Container (Signaling Server + Static Frontend)
+# Multi-stage Docker build for 1-click zero-config deployment on Render
 # ═════════════════════════════════════════════════════════════════
 
+# Stage 1: Build the Vite production bundle
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json tsconfig*.json vite.config.ts index.html about.html ./
+COPY public/ ./public/
+COPY src/ ./src/
+
+RUN npm install && npm run build
+
+# Stage 2: Ephemeral Relay Server + Production Dist
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy dependency manifests
 COPY package*.json ./
-
-# Install dependencies (including tsx for running TS scripts)
 RUN npm install --omit=dev && npm install -g tsx
 
-# Copy server code and configuration
+COPY --from=builder /app/dist ./dist
 COPY server/ ./server/
 COPY tsconfig.json ./
 

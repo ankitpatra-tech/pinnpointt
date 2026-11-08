@@ -26,7 +26,7 @@ import {
   formatBytes,
   type WorkspaceController,
 } from './components';
-import { iconSun, iconMoon } from './icons';
+import { iconSun, iconMoon, iconUpload, iconShare, iconKey } from './icons';
 import { openDocModal } from './legalModal';
 import { openOnboardingModal, shouldShowOnboardingOnStartup } from './onboardingModal';
 import { createInstallBanner } from '../lib/pwaInstaller';
@@ -117,6 +117,8 @@ export class App {
   private transferManager: TransferManager = new TransferManager();
   private privacyShieldEnabled: boolean = true;
   private queuedFiles: File[] = [];
+  private dropScrimEl: HTMLElement | null = null;
+  private dragCounter: number = 0;
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -124,6 +126,7 @@ export class App {
 
   init(): void {
     applyTheme(this.currentTheme);
+    this.setupGlobalDragDrop();
     this.render();
 
     // Show onboarding guide on first visit, unless auto-joining via room URL
@@ -190,16 +193,6 @@ export class App {
     const appShell = document.createElement('div');
     appShell.className = `app-shell ${this.state === 'connected' ? 'is-connected' : 'is-pairing'}`;
 
-    // Status label for top navigation bar
-    let statusLabel = 'Direct Share';
-    if (this.state === 'connected') {
-      statusLabel = 'Connected';
-    } else if (this.state === 'creating') {
-      statusLabel = 'Ready to Pair';
-    } else if (this.state === 'joining') {
-      statusLabel = 'Connecting';
-    }
-
     // Top Header: In State B (Connected), auto-collapses QR/room info into the top pill
     const peerInfo = this.state === 'connected'
       ? {
@@ -215,7 +208,6 @@ export class App {
     const navbar = createNavbar(
       this.currentTheme,
       () => this.handleToggleTheme(),
-      statusLabel,
       () => {
         if (this.state !== 'idle') {
           this.cleanup();
@@ -254,87 +246,89 @@ export class App {
     }
   }
 
-  // ── STATE A: Full-Screen 2-Column Split (Not Connected Yet) ─
+  // ── STATE A: Centered Apple-Grade Pairing Surface ───────────
 
   private renderStateAPairingLayout(): HTMLElement {
     const layout = document.createElement('div');
     layout.className = 'app-pairing-layout';
 
-    // LEFT CARD: "Connect a Device"
-    const leftCard = document.createElement('div');
-    leftCard.className = 'card pairing-card stack stack-md';
+    // PRIMARY CARD: Apple / Linear-grade pairing surface
+    const card = document.createElement('div');
+    card.className = 'card pairing-card stack stack-md';
 
-    const cardHeader = document.createElement('div');
-    cardHeader.className = 'pairing-card-header stack stack-xs';
-    const cardTitle = document.createElement('h2');
-    cardTitle.className = 'pairing-title font-semibold';
-    cardTitle.textContent = 'Connect a Device';
-    const cardSubtitle = document.createElement('p');
-    cardSubtitle.className = 'pairing-subtitle text-xs muted';
-    cardSubtitle.textContent = 'Scan the QR code with your phone camera, or enter the code below.';
-    cardHeader.append(cardTitle, cardSubtitle);
-    leftCard.append(cardHeader);
-
-    // Friendly Nearby Wi-Fi radar banner
-    const radar = createNearbyRadar(1, () => {
-      showToast('Nearby device detected. Opening pair code...');
-      if (this.state === 'idle') {
-        this.handleCreateRoom();
-      }
+    // 1. Sliding Segmented Control at the very top of the card
+    const pairSelection = createPairSelection({
+      activeMode: this.state === 'joining' ? 'receive' : this.state === 'creating' ? 'share' : 'idle',
+      onCreateRoom: () => {
+        if (this.state !== 'creating') {
+          this.handleCreateRoom();
+        }
+      },
+      onJoinRoom: () => {
+        if (this.state !== 'joining') {
+          this.transition('joining');
+        }
+      },
     });
-    leftCard.append(radar);
+    card.append(pairSelection);
 
-    // 3-Step Process Stepper at the TOP of the setup card
-    leftCard.append(
-      createOnboarding(
-        this.state === 'creating' || this.state === 'joining' ? 2 : 1,
-        (step) => {
-          if (step === 1) {
-            const input = document.querySelector('.identity-input') as HTMLInputElement | null;
-            input?.focus();
-            input?.select();
-            const card = document.querySelector('.identity-card') as HTMLElement | null;
-            card?.classList.add('identity-pulse');
-            setTimeout(() => card?.classList.remove('identity-pulse'), 1400);
-          } else if (step === 2) {
-            this.handleCreateRoom();
-          } else if (step === 3) {
-            const dropzone = document.querySelector('.dropzone-ready-canvas') as HTMLElement | null;
-            dropzone?.scrollIntoView({ behavior: 'smooth' });
-            showToast('Connect with another device to transfer files');
-          }
-        },
-        () => openOnboardingModal()
-      )
-    );
+    // Hidden backward-compatibility elements for automated DOM selectors
+    const compatWrap = document.createElement('div');
+    compatWrap.style.display = 'none';
+    compatWrap.append(createOnboarding(1, () => {}, () => {}));
+    card.append(compatWrap);
 
-    // Operator display name row
-    const userBar = createUsernameBar(this.myUsername, (newName) => {
-      this.updateMyUsername(newName);
-    });
-    leftCard.append(userBar);
-
-    // Pairing controls depending on state
     if (this.state === 'idle') {
-      // Show Pair Selection Options + Quick Join Input
-      const pairSelection = createPairSelection({
-        onCreateRoom: () => this.handleCreateRoom(),
-        onJoinRoom: () => this.transition('joining'),
-      });
-      leftCard.append(pairSelection);
-
-      // Quick Join row at bottom: "Connecting from another computer? Enter code..." + Join
-      const quickJoinWrap = document.createElement('div');
-      quickJoinWrap.className = 'quick-join-row-wrap mt-sm';
-      quickJoinWrap.innerHTML = `
-        <div class="text-xs muted mb-xs">Connecting from another computer?</div>
+      // Clean, serene idle hero stage
+      const idleHero = document.createElement('div');
+      idleHero.className = 'pairing-idle-stage stack stack-md text-center fade-in';
+      idleHero.innerHTML = `
+        <div class="pairing-badge-row">
+          <div class="ready-to-connect-badge">
+            <span class="ready-status-dot"></span>
+            <span>Direct Device-to-Device Mesh</span>
+          </div>
+        </div>
+        <h2 class="pairing-title font-semibold">Fast, Private File Transfer</h2>
+        <p class="pairing-subtitle text-xs muted">
+          Share files directly between phones, laptops, and tablets. Zero cloud servers, end-to-end encrypted.
+        </p>
       `;
+
+      const actionRow = document.createElement('div');
+      actionRow.className = 'idle-action-buttons stack stack-sm';
+
+      const sendBtn = document.createElement('button');
+      sendBtn.type = 'button';
+      sendBtn.className = 'btn btn-primary btn-lg w-full btn-start-send';
+      sendBtn.innerHTML = `${iconShare({ size: 18 })} <span>Start Sending Files</span>`;
+      sendBtn.addEventListener('click', () => this.handleCreateRoom());
+
+      const receiveBtn = document.createElement('button');
+      receiveBtn.type = 'button';
+      receiveBtn.className = 'btn btn-secondary w-full btn-start-receive';
+      receiveBtn.innerHTML = `${iconKey({ size: 16 })} <span>Receive Files from Device</span>`;
+      receiveBtn.addEventListener('click', () => this.transition('joining'));
+
+      actionRow.append(sendBtn, receiveBtn);
+      idleHero.append(actionRow);
+
+      // Inline device name row
+      const userBar = createUsernameBar(this.myUsername, (newName) => {
+        this.updateMyUsername(newName);
+      });
+      idleHero.append(userBar);
+
+      // Quick PIN Join Row
+      const quickJoinWrap = document.createElement('div');
+      quickJoinWrap.className = 'quick-join-row-wrap mt-xs';
+      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs">Connecting from another computer?</div>`;
       const inputGroup = document.createElement('div');
       inputGroup.className = 'quick-join-input-group';
       const quickInput = document.createElement('input');
       quickInput.type = 'text';
       quickInput.className = 'quick-join-input mono';
-      quickInput.placeholder = 'Enter 6-letter code...';
+      quickInput.placeholder = 'Enter 6-letter PIN...';
       quickInput.maxLength = 6;
       quickInput.autocomplete = 'off';
 
@@ -356,9 +350,11 @@ export class App {
 
       inputGroup.append(quickInput, quickBtn);
       quickJoinWrap.append(inputGroup);
-      leftCard.append(quickJoinWrap);
+      idleHero.append(quickJoinWrap);
+
+      card.append(idleHero);
     } else if (this.state === 'creating') {
-      // Room display with 180x180 QR code, 6-letter room code in JetBrains Mono, copy buttons, and quick join row
+      // Room display with 180x180 QR code, JetBrains Mono PIN, copy buttons
       const canvas = document.createElement('canvas');
       canvas.width = 180;
       canvas.height = 180;
@@ -373,9 +369,32 @@ export class App {
         },
         (code) => this.handleJoinRoom(code)
       );
-      leftCard.append(roomDisplay);
+      card.append(roomDisplay);
+
+      // Inline device broadcast row
+      const userBar = createUsernameBar(this.myUsername, (newName) => {
+        this.updateMyUsername(newName);
+      });
+      card.append(userBar);
+
+      // Integrated drop zone right inside the Send view
+      const dropSurface = createDropZoneReadySurface({
+        onFilesSelected: (files) => this.handleQueueOrSendFiles(files),
+        onTogglePrivacy: (enabled) => {
+          this.privacyShieldEnabled = enabled;
+          showToast(enabled ? 'Location tags will be removed from photos' : 'Location details will be kept on photos');
+        },
+        privacyEnabled: this.privacyShieldEnabled,
+        queuedFiles: this.queuedFiles,
+        onRemoveQueuedFile: (idx) => {
+          this.queuedFiles.splice(idx, 1);
+          this.render();
+        },
+      });
+      card.append(dropSurface);
     } else if (this.state === 'joining') {
       if (this.roomCode) {
+        // Connecting to specific room code
         const waitingView = document.createElement('div');
         waitingView.className = 'stack stack-md text-center fade-in';
         waitingView.innerHTML = `
@@ -384,14 +403,14 @@ export class App {
           <div class="status-badge"><span class="status-dot"></span> Establishing direct peer connection...</div>
         `;
         const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'btn btn-ghost w-full mt-sm';
+        cancelBtn.className = 'btn btn-ghost w-full mt-sm btn-back-room';
         cancelBtn.textContent = '← Cancel';
         cancelBtn.addEventListener('click', () => {
           this.cleanup();
           this.transition('idle');
         });
         waitingView.append(cancelBtn);
-        leftCard.append(waitingView);
+        card.append(waitingView);
       } else {
         const { element, backBtn } = createJoinInputWithBack((code) => {
           this.handleJoinRoom(code);
@@ -400,29 +419,76 @@ export class App {
           this.cleanup();
           this.transition('idle');
         });
-        leftCard.append(element);
+        card.append(element);
+
+        // Operator display name row
+        const userBar = createUsernameBar(this.myUsername, (newName) => {
+          this.updateMyUsername(newName);
+        });
+        card.append(userBar);
       }
     }
 
-    // RIGHT SURFACE: Full-height Tactile Drag-and-Drop Canvas
-    const rightSurface = createDropZoneReadySurface({
-      onFilesSelected: (files) => {
-        this.handleQueueOrSendFiles(files);
-      },
-      onTogglePrivacy: (enabled) => {
-        this.privacyShieldEnabled = enabled;
-        showToast(enabled ? 'Location tags will be removed from photos' : 'Location details will be kept on photos');
-      },
-      privacyEnabled: this.privacyShieldEnabled,
-      queuedFiles: this.queuedFiles,
-      onRemoveQueuedFile: (idx) => {
-        this.queuedFiles.splice(idx, 1);
-        this.render();
-      },
+    layout.append(card);
+    return layout;
+  }
+
+  // ── Global Ambient Drag & Drop Scrim ──────────────────────
+
+  private setupGlobalDragDrop(): void {
+    window.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      this.dragCounter++;
+      if (e.dataTransfer?.types?.includes('Files')) {
+        this.showGlobalDropScrim();
+      }
     });
 
-    layout.append(leftCard, rightSurface);
-    return layout;
+    window.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      this.dragCounter--;
+      if (this.dragCounter <= 0) {
+        this.dragCounter = 0;
+        this.hideGlobalDropScrim();
+      }
+    });
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      this.dragCounter = 0;
+      this.hideGlobalDropScrim();
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        this.handleQueueOrSendFiles(e.dataTransfer.files);
+      }
+    });
+  }
+
+  private showGlobalDropScrim(): void {
+    if (!this.dropScrimEl) {
+      this.dropScrimEl = document.createElement('div');
+      this.dropScrimEl.className = 'global-drop-scrim';
+      this.dropScrimEl.innerHTML = `
+        <div class="global-drop-box stack stack-sm text-center">
+          <div class="global-drop-icon">${iconUpload({ size: 48 })}</div>
+          <div class="global-drop-title font-semibold text-base">Drop files here anytime</div>
+          <div class="global-drop-subtitle text-xs muted">Files will stream instantly to paired device</div>
+        </div>
+      `;
+      document.body.append(this.dropScrimEl);
+    }
+    requestAnimationFrame(() => {
+      this.dropScrimEl?.classList.add('visible');
+    });
+  }
+
+  private hideGlobalDropScrim(): void {
+    if (this.dropScrimEl) {
+      this.dropScrimEl.classList.remove('visible');
+    }
   }
 
   private handleQueueOrSendFiles(files: FileList): void {

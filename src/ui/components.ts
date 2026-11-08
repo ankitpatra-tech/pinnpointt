@@ -181,7 +181,6 @@ export interface NavbarPeerInfo {
 export function createNavbar(
   theme: ThemeMode,
   onToggleTheme: () => void,
-  statusLabel: string = 'Direct Share',
   onBrandClick?: () => void,
   onOpenGuide?: () => void,
   peerInfo?: NavbarPeerInfo
@@ -565,30 +564,34 @@ export function createOnboarding(
 export interface PairCallbacks {
   onCreateRoom: () => void;
   onJoinRoom: () => void;
+  activeMode?: 'share' | 'receive' | 'idle';
 }
 
 export function createPairSelection(callbacks: PairCallbacks): HTMLElement {
-  const container = el('div', { className: 'stack stack-md' });
+  const container = el('div', { className: 'pair-selection-wrap' });
 
-  const options = el('div', { className: 'pair-options' });
+  // Sliding Segmented Control (Apple HIG pill switch)
+  const options = el('div', { className: 'pair-options segmented-control' });
 
-  const createOpt = el('div', { className: 'pair-option' });
+  const createOpt = el('button', {
+    type: 'button',
+    className: `pair-option ${callbacks.activeMode === 'share' || callbacks.activeMode === 'idle' ? 'active' : ''}`,
+  });
+  createOpt.setAttribute('data-mode', 'share');
   createOpt.innerHTML = `
-    <div class="pair-option-icon">${iconShare({ size: 20 })}</div>
-    <div class="pair-option-content">
-      <span class="pair-option-label">Share Files</span>
-      <span class="pair-option-desc">Display a QR code and 6-letter room PIN for your other device to connect</span>
-    </div>
+    <span class="pair-option-icon">${iconShare({ size: 15 })}</span>
+    <span class="pair-option-label">Send Files</span>
   `;
   createOpt.addEventListener('click', callbacks.onCreateRoom);
 
-  const joinOpt = el('div', { className: 'pair-option' });
+  const joinOpt = el('button', {
+    type: 'button',
+    className: `pair-option ${callbacks.activeMode === 'receive' ? 'active' : ''}`,
+  });
+  joinOpt.setAttribute('data-mode', 'receive');
   joinOpt.innerHTML = `
-    <div class="pair-option-icon">${iconKey({ size: 20 })}</div>
-    <div class="pair-option-content">
-      <span class="pair-option-label">Receive Files</span>
-      <span class="pair-option-desc">Enter the 6-character room PIN shown on your sender computer or phone</span>
-    </div>
+    <span class="pair-option-icon">${iconKey({ size: 15 })}</span>
+    <span class="pair-option-label">Receive Files</span>
   `;
   joinOpt.addEventListener('click', callbacks.onJoinRoom);
 

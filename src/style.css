@@ -202,7 +202,7 @@ p {
 }
 
 .app-navbar-inner {
-  max-width: 1400px;
+  max-width: 1040px;
   margin: 0 auto;
   width: 100%;
   height: 56px;
@@ -233,13 +233,6 @@ p {
   }
   .app-navbar .nav-brand-group {
     gap: 8px;
-  }
-  .app-navbar .nav-direct-share-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-  .app-navbar .direct-share-mode {
-    display: none;
   }
   .app-navbar .nav-center-area {
     display: none;
@@ -336,50 +329,15 @@ p {
   justify-content: center;
 }
 
-/* Functional Direct Share Button (Next to PinnPointt brand, NO LED dot) */
-.nav-direct-share-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: var(--bg-ambient);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-pill);
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-bright);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  outline: none;
-  user-select: none;
-}
-
-.nav-direct-share-btn:hover {
-  background: var(--bg-subtle);
-  border-color: var(--border-strong);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.nav-direct-share-btn:active {
-  transform: translateY(0);
-}
-
-.direct-share-text {
-  font-weight: 600;
-  color: var(--text-bright);
-  font-size: 11.5px;
-}
-
-.direct-share-mode {
-  font-size: 9px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  padding: 1px 6px;
-  border-radius: var(--radius-pill);
-  letter-spacing: 0.04em;
-  font-weight: 600;
+/* Tactile Spring Press Physics (Apple HIG) */
+.btn:active,
+.pair-option:active,
+.btn-subtle-back:active,
+.btn-pill-disconnect:active,
+.btn-theme-toggle:active,
+.btn-nav-guide:active {
+  transform: scale(0.975);
+  transition: transform 60ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* State B: Collapsed Connection Pill in Header Bar */
@@ -523,42 +481,45 @@ p {
 }
 
 /* ═══════════════════════════════════════════════════
-   STATE A: NOT CONNECTED YET (FULL-SCREEN SPLIT LAYOUT)
+   STATE A: CENTERED PAIRING SURFACE (APPLE/LINEAR HIG)
    ═══════════════════════════════════════════════════ */
 .app-pairing-layout {
-  max-width: 1400px;
-  margin: 0 auto;
   width: 100%;
-  padding: 32px clamp(20px, 3.5vw, 48px);
-  display: grid;
-  grid-template-columns: 420px minmax(0, 1fr);
-  gap: 32px;
-  align-items: stretch;
-  flex: 1;
+  max-width: 640px;
+  margin: 32px auto 60px;
+  padding: 0 clamp(16px, 3.5vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   box-sizing: border-box;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 680px) {
   .app-pairing-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 16px 14px 40px;
+    margin: 16px auto 40px;
+    padding: 0 12px;
   }
 }
 
-/* Left Card: "Connect a Device" */
+/* Centered Apple-Grade Pairing Card with Hardware Depth */
 .pairing-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 26px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  transition: border-color var(--transition);
+  gap: 20px;
+  transition: border-color var(--transition), box-shadow var(--transition);
   box-sizing: border-box;
   overflow: hidden;
+}
+
+[data-theme="dark"] .pairing-card {
+  background: #121316;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 40px -4px rgba(0, 0, 0, 0.6);
 }
 
 @media (max-width: 680px) {
@@ -566,6 +527,138 @@ p {
     padding: 20px 16px;
     gap: 16px;
   }
+}
+
+/* ── Sliding Segmented Control ─────────────────────── */
+.pair-selection-wrap {
+  width: 100%;
+}
+
+.segmented-control {
+  display: flex;
+  background: var(--bg-subtle);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline);
+  gap: 4px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .segmented-control {
+  background: #18191d;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.segmented-control .pair-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  outline: none;
+}
+
+.segmented-control .pair-option:hover {
+  color: var(--text-primary);
+}
+
+.segmented-control .pair-option.active {
+  background: var(--bg-surface);
+  color: var(--text-bright);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .segmented-control .pair-option.active {
+  background: #24262b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Idle Hero Stage ───────────────────────────────── */
+.pairing-idle-stage {
+  padding: 12px 0 8px;
+}
+
+.pairing-badge-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.idle-action-buttons {
+  margin: 12px 0;
+}
+
+.btn-start-send {
+  padding: 14px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: var(--radius-pill);
+}
+
+.btn-start-receive {
+  padding: 12px 20px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+}
+
+/* ── Global Ambient Drag & Drop Scrim ──────────────── */
+.global-drop-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(10, 11, 13, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.global-drop-scrim.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.global-drop-box {
+  background: var(--bg-surface);
+  border: 2px dashed var(--accent);
+  border-radius: 24px;
+  padding: 48px 64px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  color: var(--text-bright);
+}
+
+[data-theme="dark"] .global-drop-box {
+  background: #18191d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 20px 50px rgba(0, 0, 0, 0.7);
+}
+
+.global-drop-icon {
+  color: var(--accent);
+  margin-bottom: 6px;
 }
 
 .pairing-card-header .pairing-title {
