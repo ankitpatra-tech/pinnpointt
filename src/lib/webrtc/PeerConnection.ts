@@ -38,7 +38,19 @@ const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
+  {
+    urls: [
+      'stun:openrelay.metered.ca:80',
+      'turn:openrelay.metered.ca:80',
+      'turn:openrelay.metered.ca:443',
+      'turn:openrelay.metered.ca:443?transport=tcp',
+    ],
+    username: 'openrelay',
+    credential: 'openrelay',
+  },
 ];
 
 const DATA_CHANNEL_LABEL = 'pinnpointt-transfer';
@@ -191,17 +203,15 @@ export class PeerManager {
             console.log('[PeerConnection] Signaling error, but P2P WebRTC DataChannel is active.');
             return;
           }
-          this.events.onError?.(err);
-          onFail(err);
+          console.warn('[PeerConnection] Signaling error:', err.message);
+          if (!this.pc || this.pc.connectionState === 'new') {
+            this.events.onError?.(err);
+            onFail(err);
+          }
         },
         onClose: () => {
-          if (this.dataChannel && this.dataChannel.readyState === 'open') {
-            console.log('[PeerConnection] Signaling closed, but P2P WebRTC DataChannel is active.');
-            return;
-          }
-          if (!this.isClosedManually) {
-            this.events.onDisconnected?.();
-          }
+          console.log('[PeerConnection] Signaling closed. WebRTC connectionState:', this.pc?.connectionState);
+          // Signaling socket closure should NEVER terminate an active P2P session or an ongoing WebRTC ICE negotiation!
         },
         onFallback: (reason, mode) => {
           console.log(`[PeerConnection] Hybrid signaling fallback: ${reason} (mode: ${mode})`);
@@ -267,6 +277,10 @@ export class PeerManager {
           console.log('[PeerConnection] Signaling peer-left received, but P2P WebRTC DataChannel is still active.');
           return;
         }
+        if (this.pc && (this.pc.connectionState === 'connected' || this.pc.connectionState === 'connecting')) {
+          console.log('[PeerConnection] Signaling peer-left received, but WebRTC connectionState is active.');
+          return;
+        }
         this.events.onDisconnected?.();
         break;
 
@@ -300,6 +314,7 @@ export class PeerManager {
     });
 
     pc.addEventListener('connectionstatechange', () => {
+      console.log(`[PeerConnection] Connection state: ${pc.connectionState}`);
       switch (pc.connectionState) {
         case 'connected':
           if (this.disconnectGraceTimer) {
@@ -312,7 +327,7 @@ export class PeerManager {
           break;
         case 'disconnected':
           // Disconnected is transient in WebRTC during heavy bandwidth saturation or ICE re-checks.
-          // Give ICE 5 seconds to re-verify or reconnect before triggering onDisconnected.
+          // Give ICE 8 seconds to re-verify or reconnect before triggering onDisconnected.
           if (!this.disconnectGraceTimer) {
             this.disconnectGraceTimer = setTimeout(() => {
               this.disconnectGraceTimer = null;
@@ -320,10 +335,26 @@ export class PeerManager {
                 console.log('[PeerConnection] Connection remained disconnected after grace period');
                 this.events.onDisconnected?.();
               }
-            }, 5000);
+            }, 8000);
           }
           break;
         case 'failed':
+          console.warn('[PeerConnection] Connection state failed. Attempting ICE restart...');
+          try {
+            if (this.role === 'offerer' && this.pc) {
+              this.pc.restartIce();
+              void this.startAsOfferer().catch(() => {});
+            }
+          } catch {}
+          if (!this.disconnectGraceTimer) {
+            this.disconnectGraceTimer = setTimeout(() => {
+              this.disconnectGraceTimer = null;
+              if (this.pc && (this.pc.connectionState === 'failed' || this.pc.connectionState === 'closed')) {
+                this.events.onDisconnected?.();
+              }
+            }, 8000);
+          }
+          break;
         case 'closed':
           if (this.disconnectGraceTimer) {
             clearTimeout(this.disconnectGraceTimer);
@@ -429,11 +460,17 @@ export class PeerManager {
   private setupDataChannel(dc: RTCDataChannel): void {
     dc.binaryType = 'arraybuffer';
 
-    dc.addEventListener('open', () => {
+    const onOpen = () => {
       this.dataChannel = dc;
       this.events.onConnected?.();
       this.dataChannelCallback?.(dc);
-    });
+    };
+
+    if (dc.readyState === 'open') {
+      setTimeout(onOpen, 0);
+    } else {
+      dc.addEventListener('open', onOpen);
+    }
 
     dc.addEventListener('close', () => {
       console.log('[PeerConnection] RTCDataChannel closed');
@@ -445,6 +482,7 @@ export class PeerManager {
 
     dc.addEventListener('error', (event) => {
       const errorEvent = event as RTCErrorEvent;
+      console.warn('[PeerConnection] RTCDataChannel error:', errorEvent.error || event);
       this.events.onError?.(
         errorEvent.error instanceof Error
           ? errorEvent.error

@@ -157,9 +157,18 @@ function handleMessage(ws: WebSocket, raw: string): void {
         sendJSON(ws, { type: 'error', message: 'Missing room code' });
         return;
       }
+
       if (rooms.has(code)) {
-        sendJSON(ws, { type: 'error', message: 'Room already exists' });
-        return;
+        const existing = rooms.get(code)!;
+        existing.peers = existing.peers.filter((p) => p.readyState === WebSocket.OPEN);
+        if (existing.peers.length === 0 || existing.peers.includes(ws)) {
+          // Re-claiming an empty or own room (e.g. after network reconnect)
+          clearTimeout(existing.expiryTimer);
+          rooms.delete(code);
+        } else {
+          sendJSON(ws, { type: 'error', message: 'Room already exists' });
+          return;
+        }
       }
 
       const expiryTimer = setTimeout(() => {
@@ -186,16 +195,22 @@ function handleMessage(ws: WebSocket, raw: string): void {
         sendJSON(ws, { type: 'error', message: 'Room not found' });
         return;
       }
-      if (room.peers.length >= MAX_PEERS_PER_ROOM) {
+
+      // Filter out stale/closed sockets before checking occupancy
+      room.peers = room.peers.filter((p) => p.readyState === WebSocket.OPEN);
+
+      if (room.peers.length >= MAX_PEERS_PER_ROOM && !room.peers.includes(ws)) {
         sendJSON(ws, { type: 'error', message: 'Room is full' });
         return;
       }
 
-      room.peers.push(ws);
+      if (!room.peers.includes(ws)) {
+        room.peers.push(ws);
+      }
       peerRooms.set(ws, code);
       resetRoomExpiry(code);
 
-      log(`Peer joined room ${code}`);
+      log(`Peer joined room ${code} (total peers: ${room.peers.length})`);
 
       // Notify both peers.
       for (const peer of room.peers) {

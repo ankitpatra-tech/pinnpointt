@@ -531,11 +531,17 @@ export class App {
           }
         },
         onDisconnected: () => {
-          this.errorMessage = 'Peer disconnected.';
-          this.cleanup();
-          this.transition('error');
+          if (this.state === 'connected') {
+            this.errorMessage = 'Peer disconnected.';
+            this.cleanup();
+            this.transition('error');
+          }
         },
         onError: (err: Error) => {
+          if (this.state === 'connected') {
+            console.warn('[App] Non-fatal signaling warning during active P2P session:', err);
+            return;
+          }
           this.errorMessage = err.message || 'Connection failed.';
           this.cleanup();
           this.transition('error');
@@ -568,11 +574,17 @@ export class App {
           }
         },
         onDisconnected: () => {
-          this.errorMessage = 'Peer disconnected.';
-          this.cleanup();
-          this.transition('error');
+          if (this.state === 'connected') {
+            this.errorMessage = 'Peer disconnected.';
+            this.cleanup();
+            this.transition('error');
+          }
         },
         onError: (err: Error) => {
+          if (this.state === 'connected') {
+            console.warn('[App] Non-fatal signaling warning during active P2P session:', err);
+            return;
+          }
           this.errorMessage = err.message || 'Connection failed.';
           this.cleanup();
           this.transition('error');

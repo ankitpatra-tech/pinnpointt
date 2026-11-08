@@ -38,7 +38,7 @@ export interface SignalingAdapter {
 }
 
 const APP_NAMESPACE = 'pinnpointt-v1';
-const FALLBACK_TIMEOUT_MS = 2500;
+const FALLBACK_TIMEOUT_MS = 12_000;
 
 // ---------------------------------------------------------------------------
 // 1. WebSocket Signaling Adapter
@@ -48,7 +48,10 @@ export class WebSocketSignalingAdapter implements SignalingAdapter {
   readonly mode: SignalingMode = 'websocket';
   private ws: WebSocket | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isClosedManually = false;
+  private activeRoomCode = '';
+  private isCreateAction = false;
 
   constructor(
     private readonly url: string,
@@ -57,6 +60,14 @@ export class WebSocketSignalingAdapter implements SignalingAdapter {
 
   connect(roomCode: string, isCreate: boolean): Promise<void> {
     this.isClosedManually = false;
+    this.activeRoomCode = roomCode;
+    this.isCreateAction = isCreate;
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
     return new Promise<void>((resolve, reject) => {
       try {
         const ws = new WebSocket(this.url);
@@ -67,6 +78,7 @@ export class WebSocketSignalingAdapter implements SignalingAdapter {
           ws.removeEventListener('error', onError);
 
           // Client heartbeat ping every 20s
+          if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
           this.heartbeatTimer = setInterval(() => {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
               this.send({ type: 'ping' });
@@ -107,6 +119,16 @@ export class WebSocketSignalingAdapter implements SignalingAdapter {
           }
           if (!this.isClosedManually) {
             this.events.onClose?.();
+            // Automatically attempt reconnect after 1.5s if not manually closed
+            if (!this.reconnectTimer) {
+              this.reconnectTimer = setTimeout(() => {
+                this.reconnectTimer = null;
+                if (!this.isClosedManually && this.activeRoomCode) {
+                  console.log(`[WebSocketSignaling] Auto-reconnecting to ${this.url}...`);
+                  this.connect(this.activeRoomCode, this.isCreateAction).catch(() => {});
+                }
+              }, 1500);
+            }
           }
         });
       } catch (err) {
@@ -123,6 +145,10 @@ export class WebSocketSignalingAdapter implements SignalingAdapter {
 
   close(): void {
     this.isClosedManually = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
