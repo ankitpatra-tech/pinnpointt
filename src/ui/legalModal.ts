@@ -328,11 +328,11 @@ function renderTabContent(tab: DocTab): HTMLElement {
             <span class="changelog-date">Current Release • Milestone 1</span>
           </div>
           <ul class="changelog-list">
-            <li><strong>Apple &amp; Linear-Grade Segmented Control:</strong> Replaced the cluttered multi-widget pairing card with an authentic Apple-style sliding segmented control (<code>Send Files</code> / <code>Receive Files</code>) with fluid spring physics.</li>
-            <li><strong>De-Cluttered State A Layout:</strong> Eliminated artificial setup steppers and fake radar alert banners. The pairing interface is now cleanly centered with balanced spatial proportions and zero off-center cutoffs.</li>
+            <li><strong>Unified Glass Pairing System:</strong> Consolidated Send Files and Receive Files into a single cohesive glassmorphic card with seamless real-time mode switching and continuous ambient backdrop blur.</li>
+            <li><strong>Intelligent Desktop Auto-Scaling (1040px Dual Station):</strong> Transformed the pairing interface from a narrow 640px strip into an expansive 1040px desktop command station featuring side-by-side Send &amp; Receive wings, balanced spatial proportions, and smooth responsive collapsing down to single-column tablet and mobile layouts.</li>
+            <li><strong>Refined Connection Lost Recovery Center:</strong> Rebuilt the disconnection screen into an auto-scaling glassmorphic diagnostic station featuring a pulsing disconnection beacon, real-time diagnostic recovery advice, one-click <em>Reconnect to Room</em> recovery, and seamless Return to Safety navigation.</li>
             <li><strong>Specular Hardware Depth &amp; Tactile Scale Physics:</strong> Applied macOS/iOS-grade inner specular rim highlights (<code>inset 0 1px 0 rgba(255, 255, 255, 0.08)</code>), diffuse multi-layer drop shadows, and <code>scale(0.975)</code> tactile compression on all interactive buttons and tabs.</li>
             <li><strong>Global Ambient Drag-and-Drop Surface:</strong> Dragging files anywhere into the browser window summons an ambient blurred backdrop scrim, staging files for immediate peer streaming the moment connection occurs.</li>
-            <li><strong>Unified Multi-Stage Container Image:</strong> Upgraded Docker deployment to a self-contained multi-stage build that compiles Vite assets directly in container builds, ensuring 100% production consistency across Render and cloud hosts.</li>
           </ul>
         </div>
 

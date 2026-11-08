@@ -1888,20 +1888,73 @@ export function createConnectedWorkspace(
 
 // ─── Error Display ──────────────────────────────────
 
-export function createErrorView(message: string, onRetry: () => void): HTMLElement {
-  const container = el('div', { className: 'stack stack-md text-center fade-in' });
+export function createErrorView(
+  message: string,
+  onRetry: () => void,
+  lastRoomCode?: string | null,
+  onReconnect?: (roomCode: string) => void
+): HTMLElement {
+  const layout = el('div', { className: 'connection-lost-layout fade-in' });
+  const card = el('div', { className: 'card connection-lost-card stack stack-md' });
 
-  const icon = el('div', { className: 'complete-icon' });
-  icon.style.borderColor = 'var(--danger)';
-  icon.style.background = 'rgba(220, 38, 38, 0.08)';
-  icon.innerHTML = iconX({ size: 28 });
+  // Pulsing Disconnect Beacon
+  const beaconWrap = el('div', { className: 'connection-lost-beacon' });
+  const beaconRing = el('div', { className: 'lost-beacon-ring' });
+  const beaconIcon = el('div', { className: 'lost-beacon-icon' });
+  beaconIcon.innerHTML = iconAlertCircle({ size: 28 });
+  beaconWrap.append(beaconRing, beaconIcon);
 
-  const title = el('h2', { className: 'font-semibold', textContent: 'Connection Lost' });
-  const msg = el('div', { className: 'text-sm muted', textContent: message });
+  // Title & Humanized Diagnostics
+  const titleWrap = el('div', { className: 'stack stack-xs text-center' });
+  const badge = el('div', { className: 'connection-lost-badge text-xs font-semibold', textContent: 'CONNECTION INTERRUPTED' });
+  const title = el('h2', { className: 'font-semibold connection-lost-title', textContent: 'Direct Connection Was Interrupted' });
+  const msg = el('p', {
+    className: 'connection-lost-desc text-xs muted',
+    textContent: message || 'The peer link was closed or network conditions changed between your devices.',
+  });
+  titleWrap.append(badge, title, msg);
 
-  const retryBtn = el('button', { className: 'btn btn-primary w-full mt-md', textContent: 'Try Again' });
+  // Diagnostic Recovery Card
+  const diagCard = el('div', { className: 'connection-lost-diag' });
+  diagCard.innerHTML = `
+    <div class="diag-item">
+      <span class="diag-bullet">📶</span>
+      <div>
+        <strong>Check Wi-Fi or Mobile Data</strong>
+        <p class="text-xs muted">Ensure both devices have an active network connection or are on the same Wi-Fi.</p>
+      </div>
+    </div>
+    <div class="diag-item">
+      <span class="diag-bullet">⚡</span>
+      <div>
+        <strong>Transfer Checkpoints Preserved</strong>
+        <p class="text-xs muted">Transfers paused cleanly. All verified chunks are retained in memory and will resume upon re-linking.</p>
+      </div>
+    </div>
+  `;
+
+  // Action Buttons
+  const actions = el('div', { className: 'connection-lost-actions stack stack-sm' });
+
+  if (lastRoomCode && onReconnect) {
+    const reconnectBtn = el('button', {
+      type: 'button',
+      className: 'btn btn-primary btn-lg w-full btn-reconnect',
+    });
+    reconnectBtn.innerHTML = `${iconRefresh({ size: 16 })} <span>Reconnect to Room ${lastRoomCode}</span>`;
+    reconnectBtn.addEventListener('click', () => onReconnect(lastRoomCode));
+    actions.append(reconnectBtn);
+  }
+
+  const retryBtn = el('button', {
+    type: 'button',
+    className: `btn ${lastRoomCode && onReconnect ? 'btn-secondary' : 'btn-primary'} w-full btn-return-home`,
+    textContent: lastRoomCode && onReconnect ? '← Return to Pairing Home' : 'Try Again',
+  });
   retryBtn.addEventListener('click', onRetry);
+  actions.append(retryBtn);
 
-  container.append(icon, title, msg, retryBtn);
-  return container;
+  card.append(beaconWrap, titleWrap, diagCard, actions);
+  layout.append(card);
+  return layout;
 }

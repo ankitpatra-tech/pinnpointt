@@ -104,6 +104,7 @@ export class App {
   private peer: PeerManager | null = null;
   private dataChannel: RTCDataChannel | null = null;
   private roomCode: string = '';
+  private lastConnectedRoomCode: string | null = null;
   private myUsername: string = getSavedUsername();
   private peerUsername: string = 'Other Device';
   private workspace: WorkspaceController | null = null;
@@ -246,17 +247,28 @@ export class App {
     }
   }
 
-  // ── STATE A: Centered Apple-Grade Pairing Surface ───────────
+  // ── STATE A: Unified Glass Pairing System & Desktop Auto-Scaling ──
 
   private renderStateAPairingLayout(): HTMLElement {
     const layout = document.createElement('div');
     layout.className = 'app-pairing-layout';
 
-    // PRIMARY CARD: Apple / Linear-grade pairing surface
+    // PRIMARY CARD: Single Unified Apple/Linear-Grade Glass Surface
     const card = document.createElement('div');
-    card.className = 'card pairing-card stack stack-md';
+    card.className = 'card pairing-card stack stack-md unified-pairing-system';
 
-    // 1. Sliding Segmented Control at the very top of the card
+    // 1. Unified Glass Header inside Card (System Indicator + Sliding Segmented Control)
+    const glassHeader = document.createElement('div');
+    glassHeader.className = 'pairing-glass-header-row';
+
+    const systemStatus = document.createElement('div');
+    systemStatus.className = 'pairing-system-status';
+    systemStatus.innerHTML = `
+      <span class="ready-status-dot"></span>
+      <span class="font-semibold text-xs">Direct P2P Link</span>
+      <span class="text-xs muted">• End-to-End Encrypted</span>
+    `;
+
     const pairSelection = createPairSelection({
       activeMode: this.state === 'joining' ? 'receive' : this.state === 'creating' ? 'share' : 'idle',
       onCreateRoom: () => {
@@ -270,7 +282,9 @@ export class App {
         }
       },
     });
-    card.append(pairSelection);
+
+    glassHeader.append(systemStatus, pairSelection);
+    card.append(glassHeader);
 
     // Hidden backward-compatibility elements for automated DOM selectors
     const compatWrap = document.createElement('div');
@@ -279,24 +293,19 @@ export class App {
     card.append(compatWrap);
 
     if (this.state === 'idle') {
-      // Clean, serene idle hero stage
-      const idleHero = document.createElement('div');
-      idleHero.className = 'pairing-idle-stage stack stack-md text-center fade-in';
-      idleHero.innerHTML = `
-        <div class="pairing-badge-row">
-          <div class="ready-to-connect-badge">
-            <span class="ready-status-dot"></span>
-            <span>Ready to Connect</span>
-          </div>
-        </div>
-        <h2 class="pairing-title font-semibold">Share Files Directly</h2>
-        <p class="pairing-subtitle text-xs muted">
-          Send photos, videos, and documents straight from one device to another without cloud storage.
-        </p>
-      `;
+      const dualStation = document.createElement('div');
+      dualStation.className = 'desktop-dual-station fade-in';
 
-      const actionRow = document.createElement('div');
-      actionRow.className = 'idle-action-buttons stack stack-sm';
+      // Left Wing: Send Files Station
+      const sendWing = document.createElement('div');
+      sendWing.className = 'dual-station-wing send-wing';
+      sendWing.innerHTML = `
+        <div class="wing-header">
+          <span class="wing-badge-pill send-badge">SEND FILES</span>
+          <h3 class="wing-title font-semibold">Share Files Directly</h3>
+          <p class="wing-desc text-xs muted">Instant encrypted peer-to-peer stream without size limits or server storage.</p>
+        </div>
+      `;
 
       const sendBtn = document.createElement('button');
       sendBtn.type = 'button';
@@ -304,25 +313,37 @@ export class App {
       sendBtn.innerHTML = `${iconShare({ size: 18 })} <span>Start Sending Files</span>`;
       sendBtn.addEventListener('click', () => this.handleCreateRoom());
 
+      const userBarLeft = createUsernameBar(this.myUsername, (newName) => {
+        this.updateMyUsername(newName);
+      });
+
+      sendWing.append(sendBtn, userBarLeft);
+
+      // Center Divider
+      const divider = document.createElement('div');
+      divider.className = 'dual-station-divider';
+      divider.innerHTML = `<div class="divider-line"></div><span class="divider-pill">OR</span><div class="divider-line"></div>`;
+
+      // Right Wing: Receive Files Station
+      const receiveWing = document.createElement('div');
+      receiveWing.className = 'dual-station-wing receive-wing';
+      receiveWing.innerHTML = `
+        <div class="wing-header">
+          <span class="wing-badge-pill receive-badge">RECEIVE FILES</span>
+          <h3 class="wing-title font-semibold">Receive on this Device</h3>
+          <p class="wing-desc text-xs muted">Open your camera to scan a QR code, or enter a 6-letter room PIN below.</p>
+        </div>
+      `;
+
       const receiveBtn = document.createElement('button');
       receiveBtn.type = 'button';
       receiveBtn.className = 'btn btn-secondary w-full btn-start-receive';
-      receiveBtn.innerHTML = `${iconKey({ size: 16 })} <span>Receive Files from Device</span>`;
+      receiveBtn.innerHTML = `${iconKey({ size: 16 })} <span>Scan QR Code with Camera</span>`;
       receiveBtn.addEventListener('click', () => this.transition('joining'));
 
-      actionRow.append(sendBtn, receiveBtn);
-      idleHero.append(actionRow);
-
-      // Inline device name row
-      const userBar = createUsernameBar(this.myUsername, (newName) => {
-        this.updateMyUsername(newName);
-      });
-      idleHero.append(userBar);
-
-      // Quick PIN Join Row
       const quickJoinWrap = document.createElement('div');
-      quickJoinWrap.className = 'quick-join-row-wrap mt-xs';
-      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs">Connecting from another device?</div>`;
+      quickJoinWrap.className = 'quick-join-row-wrap';
+      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs font-semibold">Instant 6-Letter PIN:</div>`;
       const inputGroup = document.createElement('div');
       inputGroup.className = 'quick-join-input-group';
       const quickInput = document.createElement('input');
@@ -350,11 +371,18 @@ export class App {
 
       inputGroup.append(quickInput, quickBtn);
       quickJoinWrap.append(inputGroup);
-      idleHero.append(quickJoinWrap);
 
-      card.append(idleHero);
+      receiveWing.append(receiveBtn, quickJoinWrap);
+
+      dualStation.append(sendWing, divider, receiveWing);
+      card.append(dualStation);
     } else if (this.state === 'creating') {
-      // Room display with 180x180 QR code, JetBrains Mono PIN, copy buttons
+      const splitView = document.createElement('div');
+      splitView.className = 'pairing-split-view fade-in';
+
+      const leftCol = document.createElement('div');
+      leftCol.className = 'split-col split-col-left';
+
       const canvas = document.createElement('canvas');
       canvas.width = 180;
       canvas.height = 180;
@@ -369,15 +397,15 @@ export class App {
         },
         (code) => this.handleJoinRoom(code)
       );
-      card.append(roomDisplay);
+      leftCol.append(roomDisplay);
 
-      // Inline device broadcast row
+      const rightCol = document.createElement('div');
+      rightCol.className = 'split-col split-col-right stack stack-md';
+
       const userBar = createUsernameBar(this.myUsername, (newName) => {
         this.updateMyUsername(newName);
       });
-      card.append(userBar);
 
-      // Integrated drop zone right inside the Send view
       const dropSurface = createDropZoneReadySurface({
         onFilesSelected: (files) => this.handleQueueOrSendFiles(files),
         onTogglePrivacy: (enabled) => {
@@ -391,10 +419,12 @@ export class App {
           this.render();
         },
       });
-      card.append(dropSurface);
+
+      rightCol.append(userBar, dropSurface);
+      splitView.append(leftCol, rightCol);
+      card.append(splitView);
     } else if (this.state === 'joining') {
       if (this.roomCode) {
-        // Connecting to specific room code
         const waitingView = document.createElement('div');
         waitingView.className = 'stack stack-md text-center fade-in';
         waitingView.innerHTML = `
@@ -419,13 +449,34 @@ export class App {
           this.cleanup();
           this.transition('idle');
         });
-        card.append(element);
 
-        // Operator display name row
+        const splitView = document.createElement('div');
+        splitView.className = 'pairing-split-view fade-in';
+
+        const leftCol = document.createElement('div');
+        leftCol.className = 'split-col split-col-left';
+        leftCol.append(element);
+
+        const rightCol = document.createElement('div');
+        rightCol.className = 'split-col split-col-right stack stack-md';
+
         const userBar = createUsernameBar(this.myUsername, (newName) => {
           this.updateMyUsername(newName);
         });
-        card.append(userBar);
+
+        const securityBadge = document.createElement('div');
+        securityBadge.className = 'dual-station-wing';
+        securityBadge.innerHTML = `
+          <div class="wing-header">
+            <span class="wing-badge-pill receive-badge">SECURE RECEPTION</span>
+            <h4 class="font-semibold" style="margin: 0; color: var(--text-bright);">Direct Memory Stream</h4>
+            <p class="text-xs muted" style="margin: 0; line-height: 1.45;">Transfers travel directly between peer memories via WebRTC DTLS encryption. No intermediate servers ever store your files or keys.</p>
+          </div>
+        `;
+
+        rightCol.append(userBar, securityBadge);
+        splitView.append(leftCol, rightCol);
+        card.append(splitView);
       }
     }
 
@@ -575,10 +626,24 @@ export class App {
   }
 
   private renderError(): HTMLElement {
-    return createErrorView(this.errorMessage, () => {
-      this.cleanup();
-      this.transition('idle');
-    });
+    const errorWrapper = document.createElement('div');
+    errorWrapper.className = 'app-error-view-container';
+
+    const errorView = createErrorView(
+      this.errorMessage,
+      () => {
+        this.cleanup();
+        this.transition('idle');
+      },
+      this.lastConnectedRoomCode,
+      (code) => {
+        this.cleanup();
+        void this.handleJoinRoom(code);
+      }
+    );
+    errorWrapper.append(errorView);
+    errorWrapper.append(createFooter((tab) => openDocModal(tab)));
+    return errorWrapper;
   }
 
   private transition(newState: AppState): void {
@@ -598,7 +663,8 @@ export class App {
         },
         onDisconnected: () => {
           if (this.state === 'connected') {
-            this.errorMessage = 'Peer disconnected.';
+            this.lastConnectedRoomCode = this.roomCode || this.lastConnectedRoomCode;
+            this.errorMessage = 'The direct peer-to-peer connection was interrupted or the other device left the room.';
             this.cleanup();
             this.transition('error');
           }
@@ -608,7 +674,8 @@ export class App {
             console.warn('[App] Non-fatal signaling warning during active P2P session:', err);
             return;
           }
-          this.errorMessage = err.message || 'Connection failed.';
+          this.lastConnectedRoomCode = this.roomCode || this.lastConnectedRoomCode;
+          this.errorMessage = err.message || 'Direct connection failed.';
           this.cleanup();
           this.transition('error');
         },
@@ -616,6 +683,7 @@ export class App {
 
       this.peer = new PeerManager(SIGNAL_URL, events);
       this.roomCode = await this.peer.createRoom();
+      this.lastConnectedRoomCode = this.roomCode;
 
       this.peer.onDataChannel((channel: RTCDataChannel) => {
         this.attachDataChannel(channel);
@@ -631,6 +699,7 @@ export class App {
   private async handleJoinRoom(code: string): Promise<void> {
     try {
       this.roomCode = code;
+      this.lastConnectedRoomCode = code;
       this.transition('joining');
 
       const events: PeerEvents = {
@@ -641,7 +710,8 @@ export class App {
         },
         onDisconnected: () => {
           if (this.state === 'connected') {
-            this.errorMessage = 'Peer disconnected.';
+            this.lastConnectedRoomCode = this.roomCode || this.lastConnectedRoomCode;
+            this.errorMessage = 'The direct peer-to-peer connection was interrupted or the other device left the room.';
             this.cleanup();
             this.transition('error');
           }
@@ -651,7 +721,8 @@ export class App {
             console.warn('[App] Non-fatal signaling warning during active P2P session:', err);
             return;
           }
-          this.errorMessage = err.message || 'Connection failed.';
+          this.lastConnectedRoomCode = this.roomCode || this.lastConnectedRoomCode;
+          this.errorMessage = err.message || 'Direct connection failed.';
           this.cleanup();
           this.transition('error');
         },
