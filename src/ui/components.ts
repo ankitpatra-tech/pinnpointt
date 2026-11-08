@@ -634,7 +634,7 @@ export function createRoomDisplay(
 
   const qrHint = el('div', {
     className: 'qr-instruction text-sm font-semibold',
-    textContent: 'Point your phone camera here to connect',
+    textContent: 'Scan with your phone camera to connect',
   });
 
   qrWrap.append(canvasWrap, qrHint);
@@ -642,7 +642,7 @@ export function createRoomDisplay(
 
   // Large 6-Character Code in JetBrains Mono
   const codeWrap = el('div', { className: 'room-code-section stack stack-xs' });
-  const codeLabel = el('div', { className: 'text-xs muted', textContent: 'Or enter this 6-letter room code:' });
+  const codeLabel = el('div', { className: 'text-xs muted', textContent: 'Or enter this 6-letter code on your other device:' });
 
   const codeDisplay = el('div', { className: 'room-code-display mono' });
   for (const ch of roomCode) {
@@ -657,7 +657,13 @@ export function createRoomDisplay(
   });
   copyCodeBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Copy Code</span>`;
   copyCodeBtn.addEventListener('click', () => {
-    void copyTextToClipboard(roomCode).then(() => showToast(`Room code ${roomCode} copied!`));
+    void copyTextToClipboard(roomCode).then(() => {
+      showToast(`Room code ${roomCode} copied!`);
+      copyCodeBtn.innerHTML = `${iconCheck({ size: 13 })} <span>Copied!</span>`;
+      setTimeout(() => {
+        copyCodeBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Copy Code</span>`;
+      }, 1500);
+    });
   });
 
   const copyLinkBtn = el('button', {
@@ -667,17 +673,23 @@ export function createRoomDisplay(
   copyLinkBtn.innerHTML = `${iconShare({ size: 13 })} <span>Copy Link</span>`;
   copyLinkBtn.addEventListener('click', () => {
     const joinUrl = `${window.location.origin}/app?room=${roomCode}`;
-    void copyTextToClipboard(joinUrl).then(() => showToast('Direct connect link copied!'));
+    void copyTextToClipboard(joinUrl).then(() => {
+      showToast('Direct connect link copied!');
+      copyLinkBtn.innerHTML = `${iconCheck({ size: 13 })} <span>Copied!</span>`;
+      setTimeout(() => {
+        copyLinkBtn.innerHTML = `${iconShare({ size: 13 })} <span>Copy Link</span>`;
+      }, 1500);
+    });
   });
 
   linkRow.append(copyCodeBtn, copyLinkBtn);
   codeWrap.append(codeLabel, codeDisplay, linkRow);
   container.append(codeWrap);
 
-  // Bottom Input Row: "Connecting from another computer? Enter code..." + Join
+  // Bottom Input Row: "Connecting from another device? Enter code..." + Join
   if (onJoinCode) {
     const joinRowWrap = el('div', { className: 'quick-join-row-wrap' });
-    const joinRowLabel = el('div', { className: 'text-xs muted mb-xs', textContent: 'Connecting from another computer?' });
+    const joinRowLabel = el('div', { className: 'text-xs muted mb-xs', textContent: 'Connecting from another device?' });
 
     const joinInputGroup = el('div', { className: 'quick-join-input-group' });
     const quickInput = el('input', {
@@ -942,10 +954,10 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
   const iconWrap = el('div', { className: 'drop-canvas-icon' });
   iconWrap.innerHTML = iconUpload({ size: 36 });
 
-  const title = el('h3', { className: 'drop-canvas-title', textContent: 'Drop Files Ready to Send' });
+  const title = el('h3', { className: 'drop-canvas-title font-semibold', textContent: 'Drop Files to Send' });
   const subtitle = el('p', {
-    className: 'drop-canvas-sub',
-    textContent: 'Pick or drop photos, videos, or folders now. They will stream immediately once your device connects.',
+    className: 'drop-canvas-sub text-xs muted',
+    textContent: 'Drop files here anytime, or click below. They will stream the moment your other device connects.',
   });
 
   const btnRow = el('div', { className: 'drop-canvas-actions' });
@@ -953,7 +965,7 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
     type: 'button',
     className: 'btn btn-primary btn-sm',
   });
-  browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Select Files</span>`;
+  browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Choose Files</span>`;
   browseFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     fileInput.click();
@@ -963,7 +975,7 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
     type: 'button',
     className: 'btn btn-secondary btn-sm',
   });
-  browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Select Folder</span>`;
+  browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Choose Folder</span>`;
   browseFolderBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     folderInput.click();
@@ -1266,14 +1278,14 @@ export function createConnectedWorkspace(
     className: 'workspace-tab-btn active',
   });
   activityTabBtn.setAttribute('data-tab', 'activity');
-  activityTabBtn.innerHTML = `<span>Send &amp; Receive Files (Activity)</span>`;
+  activityTabBtn.innerHTML = `<span>File Transfers &amp; Activity</span>`;
 
   const driveTabBtn = el('button', {
     type: 'button',
     className: 'workspace-tab-btn',
   });
   driveTabBtn.setAttribute('data-tab', 'drive');
-  const driveTabTitle = el('span', {}, 'Browse files on the other device (Virtual Drive)');
+  const driveTabTitle = el('span', {}, 'Explore Other Device');
   const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums' });
   driveTabBadge.style.display = 'none';
   driveTabBtn.append(driveTabTitle, driveTabBadge);
@@ -1389,7 +1401,7 @@ export function createConnectedWorkspace(
     privacyShieldChecked = privacyCheckbox.checked;
   });
   const privacyLabel = el('span', { className: 'toggle-pill-label text-xs' });
-  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Strip photo GPS</span>`;
+  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Remove Photo Locations</span>`;
   privacyPill.append(privacyCheckbox, privacyLabel);
   privacyPill.addEventListener('click', (e) => e.stopPropagation());
 

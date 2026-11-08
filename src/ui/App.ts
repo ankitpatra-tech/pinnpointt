@@ -286,12 +286,12 @@ export class App {
         <div class="pairing-badge-row">
           <div class="ready-to-connect-badge">
             <span class="ready-status-dot"></span>
-            <span>Direct Device-to-Device Mesh</span>
+            <span>Ready to Connect</span>
           </div>
         </div>
-        <h2 class="pairing-title font-semibold">Fast, Private File Transfer</h2>
+        <h2 class="pairing-title font-semibold">Share Files Directly</h2>
         <p class="pairing-subtitle text-xs muted">
-          Share files directly between phones, laptops, and tablets. Zero cloud servers, end-to-end encrypted.
+          Send photos, videos, and documents straight from one device to another without cloud storage.
         </p>
       `;
 
@@ -322,7 +322,7 @@ export class App {
       // Quick PIN Join Row
       const quickJoinWrap = document.createElement('div');
       quickJoinWrap.className = 'quick-join-row-wrap mt-xs';
-      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs">Connecting from another computer?</div>`;
+      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs">Connecting from another device?</div>`;
       const inputGroup = document.createElement('div');
       inputGroup.className = 'quick-join-input-group';
       const quickInput = document.createElement('input');
