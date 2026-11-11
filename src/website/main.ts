@@ -424,12 +424,107 @@ function setupMobileMenu(): void {
   });
 }
 
+function setupScrollReveal(): void {
+  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const elements = document.querySelectorAll<HTMLElement>('.reveal-up');
+
+  if (isReducedMotion) {
+    elements.forEach((el) => el.classList.add('is-revealed'));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      rootMargin: '0px 0px -40px 0px',
+      threshold: 0.08,
+    }
+  );
+
+  elements.forEach((el) => observer.observe(el));
+}
+
+function setupScrollytelling(): void {
+  const stepCards = document.querySelectorAll<HTMLElement>('.scrolly-step-card');
+  const stagePills = document.querySelectorAll<HTMLButtonElement>('.stage-pill');
+  const scenes = document.querySelectorAll<HTMLElement>('.stage-scene');
+  if (stepCards.length === 0 || scenes.length === 0) return;
+
+  const setActiveStep = (stepNumber: string | number) => {
+    const num = String(stepNumber);
+    stepCards.forEach((card) => {
+      card.classList.toggle('is-active', card.getAttribute('data-step') === num);
+    });
+    stagePills.forEach((pill) => {
+      pill.classList.toggle('active', pill.getAttribute('data-target-step') === num);
+    });
+    scenes.forEach((scene) => {
+      scene.classList.toggle('is-active', scene.getAttribute('data-scene') === num);
+    });
+  };
+
+  // Default to step 1
+  setActiveStep('1');
+
+  // Click on step cards
+  stepCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const step = card.getAttribute('data-step') || '1';
+      setActiveStep(step);
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const step = card.getAttribute('data-step') || '1';
+        setActiveStep(step);
+      }
+    });
+  });
+
+  // Click on stage pills
+  stagePills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      const step = pill.getAttribute('data-target-step') || '1';
+      setActiveStep(step);
+    });
+  });
+
+  // Scroll-linked observer to automatically morph stage as user scrolls
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (visible) {
+        const step = visible.target.getAttribute('data-step');
+        if (step) setActiveStep(step);
+      }
+    },
+    {
+      rootMargin: '-20% 0px -40% 0px',
+      threshold: [0.2, 0.5],
+    }
+  );
+
+  stepCards.forEach((card) => observer.observe(card));
+}
+
 // ── Startup ──
 document.addEventListener('DOMContentLoaded', () => {
   setupScreenScale();
   setupNavIndicator();
   setupDemoCodeCopy();
   setupLiveDemoTransfer();
+  setupScrollReveal();
+  setupScrollytelling();
   setupTheme();
   setupPWAInstallation();
   setupModalTriggers();

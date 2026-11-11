@@ -218,151 +218,297 @@
       </div>
     </section>
 
-    <!-- ── Section 01: Protocol Flow / How It Works ── -->
-    <section id="how-it-works" class="arch-section how-it-works-arch">
-      <div class="arch-split-grid">
-        <!-- Left Column: Sticky Editorial Header (4 cols) -->
-        <div class="arch-split-left">
-          <div class="arch-sticky-wrap">
-            <span class="arch-mono-index">01 // PROTOCOL FLOW</span>
-            <h2 class="section-title arch-heading">Sharing in 3 simple steps.</h2>
-            <p class="arch-lead">
-              No sign-ups, no passwords, and no software to install. Start moving files in seconds.
-            </p>
+    <!-- ── Chapter 1: Simple 3-Step Sharing / Scrollytelling Stage ── -->
+    <section id="how-it-works" class="arch-section how-it-works-arch chapter-showcase">
+      <!-- Section Header Row -->
+      <div class="arch-header-row reveal-up">
+        <span class="arch-mono-index">Simple 3-Step Sharing</span>
+        <h2 class="section-title arch-heading">Sharing in 3 simple steps.</h2>
+        <p class="arch-lead">
+          No sign-ups, no passwords, and no software to install. Start moving files in seconds.
+        </p>
+      </div>
+
+      <!-- Scrollytelling Layout: Interactive Steps on Left, Sticky Morphing Stage on Right -->
+      <div class="scrolly-container pp-fluid-container">
+        <div class="scrolly-steps-col">
+          <!-- Step 1 -->
+          <div class="scrolly-step-card is-active reveal-up" data-step="1" role="button" tabindex="0">
+            <div class="step-card-num">01</div>
+            <div class="step-card-body">
+              <span class="step-card-tag">STEP 01 // LAUNCH</span>
+              <h3 class="step-card-title">Open on both devices</h3>
+              <p class="step-card-desc">
+                Open PinnPointt in any web browser on your phone, laptop, or tablet. There is nothing to install and no account to create.
+              </p>
+              <div class="step-badges">
+                <span class="step-badge">Zero Software Install</span>
+                <span class="step-badge">Any Web Browser</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="scrolly-step-card reveal-up" data-step="2" role="button" tabindex="0" style="--stagger-index: 1;">
+            <div class="step-card-num">02</div>
+            <div class="step-card-body">
+              <span class="step-card-tag">STEP 02 // CONNECT</span>
+              <h3 class="step-card-title">Scan the QR code</h3>
+              <p class="step-card-desc">
+                Point your phone camera at the screen or type the 6-character room code. Devices link together in one second via direct WebRTC signaling.
+              </p>
+              <div class="step-badges">
+                <span class="step-badge">&lt; 1s Peer Link</span>
+                <span class="step-badge">6-Digit Code or QR</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="scrolly-step-card reveal-up" data-step="3" role="button" tabindex="0" style="--stagger-index: 2;">
+            <div class="step-card-num">03</div>
+            <div class="step-card-body">
+              <span class="step-card-tag">STEP 03 // STREAM</span>
+              <h3 class="step-card-title">Drop your files</h3>
+              <p class="step-card-desc">
+                Select photos, 4K videos, or entire folders. Everything streams straight between your devices at full local Wi-Fi speed using OPFS disk streaming.
+              </p>
+              <div class="step-badges">
+                <span class="step-badge">112 MB/s Local Wi-Fi</span>
+                <span class="step-badge">No Size Limits (OPFS)</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Right Column: 3 Horizontal Hairline Rows (8 cols) -->
-        <div class="arch-split-right">
-          <div class="protocol-row">
-            <div class="protocol-row-meta">
-              <span class="protocol-step-tag">STEP 01</span>
+        <!-- Sticky Visual Hardware Stage -->
+        <div class="scrolly-stage-col">
+          <div class="scrolly-hardware-stage" id="scrolly-hardware-stage">
+            <div class="stage-nav-pills">
+              <button class="stage-pill active" data-target-step="1" type="button">01 Launch</button>
+              <button class="stage-pill" data-target-step="2" type="button">02 Pair</button>
+              <button class="stage-pill" data-target-step="3" type="button">03 Stream</button>
             </div>
-            <div class="protocol-row-body">
-              <h3 class="protocol-row-title">Open on both devices</h3>
-              <p class="protocol-row-desc">
-                Open PinnPointt in any web browser on your phone, laptop, or tablet. There is nothing to install and no account to create.
-              </p>
-            </div>
-          </div>
 
-          <div class="protocol-row">
-            <div class="protocol-row-meta">
-              <span class="protocol-step-tag">STEP 02</span>
+            <!-- Scene 1: Open on both devices -->
+            <div class="stage-scene is-active" id="stage-scene-1" data-scene="1">
+              <div class="scene-devices-mockup">
+                <div class="mockup-device mockup-phone">
+                  <div class="mockup-bar">
+                    <span class="mockup-dot"></span>
+                    <span class="mockup-url">pinnpointt.com</span>
+                  </div>
+                  <div class="mockup-body">
+                    <div class="mockup-status-dot pulse"></div>
+                    <span class="mockup-status-text">Phone Browser Ready</span>
+                  </div>
+                </div>
+                <div class="mockup-device mockup-laptop">
+                  <div class="mockup-bar">
+                    <span class="mockup-dot"></span>
+                    <span class="mockup-url">pinnpointt.com/app</span>
+                  </div>
+                  <div class="mockup-body">
+                    <div class="mockup-status-dot pulse"></div>
+                    <span class="mockup-status-text">Laptop Browser Ready</span>
+                  </div>
+                </div>
+              </div>
+              <div class="scene-caption-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>No Software to Install • Works in Any Web Browser</span>
+              </div>
             </div>
-            <div class="protocol-row-body">
-              <h3 class="protocol-row-title">Scan the QR code</h3>
-              <p class="protocol-row-desc">
-                Point your phone camera at the screen or type the 6-character room code. Devices link together in one second via direct WebRTC signaling.
-              </p>
-            </div>
-          </div>
 
-          <div class="protocol-row">
-            <div class="protocol-row-meta">
-              <span class="protocol-step-tag">STEP 03</span>
+            <!-- Scene 2: Scan the QR code -->
+            <div class="stage-scene" id="stage-scene-2" data-scene="2">
+              <div class="scene-qr-viewfinder">
+                <div class="viewfinder-frame">
+                  <div class="viewfinder-corner top-left"></div>
+                  <div class="viewfinder-corner top-right"></div>
+                  <div class="viewfinder-corner bottom-left"></div>
+                  <div class="viewfinder-corner bottom-right"></div>
+                  <div class="viewfinder-target">
+                    <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8">
+                      <rect x="3" y="3" width="7" height="7"/>
+                      <rect x="14" y="3" width="7" height="7"/>
+                      <rect x="14" y="14" width="7" height="7"/>
+                      <rect x="3" y="14" width="7" height="7"/>
+                      <rect x="7" y="7" width="2" height="2" fill="#38BDF8"/>
+                      <rect x="18" y="7" width="2" height="2" fill="#38BDF8"/>
+                      <rect x="7" y="18" width="2" height="2" fill="#38BDF8"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="viewfinder-meta">
+                  <span class="viewfinder-code">ROOM CODE: <strong>K9X-402</strong></span>
+                  <span class="viewfinder-pulse">Direct Peer Connection Locked in &lt; 1 Second</span>
+                </div>
+              </div>
             </div>
-            <div class="protocol-row-body">
-              <h3 class="protocol-row-title">Drop your files</h3>
-              <p class="protocol-row-desc">
-                Select photos, 4K videos, or entire folders. Everything streams straight between your devices at full local Wi-Fi speed using OPFS disk streaming.
-              </p>
+
+            <!-- Scene 3: Drop your files -->
+            <div class="stage-scene" id="stage-scene-3" data-scene="3">
+              <div class="scene-stream-cards">
+                <div class="flying-file-card">
+                  <div class="file-card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                  </div>
+                  <div class="file-card-details">
+                    <span class="file-card-name">Raw-4K-Video.mov</span>
+                    <span class="file-card-size">18.4 GB • 112 MB/s</span>
+                  </div>
+                </div>
+                <div class="stream-beam-indicator">
+                  <div class="stream-particle"></div>
+                  <div class="stream-particle delay"></div>
+                </div>
+                <div class="flying-status-pill">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Transfer Complete • SHA-256 Bit-Exact</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── Section 02: Architecture Contrast / Why Direct Sharing Beats the Cloud ── -->
-    <section id="why" class="arch-section why-direct-arch">
-      <!-- Top Asymmetric Header Row -->
-      <div class="arch-header-row">
-        <span class="arch-mono-index">02 // ARCHITECTURE CONTRAST</span>
+    <!-- ── Chapter 2: Direct vs. The Cloud / High-Contrast Floating Depth Cards ── -->
+    <section id="why" class="arch-section why-direct-arch chapter-depth">
+      <!-- Section Header Row -->
+      <div class="arch-header-row reveal-up">
+        <span class="arch-mono-index">Direct vs. The Cloud</span>
         <h2 class="section-title arch-heading">Why direct sharing beats the cloud.</h2>
         <p class="arch-lead">
           Sending a file to someone sitting next to you shouldn't take a detour through a corporate data center.
         </p>
       </div>
 
-      <!-- 2-Column Split Grid -->
-      <div class="contrast-grid">
-        <!-- Left Column: Traditional Cloud Sharing -->
-        <div class="contrast-col contrast-negative">
-          <div class="contrast-col-header">
-            <span class="contrast-label contrast-label-muted">TRADITIONAL CLOUD SHARING</span>
-          </div>
-          <div class="contrast-list">
-            <div class="contrast-item">
-              <span class="contrast-marker marker-minus">—</span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">Double Waiting:</span>
-                <span class="contrast-item-text">You wait 15 minutes to upload to a cloud server, then your receiver waits another 15 minutes to download.</span>
-              </div>
+      <!-- High-Contrast Floating Cards Grid -->
+      <div class="contrast-depth-container pp-fluid-container">
+        <div class="contrast-depth-grid">
+          <!-- Left Card: Traditional Cloud Sharing -->
+          <div class="contrast-card-float cloud-card reveal-up" style="--stagger-index: 0;">
+            <div class="card-float-header">
+              <span class="card-float-badge badge-cloud">TRADITIONAL CLOUD SHARING</span>
+              <h3 class="card-float-title">Google Drive, WeTransfer, AirDrop &amp; Email</h3>
             </div>
-            <div class="contrast-item">
-              <span class="contrast-marker marker-minus">—</span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">Paywalls &amp; 2 GB Caps:</span>
-                <span class="contrast-item-text">Free cloud services cut you off at 2 GB, throttle download speeds, or demand monthly credit card subscriptions.</span>
-              </div>
-            </div>
-            <div class="contrast-item">
-              <span class="contrast-marker marker-minus">—</span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">Files Stored Remotely:</span>
-                <span class="contrast-item-text">Cloud providers store your sensitive documents and personal photos indefinitely on their remote servers.</span>
-              </div>
-            </div>
-            <div class="contrast-item">
-              <span class="contrast-marker marker-minus">—</span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">Ecosystem Silos:</span>
-                <span class="contrast-item-text">AirDrop only connects Apple devices; Quick Share is fragmented across vendor platforms.</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Right Column: PinnPointt Direct Sharing -->
-        <div class="contrast-col contrast-positive">
-          <div class="contrast-col-header">
-            <span class="contrast-label contrast-label-accent">PINNPOINTT DIRECT SHARING</span>
+            <!-- Double Wait Timeline with SVGs -->
+            <div class="visual-timeline-box timeline-cloud">
+              <div class="timeline-nodes-row">
+                <div class="timeline-node">
+                  <div class="node-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  </div>
+                  <span class="node-label">Your Phone</span>
+                </div>
+                <div class="timeline-arrow-pipe pipe-cloud">
+                  <span class="pipe-sub">Upload (15m)</span>
+                  <span class="pipe-bar"></span>
+                </div>
+                <div class="timeline-node node-server">
+                  <div class="node-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                  </div>
+                  <span class="node-label">Cloud Server</span>
+                </div>
+                <div class="timeline-arrow-pipe pipe-cloud">
+                  <span class="pipe-sub">Download (15m)</span>
+                  <span class="pipe-bar"></span>
+                </div>
+                <div class="timeline-node">
+                  <div class="node-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  </div>
+                  <span class="node-label">Receiver</span>
+                </div>
+              </div>
+              <div class="timeline-result-pill result-cloud">
+                <span>30+ Minutes Wasted • 2x Internet Bandwidth Used</span>
+              </div>
+            </div>
+
+            <!-- Negative Bullets -->
+            <div class="contrast-bullet-list">
+              <div class="contrast-bullet-item">
+                <span class="bullet-minus">—</span>
+                <p><strong>Double Waiting Time:</strong> You must wait for your file to upload to a remote server before your friend can even begin downloading.</p>
+              </div>
+              <div class="contrast-bullet-item">
+                <span class="bullet-minus">—</span>
+                <p><strong>2 GB Paywalls &amp; Speed Caps:</strong> Free services throttle speeds or lock large file sharing behind monthly recurring credit card subscriptions.</p>
+              </div>
+              <div class="contrast-bullet-item">
+                <span class="bullet-minus">—</span>
+                <p><strong>Files Stored on Remote Servers:</strong> Your private media and personal documents remain on third-party cloud infrastructure indefinitely.</p>
+              </div>
+              <div class="contrast-bullet-item">
+                <span class="bullet-minus">—</span>
+                <p><strong>Ecosystem Silos:</strong> AirDrop only connects Apple devices, while Quick Share is fragmented across specific Android brands.</p>
+              </div>
+            </div>
           </div>
-          <div class="contrast-list">
-            <div class="contrast-item">
-              <span class="contrast-marker marker-check">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">Direct Device-to-Device:</span>
-                <span class="contrast-item-text">Data streams straight from your device to the other device across your Wi-Fi with zero cloud storage.</span>
+
+          <!-- Right Card: PinnPointt Direct Sharing -->
+          <div class="contrast-card-float direct-card reveal-up" style="--stagger-index: 1;">
+            <div class="card-glacier-glow" aria-hidden="true"></div>
+            <div class="card-float-header">
+              <span class="card-float-badge badge-direct">PINNPOINTT DIRECT STREAMING</span>
+              <h3 class="card-float-title">Direct Local Wi-Fi &amp; P2P WebRTC</h3>
+            </div>
+
+            <!-- Single Direct Stream Timeline with SVGs -->
+            <div class="visual-timeline-box timeline-direct">
+              <div class="timeline-nodes-row">
+                <div class="timeline-node node-highlight">
+                  <div class="node-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  </div>
+                  <span class="node-label">Your Phone</span>
+                </div>
+                <div class="timeline-arrow-pipe pipe-direct">
+                  <span class="pipe-sub">Direct Wi-Fi Beam (112 MB/s)</span>
+                  <span class="pipe-bar active"></span>
+                </div>
+                <div class="timeline-node node-highlight">
+                  <div class="node-icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  </div>
+                  <span class="node-label">Your PC</span>
+                </div>
+              </div>
+              <div class="timeline-result-pill result-direct">
+                <span>Transfer Complete in Seconds • 0 Cloud Uploads</span>
               </div>
             </div>
-            <div class="contrast-item">
-              <span class="contrast-marker marker-check">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">No File Size Limits:</span>
-                <span class="contrast-item-text">Share 50 MB or 50 GB. Smooth streaming ensures your browser never freezes or crashes.</span>
+
+            <!-- Positive Bullets -->
+            <div class="contrast-bullet-list">
+              <div class="contrast-bullet-item">
+                <span class="bullet-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <p><strong>Direct Device-to-Device:</strong> Files stream directly across your local Wi-Fi or WebRTC datachannel with zero cloud stops.</p>
               </div>
-            </div>
-            <div class="contrast-item">
-              <span class="contrast-marker marker-check">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">100% Private &amp; Ephemeral:</span>
-                <span class="contrast-item-text">Nothing is ever saved to any server. Once the transfer finishes, it leaves no trace behind.</span>
+              <div class="contrast-bullet-item">
+                <span class="bullet-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <p><strong>Unlimited File Size (OPFS):</strong> Send 10 MB or 50 GB+. Origin Private File System disk streaming ensures zero browser tab memory crashes.</p>
               </div>
-            </div>
-            <div class="contrast-item">
-              <span class="contrast-marker marker-check">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </span>
-              <div class="contrast-item-body">
-                <span class="contrast-item-title">Universal Device Freedom:</span>
-                <span class="contrast-item-text">Instant compatibility across iPhone, Android, Mac, Windows, Linux, iPad, and Chromebooks right in the browser.</span>
+              <div class="contrast-bullet-item">
+                <span class="bullet-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <p><strong>100% Ephemeral &amp; Private:</strong> Files are never stored online. Once the direct peer transfer completes, zero data footprints remain.</p>
+              </div>
+              <div class="contrast-bullet-item">
+                <span class="bullet-check">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <p><strong>Universal Device Freedom:</strong> Send seamlessly between iPhone, Android, Windows, Mac, iPad, Linux, and Chromebooks right in the browser.</p>
               </div>
             </div>
           </div>
@@ -373,7 +519,7 @@
     <!-- ── Section 03: Cryptographic Proof & Verification ── -->
     <section id="security" class="arch-section security-arch">
       <!-- Header Row -->
-      <div class="arch-header-row">
+      <div class="arch-header-row reveal-up">
         <span class="arch-mono-index">03 // CRYPTOGRAPHIC PROOF &amp; VERIFICATION</span>
         <h2 class="section-title arch-heading">Provable security at every layer.</h2>
         <p class="arch-lead">
@@ -383,28 +529,28 @@
 
       <!-- 4-Cell Contiguous Telemetry Ledger -->
       <div class="security-proof-grid">
-        <div class="proof-card">
+        <div class="proof-card reveal-up" style="--stagger-index: 0;">
           <div class="proof-metric">100%</div>
           <div class="proof-label">Bit-Exact SHA-256 Identity</div>
           <p class="proof-desc">Every file is hashed before and after transfer via native Web Crypto hardware acceleration. Corrupted, modified, or truncated chunks are automatically rejected.</p>
           <div class="proof-tag">VERIFIED BY E2E HARNESS</div>
         </div>
 
-        <div class="proof-card">
+        <div class="proof-card reveal-up" style="--stagger-index: 1;">
           <div class="proof-metric">0</div>
           <div class="proof-label">CVE Vulnerabilities</div>
           <p class="proof-desc">Strict zero-dependency footprint. Audited and verified with zero npm CVE alerts, tracking pixels, or background telemetry.</p>
           <div class="proof-tag">AUDITED &amp; CLEAN</div>
         </div>
 
-        <div class="proof-card">
+        <div class="proof-card reveal-up" style="--stagger-index: 2;">
           <div class="proof-metric">33 / 33</div>
           <div class="proof-label">QR Unit Tests Passing</div>
           <p class="proof-desc">Automated test coverage across custom Galois Field arithmetic, Reed-Solomon polynomial division, and ISO/IEC 18004 BCH matrix error-correction pipeline.</p>
           <div class="proof-tag">100% TEST COVERAGE</div>
         </div>
 
-        <div class="proof-card">
+        <div class="proof-card reveal-up" style="--stagger-index: 3;">
           <div class="proof-metric">100%</div>
           <div class="proof-label">Client-Side File Triage</div>
           <p class="proof-desc">Local safety heuristics triage incoming binaries and warn against double-extension traps, executable scripts, and suspicious files before you save them.</p>
@@ -413,7 +559,7 @@
       </div>
 
       <!-- Interactive File Triage Sandbox -->
-      <div class="threat-sandbox-card" id="threat-sandbox">
+      <div class="threat-sandbox-card reveal-up" id="threat-sandbox">
         <div class="threat-sandbox-split">
           <!-- Left Controls Column -->
           <div class="sandbox-controls-col">
@@ -479,7 +625,7 @@
     <!-- ── Section 04: Benchmark Comparison Matrix ── -->
     <section id="comparison" class="arch-section comparison-arch">
       <!-- Top Asymmetric Header Row -->
-      <div class="arch-header-row">
+      <div class="arch-header-row reveal-up">
         <span class="arch-mono-index">04 // BENCHMARK COMPARISON</span>
         <h2 class="section-title arch-heading">How PinnPointt compares.</h2>
         <p class="arch-lead">
@@ -487,7 +633,7 @@
         </p>
       </div>
 
-      <div class="comparison-table-wrap">
+      <div class="comparison-table-wrap reveal-up">
         <table class="comparison-table">
           <thead>
             <tr>
@@ -605,7 +751,7 @@
       <div class="arch-split-grid">
         <!-- Left Column: Sticky Editorial Header (4 cols) -->
         <div class="arch-split-left">
-          <div class="arch-sticky-wrap">
+          <div class="arch-sticky-wrap reveal-up">
             <span class="arch-mono-index">05 // TECHNICAL FAQ</span>
             <h2 class="section-title arch-heading">Frequently asked questions.</h2>
             <p class="arch-lead">
@@ -616,7 +762,7 @@
 
         <!-- Right Column: Accordion Rows (8 cols) -->
         <div class="arch-split-right">
-          <details class="faq-accordion-item" open>
+          <details class="faq-accordion-item reveal-up" style="--stagger-index: 0;" open>
             <summary class="faq-accordion-trigger">
               <span class="faq-question">How large of a file can I send?</span>
               <span class="faq-toggle-icon" aria-hidden="true">
@@ -628,7 +774,7 @@
             </div>
           </details>
 
-          <details class="faq-accordion-item">
+          <details class="faq-accordion-item reveal-up" style="--stagger-index: 1;">
             <summary class="faq-accordion-trigger">
               <span class="faq-question">Do my files ever go to a cloud server?</span>
               <span class="faq-toggle-icon" aria-hidden="true">
@@ -640,7 +786,7 @@
             </div>
           </details>
 
-          <details class="faq-accordion-item">
+          <details class="faq-accordion-item reveal-up" style="--stagger-index: 2;">
             <summary class="faq-accordion-trigger">
               <span class="faq-question">Does it work between iPhone and Windows or Android and Mac?</span>
               <span class="faq-toggle-icon" aria-hidden="true">
@@ -897,7 +1043,7 @@
 
     <!-- ── Signature Pre-Footer Launch Banner ── -->
     <section class="arch-section pre-footer-stage">
-      <div class="pre-footer-inner">
+      <div class="pre-footer-inner reveal-up">
         <div class="pre-footer-logo-frame">
           <svg class="pinnpointt-logo" width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PinnPointt Logo">
             <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-opacity="0.14" stroke-width="1"/>
