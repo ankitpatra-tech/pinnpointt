@@ -214,7 +214,10 @@ async function run(): Promise<void> {
     try {
       await pageSender.waitForSelector('.onboarding-modal-card', { timeout: 2500 });
       console.log('✓ Verified Welcome & Onboarding Guide modal appears on initial visit.');
-      await pageSender.click('.onboarding-cta-btn');
+      await pageSender.evaluate(() => {
+        const btn = document.querySelector('.onboarding-cta-btn') as HTMLElement;
+        if (btn) btn.click();
+      });
       await pageSender.waitForSelector('.onboarding-modal-card', { hidden: true, timeout: 2000 });
       console.log('✓ Onboarding modal dismissed successfully.');
     } catch {

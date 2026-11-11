@@ -252,14 +252,14 @@
           <div class="scrolly-step-card reveal-up" data-step="2" role="button" tabindex="0" style="--stagger-index: 1;">
             <div class="step-card-num">02</div>
             <div class="step-card-body">
-              <span class="step-card-tag">STEP 02 // CONNECT</span>
+              <span class="step-card-tag">STEP 02 // PAIR</span>
               <h3 class="step-card-title">Scan the QR code</h3>
               <p class="step-card-desc">
                 Point your phone camera at the screen or type the 6-character room code. Devices link together in one second via direct WebRTC signaling.
               </p>
               <div class="step-badges">
-                <span class="step-badge">&lt; 1s Peer Link</span>
-                <span class="step-badge">6-Digit Code or QR</span>
+                <span class="step-badge">Instant Peer Link</span>
+                <span class="step-badge">Room Code or QR</span>
               </div>
             </div>
           </div>
@@ -306,7 +306,7 @@
                 <div class="mockup-device mockup-laptop">
                   <div class="mockup-bar">
                     <span class="mockup-dot"></span>
-                    <span class="mockup-url">pinnpointt.com/app</span>
+                    <span class="mockup-url">pinnpointt.com</span>
                   </div>
                   <div class="mockup-body">
                     <div class="mockup-status-dot pulse"></div>
@@ -316,7 +316,7 @@
               </div>
               <div class="scene-caption-pill">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                <span>No Software to Install • Works in Any Web Browser</span>
+                <span>Zero Software to Install • Works in Any Web Browser</span>
               </div>
             </div>
 
@@ -528,113 +528,117 @@
       </div>
 
       <!-- 4-Cell Contiguous Telemetry Ledger -->
-      <div class="security-proof-grid">
-        <div class="proof-card reveal-up" style="--stagger-index: 0;">
-          <div class="proof-metric" data-counter-target="100" data-counter-suffix="%">100%</div>
-          <div class="proof-label">Identical File Guarantee</div>
-          <p class="proof-desc">Verified bit-for-bit with SHA-256 so photos or videos never arrive corrupted.</p>
-          <div class="proof-tag">SHA-256 BIT-EXACT</div>
-        </div>
+      <div class="pp-fluid-container">
+        <div class="security-proof-grid">
+          <div class="proof-card reveal-up" style="--stagger-index: 0;">
+            <div class="proof-metric" data-counter-target="100" data-counter-suffix="%">100%</div>
+            <div class="proof-label">Identical File Guarantee</div>
+            <p class="proof-desc">Verified bit-for-bit with SHA-256 so photos or videos never arrive corrupted.</p>
+            <div class="proof-tag">SHA-256 BIT-EXACT</div>
+          </div>
 
-        <div class="proof-card reveal-up" style="--stagger-index: 1;">
-          <div class="proof-metric" data-counter-target="0" data-counter-suffix=" Bytes">0 Bytes</div>
-          <div class="proof-label">Stored in the Cloud</div>
-          <p class="proof-desc">Everything streams straight between your devices and disappears when you close the tab.</p>
-          <div class="proof-tag">100% EPHEMERAL</div>
-        </div>
+          <div class="proof-card reveal-up" style="--stagger-index: 1;">
+            <div class="proof-metric" data-counter-target="0" data-counter-suffix=" Bytes">0 Bytes</div>
+            <div class="proof-label">Stored in the Cloud</div>
+            <p class="proof-desc">Everything streams straight between your devices and disappears when you close the tab.</p>
+            <div class="proof-tag">100% EPHEMERAL</div>
+          </div>
 
-        <div class="proof-card reveal-up" style="--stagger-index: 2;">
-          <div class="proof-metric" data-counter-target="33" data-counter-type="fraction" data-counter-denom="33">33 / 33</div>
-          <div class="proof-label">1-Second QR Pairing</div>
-          <p class="proof-desc">Custom-built high-speed QR &amp; room code engine with 33/33 automated reliability checks.</p>
-          <div class="proof-tag">33 / 33 CHECKS PASSING</div>
-        </div>
+          <div class="proof-card reveal-up" style="--stagger-index: 2;">
+            <div class="proof-metric" data-counter-target="33" data-counter-type="fraction" data-counter-denom="33">33 / 33</div>
+            <div class="proof-label">1-Second QR Pairing</div>
+            <p class="proof-desc">Custom-built high-speed QR &amp; room code engine with 33/33 automated reliability checks.</p>
+            <div class="proof-tag">33 / 33 CHECKS PASSING</div>
+          </div>
 
-        <div class="proof-card reveal-up" style="--stagger-index: 3;">
-          <div class="proof-metric" data-counter-target="100" data-counter-suffix="%">100%</div>
-          <div class="proof-label">Automatic Safety Check</div>
-          <p class="proof-desc">Warns you about disguised .exe or suspicious files before you save them.</p>
-          <div class="proof-tag">CLIENT-SIDE TRIAGE</div>
+          <div class="proof-card reveal-up" style="--stagger-index: 3;">
+            <div class="proof-metric" data-counter-target="100" data-counter-suffix="%">100%</div>
+            <div class="proof-label">Automatic Safety Check</div>
+            <p class="proof-desc">Warns you about disguised .exe or suspicious files before you save them.</p>
+            <div class="proof-tag">CLIENT-SIDE TRIAGE</div>
+          </div>
         </div>
       </div>
 
       <!-- Interactive File Triage Sandbox -->
-      <div class="threat-sandbox-card reveal-up" id="threat-sandbox">
-        <div class="threat-sandbox-split">
-          <!-- Left Controls Column -->
-          <div class="sandbox-controls-col">
-            <div class="sandbox-title-wrap">
-              <span class="sandbox-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              </span>
-              <div>
-                <h3 class="sandbox-title">Built-In Protection from Suspicious Files</h3>
-                <p class="sandbox-subtitle">Click a sample payload to simulate real-time local browser inspection:</p>
+      <div class="pp-fluid-container">
+        <div class="threat-sandbox-card reveal-up" id="threat-sandbox">
+          <div class="threat-sandbox-split">
+            <!-- Left Controls Column -->
+            <div class="sandbox-controls-col">
+              <div class="sandbox-title-wrap">
+                <span class="sandbox-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </span>
+                <div>
+                  <h3 class="sandbox-title">Built-In Protection from Suspicious Files</h3>
+                  <p class="sandbox-subtitle">Click a sample payload to simulate real-time local browser inspection:</p>
+                </div>
+              </div>
+
+              <div class="sandbox-buttons">
+                <button class="sandbox-btn active" data-sample="clean" type="button">
+                  <span class="sandbox-btn-icon file-doc" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </span>
+                  <span class="sandbox-btn-text">presentation_deck.pdf</span>
+                  <span class="sandbox-btn-badge safe-hint">Safe</span>
+                </button>
+                <button class="sandbox-btn" data-sample="double-ext" type="button">
+                  <span class="sandbox-btn-icon file-trap" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FB7185" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  </span>
+                  <span class="sandbox-btn-text">invoice_receipt.pdf.exe</span>
+                  <span class="sandbox-btn-badge danger-hint">Trap</span>
+                </button>
+                <button class="sandbox-btn" data-sample="archive" type="button">
+                  <span class="sandbox-btn-icon file-zip" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M10 3v18M14 3v18"/></svg>
+                  </span>
+                  <span class="sandbox-btn-text">project_footage_4k.zip</span>
+                  <span class="sandbox-btn-badge safe-hint">18 GB</span>
+                </button>
+                <button class="sandbox-btn" data-sample="script" type="button">
+                  <span class="sandbox-btn-icon file-code" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                  </span>
+                  <span class="sandbox-btn-text">update_patch.ps1</span>
+                  <span class="sandbox-btn-badge warn-hint">Script</span>
+                </button>
+                <button class="sandbox-btn" data-sample="malware-hash" type="button">
+                  <span class="sandbox-btn-icon file-shield" aria-hidden="true">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </span>
+                  <span class="sandbox-btn-text">eicar_antivirus_test.com</span>
+                  <span class="sandbox-btn-badge danger-hint">Threat</span>
+                </button>
               </div>
             </div>
 
-            <div class="sandbox-buttons">
-              <button class="sandbox-btn active" data-sample="clean" type="button">
-                <span class="sandbox-btn-icon file-doc" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                </span>
-                <span class="sandbox-btn-text">presentation_deck.pdf</span>
-                <span class="sandbox-btn-badge safe-hint">Safe</span>
-              </button>
-              <button class="sandbox-btn" data-sample="double-ext" type="button">
-                <span class="sandbox-btn-icon file-trap" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FB7185" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                </span>
-                <span class="sandbox-btn-text">invoice_receipt.pdf.exe</span>
-                <span class="sandbox-btn-badge danger-hint">Trap</span>
-              </button>
-              <button class="sandbox-btn" data-sample="archive" type="button">
-                <span class="sandbox-btn-icon file-zip" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M10 3v18M14 3v18"/></svg>
-                </span>
-                <span class="sandbox-btn-text">project_footage_4k.zip</span>
-                <span class="sandbox-btn-badge safe-hint">18 GB</span>
-              </button>
-              <button class="sandbox-btn" data-sample="script" type="button">
-                <span class="sandbox-btn-icon file-code" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                </span>
-                <span class="sandbox-btn-text">update_patch.ps1</span>
-                <span class="sandbox-btn-badge warn-hint">Script</span>
-              </button>
-              <button class="sandbox-btn" data-sample="malware-hash" type="button">
-                <span class="sandbox-btn-icon file-shield" aria-hidden="true">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </span>
-                <span class="sandbox-btn-text">eicar_antivirus_test.com</span>
-                <span class="sandbox-btn-badge danger-hint">Threat</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Right Output Inspector Column -->
-          <div class="sandbox-output-col">
-            <div class="sandbox-output" id="sandbox-output">
-              <div class="sandbox-scan-beam" id="sandbox-scan-beam" aria-hidden="true"></div>
-              <div class="sandbox-status-row">
-                <span class="sandbox-status-badge safe" id="sandbox-badge">Verified Safe</span>
-                <span class="sandbox-file-meta" id="sandbox-filename">presentation_deck.pdf (4.8 MB)</span>
-              </div>
-              <div class="sandbox-reason" id="sandbox-reason">
-                Normal document. Transferred directly between your devices without any cloud storage.
-              </div>
-              <div class="sandbox-details-grid">
-                <div class="sandbox-detail">
-                  <span class="detail-label">FILE STATUS</span>
-                  <span class="detail-value" id="sandbox-policy">Safe to Download (Direct Stream)</span>
+            <!-- Right Output Inspector Column -->
+            <div class="sandbox-output-col">
+              <div class="sandbox-output" id="sandbox-output">
+                <div class="sandbox-scan-beam" id="sandbox-scan-beam" aria-hidden="true"></div>
+                <div class="sandbox-status-row">
+                  <span class="sandbox-status-badge safe" id="sandbox-badge">Verified Safe</span>
+                  <span class="sandbox-file-meta" id="sandbox-filename">presentation_deck.pdf (4.8 MB)</span>
                 </div>
-                <div class="sandbox-detail">
-                  <span class="detail-label">INTEGRITY CHECK</span>
-                  <span class="detail-value" id="sandbox-hash">Verified Bit-Exact (SHA-256 Matched)</span>
+                <div class="sandbox-reason" id="sandbox-reason">
+                  Normal document. Transferred directly between your devices without any cloud storage.
                 </div>
-                <div class="sandbox-detail">
-                  <span class="detail-label">CLOUD NETWORK REQUESTS</span>
-                  <span class="detail-value highlight" id="sandbox-network">0 network requests (100% on your device)</span>
+                <div class="sandbox-details-grid">
+                  <div class="sandbox-detail">
+                    <span class="detail-label">FILE STATUS</span>
+                    <span class="detail-value" id="sandbox-policy">Safe to Download (Direct Stream)</span>
+                  </div>
+                  <div class="sandbox-detail">
+                    <span class="detail-label">INTEGRITY CHECK</span>
+                    <span class="detail-value" id="sandbox-hash">Verified Bit-Exact (SHA-256 Matched)</span>
+                  </div>
+                  <div class="sandbox-detail">
+                    <span class="detail-label">CLOUD NETWORK REQUESTS</span>
+                    <span class="detail-value highlight" id="sandbox-network">0 network requests (100% on your device)</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -654,8 +658,9 @@
         </p>
       </div>
 
-      <div class="comparison-table-wrap reveal-up">
-        <table class="comparison-table">
+      <div class="pp-fluid-container">
+        <div class="comparison-table-wrap reveal-up">
+          <table class="comparison-table">
           <thead>
             <tr>
               <th style="min-width: 220px;">Feature</th>
@@ -764,12 +769,14 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </section>
 
     <!-- ── Section 05: Frequently Asked Questions (Asymmetric Accordion) ── -->
     <section id="faq" class="arch-section faq-arch">
-      <div class="arch-split-grid">
+      <div class="pp-fluid-container">
+        <div class="arch-split-grid">
         <!-- Left Column: Sticky Editorial Header (4 cols) -->
         <div class="arch-split-left">
           <div class="arch-sticky-wrap reveal-up">
@@ -844,78 +851,81 @@
           </details>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
     <!-- ── Mobile & Desktop Installation ── -->
     <section id="install" class="arch-section install-arch">
-      <div class="install-section-box">
-        <div class="install-left">
-          <span class="arch-mono-index">PWA UTILITY // CROSS-PLATFORM</span>
-          <h2 class="section-title arch-heading">Install directly from your browser.</h2>
-          <p class="arch-lead">
-            PinnPointt is a Progressive Web App. Zero store downloads or disk clutter.
-            Install once to launch full-screen directly from your desktop dock or mobile home screen.
-          </p>
+      <div class="pp-fluid-container">
+        <div class="install-section-box">
+          <div class="install-left">
+            <span class="arch-mono-index">PWA UTILITY // CROSS-PLATFORM</span>
+            <h2 class="section-title arch-heading">Install directly from your browser.</h2>
+            <p class="arch-lead">
+              PinnPointt is a Progressive Web App. Zero store downloads or disk clutter.
+              Install once to launch full-screen directly from your desktop dock or mobile home screen.
+            </p>
 
-          <div class="install-actions">
-            <button type="button" class="hero-btn-primary trigger-pwa-install">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Install PinnPointt App</span>
-            </button>
-            <a href="/app" class="hero-btn-secondary">
-              <span>Open in Browser ↗</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="install-right">
-          <div class="install-platform-card">
-            <div class="platform-info">
-              <span class="platform-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              </span>
-              <div>
-                <div class="platform-name font-semibold">Android &amp; Chrome</div>
-                <div class="platform-desc text-xs muted">Tap "Install" or click the install icon in the address bar</div>
-              </div>
+            <div class="install-actions">
+              <button type="button" class="hero-btn-primary trigger-pwa-install">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Install PinnPointt App</span>
+              </button>
+              <a href="/app" class="hero-btn-secondary">
+                <span>Open in Browser ↗</span>
+              </a>
             </div>
-            <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
           </div>
 
-          <div class="install-platform-card">
-            <div class="platform-info">
-              <span class="platform-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              </span>
-              <div>
-                <div class="platform-name font-semibold">iOS &amp; Safari</div>
-                <div class="platform-desc text-xs muted">Tap Share (⎋) then choose "Add to Home Screen"</div>
+          <div class="install-right">
+            <div class="install-platform-card">
+              <div class="platform-info">
+                <span class="platform-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                </span>
+                <div>
+                  <div class="platform-name font-semibold">Android &amp; Chrome</div>
+                  <div class="platform-desc text-xs muted">Tap "Install" or click the install icon in the address bar</div>
+                </div>
               </div>
+              <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
             </div>
-            <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('ios-install-steps').style.display = 'block'">Guide</button>
-          </div>
 
-          <div class="install-platform-card">
-            <div class="platform-info">
-              <span class="platform-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              </span>
-              <div>
-                <div class="platform-name font-semibold">Windows, Mac &amp; Linux</div>
-                <div class="platform-desc text-xs muted">Install as a desktop utility via Chrome, Edge, or Brave</div>
+            <div class="install-platform-card">
+              <div class="platform-info">
+                <span class="platform-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                </span>
+                <div>
+                  <div class="platform-name font-semibold">iOS &amp; Safari</div>
+                  <div class="platform-desc text-xs muted">Tap Share (⎋) then choose "Add to Home Screen"</div>
+                </div>
               </div>
+              <button type="button" class="btn btn-sm btn-ghost" onclick="document.getElementById('ios-install-steps').style.display = 'block'">Guide</button>
             </div>
-            <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
-          </div>
 
-          <div id="ios-install-steps" class="ios-guide-box" style="display: none; margin-top: 10px;">
-            <strong>iPhone / iPad Installation:</strong>
-            <ol style="padding-left: 18px; margin: 6px 0 0; font-size: 13px; line-height: 1.6;">
-              <li>Open PinnPointt in Safari.</li>
-              <li>Tap the <strong>Share</strong> button (box with upward arrow) at the bottom.</li>
-              <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
-              <li>PinnPointt will appear on your home screen like a native app.</li>
-            </ol>
+            <div class="install-platform-card">
+              <div class="platform-info">
+                <span class="platform-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </span>
+                <div>
+                  <div class="platform-name font-semibold">Windows, Mac &amp; Linux</div>
+                  <div class="platform-desc text-xs muted">Install as a desktop utility via Chrome, Edge, or Brave</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-ghost trigger-pwa-install">Install</button>
+            </div>
+
+            <div id="ios-install-steps" class="ios-guide-box" style="display: none; margin-top: 10px;">
+              <strong>iPhone / iPad Installation:</strong>
+              <ol style="padding-left: 18px; margin: 6px 0 0; font-size: 13px; line-height: 1.6;">
+                <li>Open PinnPointt in Safari.</li>
+                <li>Tap the <strong>Share</strong> button (box with upward arrow) at the bottom.</li>
+                <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+                <li>PinnPointt will appear on your home screen like a native app.</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>
@@ -923,37 +933,39 @@
 
     <!-- ── Under the Hood: Technical Architecture (Collapsible Accordion) ── -->
     <section id="technical-architecture" class="arch-section technical-accordion-section">
-      <details class="tech-accordion">
-        <summary class="tech-accordion-summary">
-          <div class="tech-summary-left">
-            <span class="arch-mono-index">DEEP DIVE // SPECIFICATION</span>
-            <h3 class="tech-summary-title">Curious how it works under the hood? Read the technical summary</h3>
+      <div class="pp-fluid-container">
+        <details class="tech-accordion">
+          <summary class="tech-accordion-summary">
+            <div class="tech-summary-left">
+              <span class="arch-mono-index">DEEP DIVE // SPECIFICATION</span>
+              <h3 class="tech-summary-title">Curious how it works under the hood? Read the technical summary</h3>
+            </div>
+            <span class="tech-accordion-chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </summary>
+          <div class="tech-accordion-body">
+            <div class="tech-grid">
+              <div class="tech-card">
+                <h4>4-Channel Parallel WebRTC SCTP Pool</h4>
+                <p>Transfers are multiplexed across four concurrent SCTP DataChannels with round-robin chunk dispatching based on low-watermark buffer backpressure to saturate local Wi-Fi speeds.</p>
+              </div>
+              <div class="tech-card">
+                <h4>Direct-to-Disk Stream Handling</h4>
+                <p>Chunks stream directly into Origin Private File System handles using FileSystemWritableFileStream, eliminating browser tab RAM spikes and crash risks on multi-gigabyte transfers.</p>
+              </div>
+              <div class="tech-card">
+                <h4>WebRTC Transport Encryption</h4>
+                <p>Direct peer connections are cryptographically authenticated and encrypted using DTLS 1.3 with AES-GCM-256 ciphers. Zero unencrypted packets ever traverse the network.</p>
+              </div>
+              <div class="tech-card">
+                <h4>Hybrid Serverless Signaling Relay</h4>
+                <p>When WebSocket signaling is blocked, peers can bootstrap SDP offers and ICE candidates through decentralized, ephemeral Nostr relays (NIP-01) with zero server persistence.</p>
+              </div>
+            </div>
           </div>
-          <span class="tech-accordion-chevron">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </span>
-        </summary>
-        <div class="tech-accordion-body">
-          <div class="tech-grid">
-            <div class="tech-card">
-              <h4>4-Channel Parallel WebRTC SCTP Pool</h4>
-              <p>Transfers are multiplexed across four concurrent SCTP DataChannels with round-robin chunk dispatching based on low-watermark buffer backpressure to saturate local Wi-Fi speeds.</p>
-            </div>
-            <div class="tech-card">
-              <h4>Direct-to-Disk Stream Handling</h4>
-              <p>Chunks stream directly into Origin Private File System handles using FileSystemWritableFileStream, eliminating browser tab RAM spikes and crash risks on multi-gigabyte transfers.</p>
-            </div>
-            <div class="tech-card">
-              <h4>WebRTC Transport Encryption</h4>
-              <p>Direct peer connections are cryptographically authenticated and encrypted using DTLS 1.3 with AES-GCM-256 ciphers. Zero unencrypted packets ever traverse the network.</p>
-            </div>
-            <div class="tech-card">
-              <h4>Hybrid Serverless Signaling Relay</h4>
-              <p>When WebSocket signaling is blocked, peers can bootstrap SDP offers and ICE candidates through decentralized, ephemeral Nostr relays (NIP-01) with zero server persistence.</p>
-            </div>
-          </div>
-        </div>
-      </details>
+        </details>
+      </div>
     </section>
 
     <!-- ── Development Phases & Roadmap ── -->
@@ -970,62 +982,64 @@
         </div>
       </div>
 
-      <div class="roadmap-timeline">
-        <!-- Phase 1 -->
-        <div class="roadmap-card current">
-          <div class="roadmap-meta">
-            <span class="roadmap-version">v0.0.1 – v0.0.61 beta</span>
-            <span class="roadmap-status completed text-xs">Shipped &amp; Live</span>
+      <div class="pp-fluid-container">
+        <div class="roadmap-timeline">
+          <!-- Phase 1 -->
+          <div class="roadmap-card current">
+            <div class="roadmap-meta">
+              <span class="roadmap-version">v0.0.1 – v0.0.61 beta</span>
+              <span class="roadmap-status completed text-xs">Shipped &amp; Live</span>
+            </div>
+            <div class="roadmap-details">
+              <h3>Phase 1: Core Foundation &amp; Web App</h3>
+              <p>Direct device-to-device streaming, pairing, and visual experience.</p>
+              <ul class="roadmap-items">
+                <li>Multi-stream high-speed file transfer engine.</li>
+                <li>Instant, lossless Pause, Resume &amp; Cancel protocol with disk checkpointing.</li>
+                <li>On-demand remote file browsing and previews.</li>
+                <li>In-memory photo privacy protection (location and camera data removal).</li>
+                <li>Real-time live notes and universal clipboard sync.</li>
+                <li>Instant camera pairing via dynamic on-screen QR codes &amp; 6-letter room pairing.</li>
+                <li>End-to-end encrypted direct communication.</li>
+                <li>Client-side file safety triage &amp; SHA-256 pre-verification.</li>
+              </ul>
+            </div>
           </div>
-          <div class="roadmap-details">
-            <h3>Phase 1: Core Foundation &amp; Web App</h3>
-            <p>Direct device-to-device streaming, pairing, and visual experience.</p>
-            <ul class="roadmap-items">
-              <li>Multi-stream high-speed file transfer engine.</li>
-              <li>Instant, lossless Pause, Resume &amp; Cancel protocol with disk checkpointing.</li>
-              <li>On-demand remote file browsing and previews.</li>
-              <li>In-memory photo privacy protection (location and camera data removal).</li>
-              <li>Real-time live notes and universal clipboard sync.</li>
-              <li>Instant camera pairing via dynamic on-screen QR codes &amp; 6-letter room pairing.</li>
-              <li>End-to-end encrypted direct communication.</li>
-              <li>Client-side file safety triage &amp; SHA-256 pre-verification.</li>
-            </ul>
-          </div>
-        </div>
 
-        <!-- Phase 2 -->
-        <div class="roadmap-card">
-          <div class="roadmap-meta">
-            <span class="roadmap-version">v0.0.7 – v0.0.9 beta</span>
-            <span class="roadmap-status planned text-xs">In Progress</span>
+          <!-- Phase 2 -->
+          <div class="roadmap-card">
+            <div class="roadmap-meta">
+              <span class="roadmap-version">v0.0.7 – v0.0.9 beta</span>
+              <span class="roadmap-status planned text-xs">In Progress</span>
+            </div>
+            <div class="roadmap-details">
+              <h3>Phase 2: Enhanced Sharing Capabilities</h3>
+              <p>Expanding file handling capabilities and peer discovery resilience.</p>
+              <ul class="roadmap-items">
+                <li>Whole folder directory streaming preserving subfolder hierarchies.</li>
+                <li>Automatic local network discovery without requiring internet signaling.</li>
+                <li>Resumable transfer checkpoints if network drops temporarily.</li>
+                <li>Multi-device broadcast (send one file to multiple devices at once).</li>
+              </ul>
+            </div>
           </div>
-          <div class="roadmap-details">
-            <h3>Phase 2: Enhanced Sharing Capabilities</h3>
-            <p>Expanding file handling capabilities and peer discovery resilience.</p>
-            <ul class="roadmap-items">
-              <li>Whole folder directory streaming preserving subfolder hierarchies.</li>
-              <li>Automatic local network discovery without requiring internet signaling.</li>
-              <li>Resumable transfer checkpoints if network drops temporarily.</li>
-              <li>Multi-device broadcast (send one file to multiple devices at once).</li>
-            </ul>
-          </div>
-        </div>
 
-        <!-- Phase 3 -->
-        <div class="roadmap-card future-highlight">
-          <div class="roadmap-meta">
-            <span class="roadmap-version">v1.0.0 Global Stable</span>
-            <span class="roadmap-status target text-xs">Open-Source Launch</span>
-          </div>
-          <div class="roadmap-details">
-            <h3>Phase 3: Global Launch &amp; 100% Open Source Release</h3>
-            <p>PinnPointt will transition into a fully public, decentralized community utility.</p>
-            <ul class="roadmap-items">
-              <li><strong>Public GitHub Repository:</strong> Complete source code released under the permissive MIT License.</li>
-              <li><strong>1-Command Docker Node:</strong> Easy self-hosting for universities, teams, and private networks.</li>
-              <li><strong>Decentralized Discovery:</strong> Direct peer discovery with zero dependence on central servers.</li>
-              <li><strong>Community Contributor Program:</strong> Bounties for translations, accessibility, and platform optimizations.</li>
-            </ul>
+          <!-- Phase 3 -->
+          <div class="roadmap-card future-highlight">
+            <div class="roadmap-meta">
+              <span class="roadmap-version">v1.0.0 Global Stable</span>
+              <span class="roadmap-status target text-xs">Open-Source Launch</span>
+            </div>
+            <div class="roadmap-details">
+              <h3>Phase 3: Global Launch &amp; 100% Open Source Release</h3>
+              <p>PinnPointt will transition into a fully public, decentralized community utility.</p>
+              <ul class="roadmap-items">
+                <li><strong>Public GitHub Repository:</strong> Complete source code released under the permissive MIT License.</li>
+                <li><strong>1-Command Docker Node:</strong> Easy self-hosting for universities, teams, and private networks.</li>
+                <li><strong>Decentralized Discovery:</strong> Direct peer discovery with zero dependence on central servers.</li>
+                <li><strong>Community Contributor Program:</strong> Bounties for translations, accessibility, and platform optimizations.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -1033,30 +1047,32 @@
 
     <!-- ── Note from the Founder ── -->
     <section id="developer-note" class="arch-section dev-note-arch">
-      <div class="arch-header-row">
-        <span class="arch-mono-index">MISSION &amp; ETHOS // FOUNDER PERSPECTIVE</span>
-        <h2 class="section-title arch-heading">A Note from the Founder</h2>
-      </div>
-
-      <div class="dev-letter-card">
-        <div class="dev-letter-header">
-          <div class="dev-avatar">AP</div>
-          <div class="dev-info">
-            <h3>Ankit Patra</h3>
-            <span class="text-xs muted">Founder of PinnPointt</span>
-          </div>
+      <div class="dev-note-container pp-fluid-container">
+        <div class="dev-header-center">
+          <span class="arch-mono-index">MISSION &amp; ETHOS // FOUNDER PERSPECTIVE</span>
+          <h2 class="section-title arch-heading">A Note from the Founder</h2>
         </div>
 
-        <div class="dev-letter-body">
-          <p>Hey everyone,</p>
-          <p>I built PinnPointt because sharing a file between two devices in 2026 is still surprisingly frustrating.</p>
-          <p>Think about what usually happens: you want to send a video from your phone to your laptop, or share photos with a friend sitting next to you who has a different phone. You're forced to upload it to a cloud drive, wait forever, hit a 2 GB storage limit, or sign up for an account you didn't want. And while you wait, your private files are saved on someone else's servers.</p>
-          <p>I wanted something that just works: open the page, point your camera, and send the file straight across at full speed. No logins, no cloud storage, and no size limits.</p>
-          <p>PinnPointt is completely free, does not track you, and will become 100% open-source under the MIT license when we reach our v1.0.0 release so the community owns it forever.</p>
-          <p>Thank you for using PinnPointt and helping make the web faster and more private for all of us.</p>
-          <div class="dev-signature">
-            — Ankit Patra<br />
-            <span class="text-xs muted">Founder, PinnPointt</span>
+        <div class="dev-letter-card">
+          <div class="dev-letter-header">
+            <div class="dev-avatar">AP</div>
+            <div class="dev-info">
+              <h3>Ankit Patra</h3>
+              <span class="text-xs muted">Founder of PinnPointt</span>
+            </div>
+          </div>
+
+          <div class="dev-letter-body">
+            <p>Hey everyone,</p>
+            <p>I built PinnPointt because sharing a file between two devices in 2026 is still surprisingly frustrating.</p>
+            <p>Think about what usually happens: you want to send a video from your phone to your laptop, or share photos with a friend sitting next to you who has a different phone. You're forced to upload it to a cloud drive, wait forever, hit a 2 GB storage limit, or sign up for an account you didn't want. And while you wait, your private files are saved on someone else's servers.</p>
+            <p>I wanted something that just works: open the page, point your camera, and send the file straight across at full speed. No logins, no cloud storage, and no size limits.</p>
+            <p>PinnPointt is completely free, does not track you, and will become 100% open-source under the MIT license when we reach our v1.0.0 release so the community owns it forever.</p>
+            <p>Thank you for using PinnPointt and helping make the web faster and more private for all of us.</p>
+            <div class="dev-signature">
+              — Ankit Patra<br />
+              <span class="text-xs muted">Founder, PinnPointt</span>
+            </div>
           </div>
         </div>
       </div>
