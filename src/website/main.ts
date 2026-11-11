@@ -37,13 +37,13 @@ function renderHeroQR(): void {
 
   try {
     const qrEngine = new QREngine();
-    const matrix = qrEngine.encode('ROOM:P88XYZ');
+    const matrix = qrEngine.encode('ROOM:K9X-402');
     const qrCanvas = new QRCanvas(canvas);
     qrCanvas.render(matrix, {
-      moduleSize: 4.5,
-      quietZone: 2,
-      darkColor: currentTheme === 'light' ? '#111110' : '#F3F4F6',
-      lightColor: currentTheme === 'light' ? '#FFFFFF' : '#15181C',
+      moduleSize: 3.2,
+      quietZone: 1,
+      darkColor: '#0A0B0E',
+      lightColor: '#FFFFFF',
     });
   } catch (err) {
     console.warn('Hero QR render notice:', err);
@@ -212,15 +212,88 @@ function setupThreatSandbox(): void {
   });
 }
 
+function setupScreenScale(): void {
+  const syncViewportScale = () => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const root = document.documentElement;
+    root.style.setProperty('--viewport-w', `${vw}px`);
+    root.style.setProperty('--viewport-h', `${vh}px`);
+    if (vw >= 1600) {
+      root.style.setProperty('--fluid-max-w', 'min(92vw, 1840px)');
+    } else if (vw >= 1280) {
+      root.style.setProperty('--fluid-max-w', '92vw');
+    } else {
+      root.style.setProperty('--fluid-max-w', '94vw');
+    }
+  };
+  window.addEventListener('resize', syncViewportScale, { passive: true });
+  syncViewportScale();
+}
+
+function setupNavIndicator(): void {
+  const navGroup = document.getElementById('site-nav-links');
+  const indicator = document.getElementById('pp-nav-indicator');
+  const navItems = document.querySelectorAll<HTMLElement>('.pp-nav-item');
+  if (!navGroup || !indicator || navItems.length === 0) return;
+
+  const movePill = (el: HTMLElement | null) => {
+    if (!el || !indicator) return;
+    indicator.style.width = `${el.offsetWidth}px`;
+    indicator.style.transform = `translateX(${el.offsetLeft - 4}px)`;
+    indicator.style.opacity = '1';
+  };
+
+  navItems.forEach((item) => {
+    item.addEventListener('mouseenter', () => movePill(item));
+    item.addEventListener('click', () => {
+      navItems.forEach((i) => i.classList.remove('active'));
+      item.classList.add('active');
+      movePill(item);
+    });
+  });
+
+  navGroup.addEventListener('mouseleave', () => {
+    const active = navGroup.querySelector<HTMLElement>('.pp-nav-item.active');
+    if (active) {
+      movePill(active);
+    } else {
+      indicator.style.opacity = '0';
+    }
+  });
+
+  // Initial position
+  setTimeout(() => {
+    const active = document.querySelector<HTMLElement>('.pp-nav-item.active') || navItems[0];
+    if (active) movePill(active);
+  }, 100);
+}
+
+function setupDemoCodeCopy(): void {
+  const btn = document.getElementById('copy-demo-code');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    navigator.clipboard?.writeText('K9X-402').then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span>Copied: <strong>K9X-402</strong></span>';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+      }, 1500);
+    }).catch(() => {
+      // Ignore if clipboard access is denied
+    });
+  });
+}
+
 function setupNavbarScroll(): void {
   const navbar = document.querySelector('.site-navbar');
   if (!navbar) return;
 
   const onScroll = () => {
     if (window.scrollY > 15) {
-      navbar.classList.add('scrolled');
+      navbar.classList.add('scrolled', 'is-scrolled');
     } else {
-      navbar.classList.remove('scrolled');
+      navbar.classList.remove('scrolled', 'is-scrolled');
     }
   };
 
@@ -276,6 +349,9 @@ function setupMobileMenu(): void {
 
 // ── Startup ──
 document.addEventListener('DOMContentLoaded', () => {
+  setupScreenScale();
+  setupNavIndicator();
+  setupDemoCodeCopy();
   setupTheme();
   setupPWAInstallation();
   setupModalTriggers();

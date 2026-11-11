@@ -15,36 +15,44 @@
   <link rel="stylesheet" href="/src/website/website.css" />
 </head>
 <body>
-  <!-- ── Top Navbar (Sticky Whisper Glass) ── -->
-  <header class="site-navbar">
-    <div class="site-navbar-inner">
-      <a href="/" class="nav-brand" aria-label="PinnPointt Home">
-        <svg class="pinnpointt-logo" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PinnPointt Logo">
-          <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-opacity="0.14" stroke-width="1"/>
-          <path class="logo-arc-a" d="M7 16C7 11.0294 11.0294 7 16 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-          <path class="logo-arc-b" d="M25 16C25 20.9706 20.9706 25 16 25" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-          <circle class="logo-core" cx="16" cy="16" r="3.2" fill="#38BDF8"/>
-        </svg>
-        <span class="nav-title">PinnPointt</span>
-        <span class="nav-badge">v0.0.61-beta</span>
+  <!-- ── Top Navbar (Fluid Floating Glass with Sliding Pill) ── -->
+  <header id="site-navbar" class="site-navbar pp-navbar">
+    <div class="pp-nav-container site-navbar-inner">
+      <!-- Brand Logo with Spring Rotation -->
+      <a href="/" class="nav-brand pp-brand" aria-label="PinnPointt Home">
+        <div class="pp-logo-wrap">
+          <svg class="pp-logo-svg pinnpointt-logo" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PinnPointt Logo">
+            <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-opacity="0.16" stroke-width="1.2"/>
+            <path class="pp-arc-a logo-arc-a" d="M7 16C7 11.0294 11.0294 7 16 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path class="pp-arc-b logo-arc-b" d="M25 16C25 20.9706 20.9706 25 16 25" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <circle class="pp-core-dot logo-core" cx="16" cy="16" r="3.4" fill="#38BDF8"/>
+          </svg>
+        </div>
+        <span class="nav-title pp-brand-name">PinnPointt</span>
+        <span class="nav-badge pp-version-pill">v0.0.61-beta</span>
       </a>
 
-      <nav class="site-nav-links" id="site-nav-links" aria-label="Primary navigation">
-        <a href="#how-it-works" class="site-nav-link">Protocol</a>
-        <a href="#why" class="site-nav-link">Why Direct</a>
-        <a href="#security" class="site-nav-link">Security</a>
-        <a href="#comparison" class="site-nav-link">Benchmarks</a>
-        <a href="#faq" class="site-nav-link">FAQ</a>
+      <!-- Animated Sliding-Pill Navigation Links -->
+      <nav class="site-nav-links pp-nav-links" id="site-nav-links" aria-label="Primary Navigation">
+        <span class="pp-nav-highlight" id="pp-nav-indicator"></span>
+        <a href="#how-it-works" class="site-nav-link pp-nav-item active">How It Works</a>
+        <a href="#why" class="site-nav-link pp-nav-item">Why Direct</a>
+        <a href="#security" class="site-nav-link pp-nav-item">Privacy &amp; Safety</a>
+        <a href="#comparison" class="site-nav-link pp-nav-item">Compare</a>
+        <a href="#faq" class="site-nav-link pp-nav-item">FAQ</a>
         <a href="/app" class="site-nav-link mobile-only-cta">
           <span>Start Sharing</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       </nav>
 
-      <div class="nav-actions">
-        <a href="/app" class="site-nav-cta">
+      <!-- Primary Action & Mobile Menu Toggle -->
+      <div class="pp-nav-actions nav-actions">
+        <a href="/app" class="site-nav-cta pp-cta-btn">
           <span>Start Sharing</span>
-          <svg class="cta-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+          </svg>
         </a>
         <button id="nav-toggle-btn" class="nav-mobile-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false">
           <span class="hamburger-bar"></span>
@@ -57,108 +65,154 @@
 
   <div class="site-wrapper">
 
-    <!-- ── Hero Section (Asymmetric Architectural 12-Column Grid) ── -->
-    <section class="hero-section">
-      <div class="hero-grid">
-        <!-- Left Hero Column (7 Columns Desktop, 1px Right Border) -->
-        <div class="hero-left">
-          <div class="hero-content-top">
-            <!-- Technical Status Line -->
-            <div class="hero-tech-status" aria-label="Technical Protocol Status">
-              <span class="status-pulse-mint"></span>
-              <span class="status-tech-label">DIRECT WEBRTC DATACHANNEL &nbsp;//&nbsp; OPFS STREAMING</span>
-            </div>
+    <!-- ── FLUID FULL-VIEWPORT HERO STAGE ── -->
+    <section class="hero-section pp-hero-stage">
+      <div class="pp-ambient-glow" aria-hidden="true"></div>
 
-            <!-- Headline (H1) -->
-            <h1 class="hero-title">
-              Share files of any size, straight between your devices.
-            </h1>
-
-            <!-- Subtitle Paragraph -->
-            <p class="hero-subtitle">
-              Move raw 4K video, multi-gigabyte archives, and folders between your phone and PC in seconds. Zero cloud uploads, zero sign-ups, and zero file size limits.
-            </p>
-
-            <!-- CTA Button Row -->
-            <div class="hero-actions">
-              <a href="/app" class="hero-btn-primary">
-                <span>Start Sharing Now</span>
-                <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </a>
-              <a href="#how-it-works" class="hero-btn-secondary">
-                <span>Inspect Protocol</span>
-              </a>
-              <button type="button" class="hero-btn-secondary trigger-pwa-install" aria-label="Install App as PWA">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Install App</span>
-              </button>
-            </div>
+      <div class="pp-fluid-container pp-hero-grid">
+        <!-- Left Column: Human-Friendly Product Story -->
+        <div class="pp-hero-copy">
+          <div class="pp-friendly-badge">
+            <span class="pp-live-dot"></span>
+            <span>Instant Phone-to-PC Sharing • No App Install Needed</span>
           </div>
 
-          <!-- Bottom Hardware Telemetry Strip -->
-          <div class="hero-specs-strip">
-            <div class="spec-item">
-              <span class="spec-label">CAPACITY</span>
-              <span class="spec-val">No File Size Limits (OPFS)</span>
+          <h1 class="hero-title pp-hero-title">
+            Share files of any size, straight between your devices.
+          </h1>
+
+          <p class="hero-subtitle pp-hero-subtitle">
+            Send original-quality photos, 4K videos, and large folders between your phone and computer in seconds. No cloud uploads, no accounts, and zero file size limits.
+          </p>
+
+          <div class="hero-actions pp-hero-actions">
+            <a href="/app" class="hero-btn-primary pp-btn-primary">
+              <span>Start Sharing Now</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="#how-it-works" class="hero-btn-secondary pp-btn-secondary">
+              <span>See How It Works</span>
+            </a>
+            <button type="button" class="hero-btn-secondary trigger-pwa-install pp-btn-secondary" aria-label="Install App as PWA">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Install App</span>
+            </button>
+          </div>
+
+          <!-- User-Friendly Highlights Strip -->
+          <div class="pp-hero-highlights">
+            <div class="pp-highlight-item">
+              <span class="pp-highlight-title">Unlimited File Size</span>
+              <span class="pp-highlight-desc">Send 10 MB or 50 GB+ without crashing</span>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">COMPATIBILITY</span>
-              <span class="spec-val">Any Phone, Tablet &amp; PC Browser</span>
+            <div class="pp-highlight-item">
+              <span class="pp-highlight-title">Works Everywhere</span>
+              <span class="pp-highlight-desc">iPhone, Android, Windows, Mac &amp; iPad</span>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">PRIVACY</span>
-              <span class="spec-val">E2E Encrypted • 0 Cloud Servers</span>
+            <div class="pp-highlight-item">
+              <span class="pp-highlight-title">100% Private</span>
+              <span class="pp-highlight-desc">Never uploaded to any cloud server</span>
             </div>
           </div>
         </div>
 
-        <!-- Right Hero Column (5 Columns Desktop) — Live Telemetry Stage -->
-        <div class="hero-right">
-          <div class="stage-window">
-            <!-- Compartment A (Top Telemetry Bar) -->
-            <div class="stage-compartment-a">
-              <div class="stage-session">
-                <span class="status-pulse-blue"></span>
-                <span class="session-label">SESSION // K9X-402</span>
+        <!-- Right Column: User-Friendly Interactive Transfer Card -->
+        <div class="pp-hero-card-wrap">
+          <div class="pp-transfer-card">
+            <!-- Top Friendly Status Header -->
+            <div class="pp-card-header">
+              <div class="pp-connection-pill">
+                <span class="pp-status-dot"></span>
+                <span>Connected on Local Wi-Fi</span>
               </div>
-              <span class="stage-relay-badge">DIRECT WI-FI • 0MS RELAY</span>
+              <button type="button" class="pp-room-chip" id="copy-demo-code" title="Click to copy demo code">
+                <span>Room Code: <strong>K9X-402</strong></span>
+              </button>
             </div>
 
-            <!-- Compartment B (QR Pairing & Peer Handshake Strip) -->
-            <div class="stage-compartment-b">
-              <div class="qr-frame-precision">
-                <canvas id="hero-qr-canvas" width="96" height="96"></canvas>
+            <!-- Visual Device-to-Device Bridge & QR Pairing -->
+            <div class="pp-pairing-box">
+              <div class="pp-qr-frame">
+                <canvas id="hero-qr-canvas" width="92" height="92"></canvas>
+                <span class="pp-qr-caption">Scan with camera</span>
               </div>
 
-              <div class="stage-handshake-info">
-                <div class="stage-node-row">
-                  <span class="node-tag">Phone Browser ( Peer 01 )</span>
-                  <div class="bridge-track">
-                    <span class="bridge-pulse"></span>
+              <div class="pp-device-bridge">
+                <div class="pp-device-row">
+                  <!-- Phone Icon + Label -->
+                  <div class="pp-device-node">
+                    <div class="pp-device-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+                      </svg>
+                    </div>
+                    <div class="pp-device-meta">
+                      <span class="pp-device-name">Your Phone</span>
+                      <span class="pp-device-sub">Sending file...</span>
+                    </div>
                   </div>
-                  <span class="node-tag">Desktop Workstation ( Peer 02 )</span>
+
+                  <!-- Animated Beam Track -->
+                  <div class="pp-beam-track" aria-hidden="true">
+                    <span class="pp-beam-packet"></span>
+                  </div>
+
+                  <!-- PC Icon + Label -->
+                  <div class="pp-device-node">
+                    <div class="pp-device-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                    </div>
+                    <div class="pp-device-meta">
+                      <span class="pp-device-name">Your PC</span>
+                      <span class="pp-device-sub">Receiving</span>
+                    </div>
+                  </div>
                 </div>
-                <span class="stage-qr-caption">Point camera or enter 6-char code to link in 1s</span>
+
+                <p class="pp-bridge-helper">
+                  Point your phone camera at the QR code or type the 6-digit code to connect in 1 second.
+                </p>
               </div>
             </div>
 
-            <!-- Compartment C (Live OPFS Stream Progress & Bit-Exact Readout) -->
-            <div class="stage-compartment-c">
-              <div class="stream-file-row">
-                <span class="stream-filename">Vacation-Photos-RAW.zip</span>
-                <span class="stream-filesize">4.20 GB</span>
+            <!-- Friendly File Transfer Progress Box -->
+            <div class="pp-file-transfer-box">
+              <div class="pp-file-row">
+                <div class="pp-file-info">
+                  <div class="pp-file-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="pp-file-name">Vacation-Photos-4K.zip</div>
+                    <div class="pp-file-type">Folder Archive • Direct Transfer</div>
+                  </div>
+                </div>
+                <span class="pp-file-size">4.20 GB</span>
               </div>
 
-              <div class="telemetry-progress-track">
-                <div class="telemetry-progress-fill"></div>
+              <div class="pp-progress-bar-track">
+                <div class="pp-progress-bar-fill" id="demo-progress-fill"></div>
               </div>
 
-              <div class="telemetry-readout-row">
-                <span>74% &nbsp; • &nbsp; 68.4 MB/s &nbsp; • &nbsp; ETA 14s</span>
+              <div class="pp-transfer-stats">
+                <span id="demo-percent"><strong>78%</strong> transferred</span>
+                <span>•</span>
+                <span>Speed: <strong>68.4 MB/s</strong></span>
+                <span>•</span>
+                <span id="demo-eta">About <strong>11 sec left</strong></span>
               </div>
 
-              <div class="stage-crypto-footer">
-                <span>SHA-256 STREAM VERIFIED • 0 BYTES IN CLOUD</span>
+              <div class="pp-privacy-footer">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>End-to-End Encrypted • Sent directly between your devices (never stored online)</span>
               </div>
             </div>
           </div>
