@@ -147,7 +147,7 @@ function setupThreatSandbox(): void {
       network: '0 network requests (100% on your device)',
     },
     'double-ext': {
-      name: 'urgent_invoice.pdf.exe (1.4 MB)',
+      name: 'invoice_receipt.pdf.exe (1.4 MB)',
       badge: 'Blocked: double extension trap',
       badgeClass: 'danger',
       reason: 'High-risk double extension trap detected. Malware often masks executables as documents or photos.',
@@ -207,6 +207,13 @@ function setupThreatSandbox(): void {
         outputBox.classList.remove('sandbox-animate');
         void outputBox.offsetWidth; // trigger reflow
         outputBox.classList.add('sandbox-animate');
+      }
+
+      const scanBeam = document.getElementById('sandbox-scan-beam');
+      if (scanBeam) {
+        scanBeam.classList.remove('scanning');
+        void scanBeam.offsetWidth; // trigger reflow
+        scanBeam.classList.add('scanning');
       }
     });
   });
@@ -517,6 +524,98 @@ function setupScrollytelling(): void {
   stepCards.forEach((card) => observer.observe(card));
 }
 
+function setupAnimatedCounters(): void {
+  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const metrics = document.querySelectorAll<HTMLElement>('.proof-metric[data-counter-target]');
+  if (metrics.length === 0) return;
+
+  if (isReducedMotion) {
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const targetEl = entry.target as HTMLElement;
+        observer.unobserve(targetEl);
+
+        const targetValue = parseInt(targetEl.getAttribute('data-counter-target') || '0', 10);
+        const suffix = targetEl.getAttribute('data-counter-suffix') || '';
+        const prefix = targetEl.getAttribute('data-counter-prefix') || '';
+        const counterType = targetEl.getAttribute('data-counter-type') || 'standard';
+        const denom = targetEl.getAttribute('data-counter-denom') || '';
+        const duration = 1200;
+        let startTimestamp: number | null = null;
+
+        const step = (timestamp: number) => {
+          if (!startTimestamp) startTimestamp = timestamp;
+          const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+          // Ease-out cubic: 1 - (1 - t)^3
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const currentVal = Math.round(easeProgress * targetValue);
+
+          if (counterType === 'fraction') {
+            targetEl.textContent = `${currentVal} / ${denom}`;
+          } else {
+            targetEl.textContent = `${prefix}${currentVal}${suffix}`;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            if (counterType === 'fraction') {
+              targetEl.textContent = `${targetValue} / ${denom}`;
+            } else {
+              targetEl.textContent = `${prefix}${targetValue}${suffix}`;
+            }
+          }
+        };
+
+        requestAnimationFrame(step);
+      });
+    },
+    {
+      threshold: 0.2,
+      rootMargin: '0px 0px -40px 0px',
+    }
+  );
+
+  metrics.forEach((metric) => {
+    const counterType = metric.getAttribute('data-counter-type') || 'standard';
+    const suffix = metric.getAttribute('data-counter-suffix') || '';
+    const prefix = metric.getAttribute('data-counter-prefix') || '';
+    const denom = metric.getAttribute('data-counter-denom') || '';
+    if (counterType === 'fraction') {
+      metric.textContent = `0 / ${denom}`;
+    } else {
+      metric.textContent = `${prefix}0${suffix}`;
+    }
+    observer.observe(metric);
+  });
+}
+
+function setupPrefooterGlow(): void {
+  const glow = document.getElementById('pre-footer-glow');
+  const stage = document.querySelector<HTMLElement>('.pre-footer-stage');
+  if (!glow || !stage) return;
+
+  const updateGlow = () => {
+    const rect = stage.getBoundingClientRect();
+    const vh = window.innerHeight;
+    if (rect.top < vh && rect.bottom > 0) {
+      const progress = Math.min(Math.max((vh - rect.top) / (vh + rect.height * 0.5), 0), 1);
+      const scale = 0.85 + progress * 0.65;
+      const opacity = 0.45 + progress * 0.5;
+      glow.style.setProperty('--glow-scale', scale.toFixed(2));
+      glow.style.opacity = opacity.toFixed(2);
+    }
+  };
+
+  window.addEventListener('scroll', updateGlow, { passive: true });
+  updateGlow();
+}
+
 // ── Startup ──
 document.addEventListener('DOMContentLoaded', () => {
   setupScreenScale();
@@ -525,6 +624,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLiveDemoTransfer();
   setupScrollReveal();
   setupScrollytelling();
+  setupAnimatedCounters();
+  setupPrefooterGlow();
   setupTheme();
   setupPWAInstallation();
   setupModalTriggers();
