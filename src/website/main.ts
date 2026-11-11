@@ -219,16 +219,27 @@ function setupScreenScale(): void {
     const root = document.documentElement;
     root.style.setProperty('--viewport-w', `${vw}px`);
     root.style.setProperty('--viewport-h', `${vh}px`);
-    if (vw >= 1600) {
+
+    // Dynamically adjust --fluid-max-w based on Windows screen resolution
+    if (vw >= 1920) {
+      // 1440p / 4K / Ultrawide monitors
       root.style.setProperty('--fluid-max-w', 'min(92vw, 1840px)');
     } else if (vw >= 1280) {
+      // 1080p / Standard Windows laptops
       root.style.setProperty('--fluid-max-w', '92vw');
     } else {
+      // Tablets / Phones
       root.style.setProperty('--fluid-max-w', '94vw');
     }
   };
+
   window.addEventListener('resize', syncViewportScale, { passive: true });
   syncViewportScale();
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(() => syncViewportScale());
+    ro.observe(document.documentElement);
+  }
 }
 
 function setupNavIndicator(): void {
@@ -237,15 +248,20 @@ function setupNavIndicator(): void {
   const navItems = document.querySelectorAll<HTMLElement>('.pp-nav-item');
   if (!navGroup || !indicator || navItems.length === 0) return;
 
+  let isHovering = false;
+
   const movePill = (el: HTMLElement | null) => {
     if (!el || !indicator) return;
     indicator.style.width = `${el.offsetWidth}px`;
-    indicator.style.transform = `translateX(${el.offsetLeft - 4}px)`;
+    indicator.style.transform = `translateX(${el.offsetLeft}px)`;
     indicator.style.opacity = '1';
   };
 
   navItems.forEach((item) => {
-    item.addEventListener('mouseenter', () => movePill(item));
+    item.addEventListener('mouseenter', () => {
+      isHovering = true;
+      movePill(item);
+    });
     item.addEventListener('click', () => {
       navItems.forEach((i) => i.classList.remove('active'));
       item.classList.add('active');
@@ -254,6 +270,7 @@ function setupNavIndicator(): void {
   });
 
   navGroup.addEventListener('mouseleave', () => {
+    isHovering = false;
     const active = navGroup.querySelector<HTMLElement>('.pp-nav-item.active');
     if (active) {
       movePill(active);
@@ -262,7 +279,41 @@ function setupNavIndicator(): void {
     }
   });
 
-  // Initial position
+  // IntersectionObserver Scroll-Spy to glide highlight behind active section
+  const sectionIds = ['how-it-works', 'why', 'security', 'comparison', 'faq'];
+  const sections = sectionIds
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if ('IntersectionObserver' in window && sections.length > 0) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isHovering) return;
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visible) {
+          const id = visible.target.id;
+          navItems.forEach((item) => {
+            const match = item.getAttribute('href') === `#${id}`;
+            item.classList.toggle('active', match);
+            if (match) {
+              movePill(item);
+            }
+          });
+        }
+      },
+      {
+        rootMargin: '-20% 0px -50% 0px',
+        threshold: [0.1, 0.25, 0.5],
+      }
+    );
+
+    sections.forEach((sec) => observer.observe(sec));
+  }
+
+  // Initial pill placement
   setTimeout(() => {
     const active = document.querySelector<HTMLElement>('.pp-nav-item.active') || navItems[0];
     if (active) movePill(active);
@@ -274,15 +325,41 @@ function setupDemoCodeCopy(): void {
   if (!btn) return;
   btn.addEventListener('click', () => {
     navigator.clipboard?.writeText('K9X-402').then(() => {
-      const orig = btn.innerHTML;
-      btn.innerHTML = '<span>Copied: <strong>K9X-402</strong></span>';
+      btn.innerHTML = '<span>Copied!</span>';
       setTimeout(() => {
-        btn.innerHTML = orig;
+        btn.innerHTML = '<span>Room Code: <strong>K9X-402</strong></span>';
       }, 1500);
     }).catch(() => {
-      // Ignore if clipboard access is denied
+      btn.innerHTML = '<span>Copied!</span>';
+      setTimeout(() => {
+        btn.innerHTML = '<span>Room Code: <strong>K9X-402</strong></span>';
+      }, 1500);
     });
   });
+}
+
+function setupLiveDemoTransfer(): void {
+  const fill = document.getElementById('demo-progress-fill');
+  const percentEl = document.getElementById('demo-percent');
+  const etaEl = document.getElementById('demo-eta');
+  if (!fill || !percentEl || !etaEl) return;
+
+  let percent = 72;
+  const speed = 68.4;
+  const totalMB = 4200;
+
+  setInterval(() => {
+    percent += 0.4;
+    if (percent > 100) {
+      percent = 72;
+    }
+    const currentPercent = Math.round(percent);
+    fill.style.width = `${currentPercent}%`;
+    percentEl.innerHTML = `<strong>${currentPercent}%</strong> transferred`;
+    const remainingMB = Math.max(0, totalMB * (1 - percent / 100));
+    const secLeft = Math.max(1, Math.round(remainingMB / speed));
+    etaEl.innerHTML = `About <strong>${secLeft} sec left</strong>`;
+  }, 220);
 }
 
 function setupNavbarScroll(): void {
@@ -352,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupScreenScale();
   setupNavIndicator();
   setupDemoCodeCopy();
+  setupLiveDemoTransfer();
   setupTheme();
   setupPWAInstallation();
   setupModalTriggers();
