@@ -132,6 +132,7 @@ function setupThreatSandbox(): void {
   const reason = document.getElementById('sandbox-reason');
   const hash = document.getElementById('sandbox-hash');
   const policy = document.getElementById('sandbox-policy');
+  const network = document.getElementById('sandbox-network');
 
   if (!badge || !filename || !reason || !hash || !policy) return;
 
@@ -143,6 +144,25 @@ function setupThreatSandbox(): void {
       reason: 'Normal document. Transferred directly between your devices without any cloud storage.',
       hash: 'Verified Bit-Exact (SHA-256 Matched)',
       policy: 'Safe to Download (Direct Stream)',
+      network: '0 network requests (100% on your device)',
+    },
+    'double-ext': {
+      name: 'urgent_invoice.pdf.exe (1.4 MB)',
+      badge: 'Blocked: double extension trap',
+      badgeClass: 'danger',
+      reason: 'High-risk double extension trap detected. Malware often masks executables as documents or photos.',
+      hash: 'Blocked Before Sending (Trap Neutralized)',
+      policy: 'Blocked (Never Sent or Downloaded)',
+      network: '0 network requests (100% on your device)',
+    },
+    archive: {
+      name: 'project_footage_4k.zip (18.2 GB)',
+      badge: 'Verified Safe (Archive)',
+      badgeClass: 'safe',
+      reason: 'Multi-gigabyte archive streamed straight to disk with OPFS without tab memory allocation.',
+      hash: 'Verified Bit-Exact (SHA-256 Matched)',
+      policy: 'Safe to Download (Direct Stream)',
+      network: '0 network requests (100% on your device)',
     },
     script: {
       name: 'update_patch.ps1 (12 KB)',
@@ -151,14 +171,7 @@ function setupThreatSandbox(): void {
       reason: 'Script file (.ps1) detected. PinnPointt pauses it in memory so it cannot run automatically on your device.',
       hash: 'Held in Browser Memory (Execution Blocked)',
       policy: 'Quarantined (Requires Your Approval)',
-    },
-    'double-ext': {
-      name: 'urgent_invoice.pdf.exe (840 KB)',
-      badge: 'Blocked: double extension trap',
-      badgeClass: 'danger',
-      reason: 'High-risk double extension trap detected. Malware often masks executables as documents or photos.',
-      hash: 'Blocked Before Sending (Trap Neutralized)',
-      policy: 'Blocked (Never Sent or Downloaded)',
+      network: '0 network requests (100% on your device)',
     },
     'malware-hash': {
       name: 'eicar_antivirus_test.com (68 B)',
@@ -167,6 +180,7 @@ function setupThreatSandbox(): void {
       reason: 'Known harmful payload detected. Blocked instantly before transfer to protect the receiver.',
       hash: 'Matched Known Threat (Client Triage)',
       policy: 'Hard-Blocked Client-Side (0 Network Calls)',
+      network: '0 network requests (100% on your device)',
     },
   };
 
@@ -184,6 +198,9 @@ function setupThreatSandbox(): void {
       reason.textContent = data.reason;
       hash.textContent = data.hash;
       policy.textContent = data.policy;
+      if (network && data.network) {
+        network.textContent = data.network;
+      }
 
       const outputBox = document.getElementById('sandbox-output');
       if (outputBox) {

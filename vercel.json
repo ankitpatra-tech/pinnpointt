@@ -6,11 +6,19 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/about.html"
+    },
+    {
       "source": "/about",
       "destination": "/about.html"
     },
     {
-      "source": "/",
+      "source": "/app",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/webapp",
       "destination": "/index.html"
     }
   ],
