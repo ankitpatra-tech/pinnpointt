@@ -744,7 +744,8 @@ async function run(): Promise<void> {
     `);
 
     // Alice uploads image
-    const imgInput = await pageSender.$('input.file-hidden-input');
+    const imgInputs = await pageSender.$$('input.file-hidden-input');
+    const imgInput = imgInputs[imgInputs.length - 1];
     if (!imgInput) throw new Error('File input not found for image test');
     await imgInput.uploadFile(TEST_IMG_PATH);
 

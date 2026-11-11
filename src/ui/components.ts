@@ -1032,7 +1032,7 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
 
   const checkbox = el('input', {
     type: 'checkbox',
-    id: 'toggle-zero-trace',
+    id: 'toggle-privacy-shield',
     className: 'toggle-checkbox',
   }) as HTMLInputElement;
   checkbox.checked = opts.privacyEnabled;
@@ -1761,7 +1761,14 @@ export function createConnectedWorkspace(
       privacyBadge.innerHTML = `${iconShield({ size: 12 })} <span>Location Hidden</span>`;
       privacyBadge.style.display = isMetadataStripped ? 'inline-flex' : 'none';
 
-      info.append(privacyBadge);
+      const zeroTraceBadge = el('span', {
+        className: 'safety-badge warning file-badge-zero-trace text-xs',
+        title: 'Ephemeral view-only mode: preview directly in memory without saving to disk',
+      });
+      zeroTraceBadge.innerHTML = `${iconEye({ size: 12 })} <span>Zero-Trace</span>`;
+      zeroTraceBadge.style.display = isZeroTrace ? 'inline-flex' : 'none';
+
+      info.append(privacyBadge, zeroTraceBadge);
       head.append(icon, info);
 
       // ONE Single Smooth Progress Bar
@@ -1838,6 +1845,7 @@ export function createConnectedWorkspace(
         },
         setZeroTrace(zt: boolean) {
           isZeroTrace = zt;
+          zeroTraceBadge.style.display = zt ? 'inline-flex' : 'none';
         },
         setPaused(isPaused: boolean, pausedBy?: 'you' | 'peer' | 'sender' | 'receiver') {
           if (isPaused) {
@@ -1886,6 +1894,10 @@ export function createConnectedWorkspace(
             isMetadataStripped = true;
             privacyBadge.style.display = 'inline-flex';
           }
+          if (info.isZeroTrace) {
+            isZeroTrace = true;
+            zeroTraceBadge.style.display = 'inline-flex';
+          }
 
           const doneRow = el('div', { className: 'feed-file-done' });
           const safety = inspectFileSafety(opts.fileName, opts.fileSize, info.sha256);
@@ -1899,15 +1911,24 @@ export function createConnectedWorkspace(
             verified.innerHTML = `${iconCheck({ size: 13 })} <span>Verified Safe</span>`;
             doneRow.append(verified);
 
-            if (info.isDirectDiskSave) {
+            if (isZeroTrace || info.isZeroTrace) {
+              if (info.onZeroTraceView) {
+                const viewBtn = el('button', {
+                  type: 'button',
+                  className: 'btn btn-primary btn-sm btn-zero-trace-view text-xs',
+                  textContent: 'View (Zero-Trace)',
+                });
+                viewBtn.style.padding = '4px 10px';
+                viewBtn.addEventListener('click', info.onZeroTraceView);
+                doneRow.append(viewBtn);
+              }
+            } else if (info.isDirectDiskSave) {
               const savedBadge = el('div', {
                 className: 'feed-file-disk-saved text-xs',
               });
               savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk</span>`;
               doneRow.append(savedBadge);
-            }
-
-            if (safety.riskLevel === 'warning') {
+            } else if (safety.riskLevel === 'warning') {
               const warningBadge = el('div', { className: 'feed-file-threat warning text-xs' });
               warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Executable</span>`;
               doneRow.append(warningBadge);
