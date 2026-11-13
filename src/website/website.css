@@ -33,9 +33,12 @@
   --accent-mint: #34D399;
   --surface-card: #12151E;
 
+  /* Ambient atmospheric depth & radial glow */
+  --ambient-radial-glow: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(56, 189, 248, 0.10), transparent 70%);
+
   /* Fluid screen scaling (updated dynamically on resize) */
-  --fluid-pad-x: clamp(1.5rem, 4vw, 3.5rem);
-  --fluid-max-w: min(92vw, 1840px);
+  --fluid-pad-x: clamp(1rem, 4vw, 5rem);
+  --fluid-max-w: min(92vw, 1720px);
 
   /* ── 2. Google Sans Typography ───────────────────── */
   --font-sans: 'Google Sans', system-ui, -apple-system, sans-serif;
@@ -230,11 +233,11 @@ code, kbd, samp, pre, .font-mono, .tabular-nums, .nav-badge, .version-badge, .ro
   position: absolute;
   top: 4px;
   bottom: 4px;
-  left: 4px;
+  left: 0;
   width: 0;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.09);
-  transition: transform 0.35s var(--ease-out-expo), width 0.35s var(--ease-out-expo), opacity 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   pointer-events: none;
   opacity: 0;
 }
@@ -426,9 +429,9 @@ code, kbd, samp, pre, .font-mono, .tabular-nums, .nav-badge, .version-badge, .ro
 /* Fluid outer wrapper that scales cleanly from 320px to 4K displays */
 .pp-fluid-container {
   width: 100%;
-  max-width: var(--fluid-max-w, min(92vw, 1840px));
+  max-width: var(--fluid-max-w, min(92vw, 1720px));
   margin-inline: auto;
-  padding-inline: var(--fluid-pad-x);
+  padding-inline: var(--fluid-pad-x, clamp(1rem, 4vw, 5rem));
   box-sizing: border-box;
 }
 
@@ -1072,7 +1075,7 @@ code, kbd, samp, pre, .font-mono, .tabular-nums, .nav-badge, .version-badge, .ro
 }
 
 .arch-header-row {
-  max-width: var(--fluid-max-w, min(92vw, 1840px));
+  max-width: var(--fluid-max-w, min(92vw, 1720px));
   margin: 0 auto;
   padding: 48px var(--fluid-pad-x);
   border-bottom: 1px solid var(--border-hairline);
@@ -1163,7 +1166,7 @@ code, kbd, samp, pre, .font-mono, .tabular-nums, .nav-badge, .version-badge, .ro
   position: relative;
   margin-top: 36px;
   width: 100%;
-  max-width: var(--fluid-max-w, min(92vw, 1840px));
+  max-width: var(--fluid-max-w, min(92vw, 1720px));
   box-sizing: border-box;
 }
 
@@ -3125,7 +3128,7 @@ code, kbd, samp, pre, .font-mono, .tabular-nums, .nav-badge, .version-badge, .ro
 }
 
 .site-footer-bar {
-  max-width: var(--fluid-max-w, min(92vw, 1840px));
+  max-width: var(--fluid-max-w, min(92vw, 1720px));
   margin: 0 auto;
   padding: 28px var(--fluid-pad-x);
   display: flex;
@@ -3208,7 +3211,7 @@ code, kbd, samp, pre, .font-mono, .tabular-nums, .nav-badge, .version-badge, .ro
 }
 
 .footer-sub-bar {
-  max-width: var(--fluid-max-w, min(92vw, 1840px));
+  max-width: var(--fluid-max-w, min(92vw, 1720px));
   margin: 0 auto;
   padding: 18px var(--fluid-pad-x);
   border-top: 1px solid var(--border-hairline);

@@ -230,10 +230,10 @@ function setupScreenScale(): void {
     // Dynamically adjust --fluid-max-w based on Windows screen resolution
     if (vw >= 1920) {
       // 1440p / 4K / Ultrawide monitors
-      root.style.setProperty('--fluid-max-w', 'min(92vw, 1840px)');
+      root.style.setProperty('--fluid-max-w', 'min(92vw, 1720px)');
     } else if (vw >= 1280) {
       // 1080p / Standard Windows laptops
-      root.style.setProperty('--fluid-max-w', '92vw');
+      root.style.setProperty('--fluid-max-w', 'min(92vw, 1720px)');
     } else {
       // Tablets / Phones
       root.style.setProperty('--fluid-max-w', '94vw');
@@ -320,11 +320,16 @@ function setupNavIndicator(): void {
     sections.forEach((sec) => observer.observe(sec));
   }
 
-  // Initial pill placement
+  // Initial pill placement & resize tracking
   setTimeout(() => {
     const active = document.querySelector<HTMLElement>('.pp-nav-item.active') || navItems[0];
     if (active) movePill(active);
   }, 100);
+
+  window.addEventListener('resize', () => {
+    const active = navGroup.querySelector<HTMLElement>('.pp-nav-item.active') || navItems[0];
+    if (active) movePill(active);
+  }, { passive: true });
 }
 
 function setupDemoCodeCopy(): void {

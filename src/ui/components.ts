@@ -265,19 +265,20 @@ export function createNavbar(
     });
   };
 
-  const tabs: { id: 'files' | 'notes' | 'shield'; label: string; icon: string }[] = [
-    { id: 'files', label: 'Files', icon: iconShare({ size: 14 }) },
-    { id: 'notes', label: 'Live Notes & Links', icon: iconFileText({ size: 14 }) },
-    { id: 'shield', label: 'Safety Shield', icon: iconShield({ size: 14 }) },
+  const tabs: { id: 'files' | 'notes' | 'shield'; shortLabel: string; fullLabel: string; icon: string }[] = [
+    { id: 'files', shortLabel: 'Files', fullLabel: 'Files', icon: iconShare({ size: 14 }) },
+    { id: 'notes', shortLabel: 'Live Notes', fullLabel: 'Live Notes & Links', icon: iconFileText({ size: 14 }) },
+    { id: 'shield', shortLabel: 'Safety', fullLabel: 'Safety Shield', icon: iconShield({ size: 14 }) },
   ];
 
-  tabs.forEach(({ id, label, icon }, idx) => {
+  tabs.forEach(({ id, shortLabel, fullLabel, icon }, idx) => {
     const btn = el('button', {
       type: 'button',
       className: `nav-switcher-btn pp-nav-item ${idx === 0 ? 'active' : ''}`,
     });
     btn.setAttribute('data-view', id);
-    btn.innerHTML = `<span class="switcher-icon">${icon}</span> <span class="switcher-label">${label}</span>`;
+    const extra = fullLabel.slice(shortLabel.length);
+    btn.innerHTML = `<span class="switcher-icon">${icon}</span> <span class="switcher-label"><span class="label-short">${shortLabel}</span><span class="label-desktop-extra">${extra}</span></span>`;
     btn.addEventListener('click', () => {
       switcher.querySelectorAll('.nav-switcher-btn').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
@@ -756,6 +757,19 @@ export function createRoomDisplay(
   const codeLabel = el('div', { className: 'room-code-label', textContent: 'Your Room Code' });
 
   const codeDisplay = el('div', { className: 'room-code-display mono' });
+  codeDisplay.setAttribute('title', 'Click to copy room code');
+  codeDisplay.style.cursor = 'pointer';
+  codeDisplay.addEventListener('click', () => {
+    void copyTextToClipboard(roomCode).then(() => {
+      showToast(`Room code ${roomCode} copied!`);
+      copyCodeBtn.classList.add('btn-copied-morph');
+      copyCodeBtn.innerHTML = `${iconCheck({ size: 14 })} <span>Copied!</span>`;
+      setTimeout(() => {
+        copyCodeBtn.classList.remove('btn-copied-morph');
+        copyCodeBtn.innerHTML = `${iconCopy({ size: 14 })} <span>Copy Code</span>`;
+      }, 1500);
+    });
+  });
   for (const ch of roomCode) {
     const digit = el('span', { className: 'digit tabular-nums', textContent: ch });
     codeDisplay.append(digit);
@@ -1427,6 +1441,16 @@ export function createConnectedWorkspace(
 
   const roomCodeSpan = el('span', { className: 'cdc-room-code mono', textContent: roomCode || 'DIRECT' });
   roomCodeSpan.style.color = 'var(--accent-blue)';
+  if (roomCode) {
+    roomCodeSpan.setAttribute('title', 'Click to copy room code');
+    roomCodeSpan.style.cursor = 'pointer';
+    roomCodeSpan.addEventListener('click', (e) => {
+      e.stopPropagation();
+      void copyTextToClipboard(roomCode).then(() => {
+        showToast(`Room code ${roomCode} copied!`);
+      });
+    });
+  }
 
   const speedSpan = el('span', { textContent: 'Direct Wi-Fi Speed' });
   speedSpan.style.color = '#34D399';

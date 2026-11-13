@@ -137,10 +137,20 @@
   padding: 0;
 }
 
+:root {
+  --ambient-radial-glow: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(56, 189, 248, 0.10), transparent 70%);
+}
+
+[data-theme="light"] {
+  --ambient-radial-glow: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(2, 132, 199, 0.08), transparent 70%);
+}
+
 html, body {
   width: 100%;
   min-height: 100dvh;
   background-color: var(--bg-canvas);
+  background-image: var(--ambient-radial-glow);
+  background-repeat: no-repeat;
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -240,20 +250,21 @@ pre,
   display: flex;
   flex-direction: column;
   background-color: var(--bg-canvas);
-  background-image: radial-gradient(circle at 50% -20%, rgba(56, 189, 248, 0.07), transparent 70%);
+  background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(56, 189, 248, 0.10), transparent 70%);
+  background-repeat: no-repeat;
   position: relative;
   overflow-x: hidden;
 }
 
 [data-theme="light"] .app-shell {
-  background-image: radial-gradient(circle at 50% -20%, rgba(2, 132, 199, 0.05), transparent 70%);
+  background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(2, 132, 199, 0.08), transparent 70%);
 }
 
 .app-fluid-shell {
   width: 100%;
-  max-width: min(94vw, 1680px);
+  max-width: min(92vw, 1720px);
   margin-inline: auto;
-  padding-inline: clamp(1rem, 3.5vw, 4rem);
+  padding-inline: clamp(1rem, 4vw, 5rem);
   box-sizing: border-box;
 }
 
@@ -625,24 +636,33 @@ pre,
 
   .app-nav-switcher {
     position: fixed;
-    bottom: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     z-index: 120;
-    background: rgba(18, 21, 30, 0.92);
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid var(--border-highlight);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25);
-    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(10, 11, 14, 0.78);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    padding: 5px;
     border-radius: var(--radius-pill);
-    max-width: calc(100vw - 24px);
+    max-width: calc(100vw - 28px);
     width: auto;
+    white-space: nowrap;
   }
 
   .nav-switcher-btn {
-    padding: 8px 12px;
-    font-size: 11.5px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .label-desktop-extra {
+    display: none !important;
   }
 
   .nav-website-link {
@@ -662,9 +682,11 @@ pre,
   }
 
   [data-theme="light"] .app-nav-switcher {
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border-color: rgba(0, 0, 0, 0.12);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
   }
 
   .hide-mobile {
@@ -1056,7 +1078,7 @@ pre,
 /* Desktop Split View (Balanced 2-Column Studio Proportions) */
 .pairing-split-view {
   display: grid;
-  grid-template-columns: minmax(380px, 440px) minmax(0, 1fr);
+  grid-template-columns: minmax(380px, 420px) minmax(0, 1fr);
   gap: 24px;
   align-items: stretch;
   width: 100%;
@@ -2560,27 +2582,41 @@ pre,
    STATE B: ONCE CONNECTED (BALANCED 2-COLUMN STUDIO WORKSPACE)
    ═══════════════════════════════════════════════════ */
 .app-connected-workspace {
-  max-width: min(94vw, 1680px);
+  max-width: min(92vw, 1720px);
   margin: 0 auto;
   width: 100%;
-  padding: 16px clamp(1rem, 3.5vw, 4rem) 24px;
+  padding: 16px clamp(1rem, 4vw, 5rem) 24px;
   display: grid;
-  grid-template-columns: minmax(380px, 440px) minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(380px, 420px) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  gap: 20px 24px;
   height: calc(100dvh - 84px);
   min-height: 0;
   box-sizing: border-box;
   align-items: stretch;
 }
 
+.app-connected-workspace .connected-device-card {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  margin-bottom: 0;
+}
+
 .app-connected-workspace .connected-notes-drawer {
   grid-column: 1;
-  order: 1;
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 .app-connected-workspace .connected-main-stage {
   grid-column: 2;
-  order: 2;
+  grid-row: 1 / span 2;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 /* Solid Matte Studio Panes (No heavy GPU blur, steady 60fps) */
@@ -3635,7 +3671,80 @@ pre,
   box-shadow: 0 4px 14px rgba(255, 255, 255, 0.18) !important;
 }
 
-/* ── Buttons & Common UI ───────────────────────────── */
+/* ── Buttons & Common UI with Active Micro-Press Feedback ───────────────────────────── */
+button,
+.btn,
+.site-nav-cta,
+.pp-cta-btn,
+.mode-tab-btn,
+.workspace-tab-btn,
+.mobile-tab-btn,
+.nav-switcher-btn,
+.btn-subtle-back,
+.btn-file-control,
+.btn-copy-note,
+.chat-send-btn,
+.btn-choose-files,
+.btn-choose-folder,
+.btn-copy-code,
+.btn-copy-link,
+.btn-start-send,
+.btn-start-receive,
+.btn-connect-room,
+.btn-disconnect-card,
+.btn-paste-note,
+.btn-attach {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+button:active:not(:disabled),
+.btn:active:not(:disabled),
+.site-nav-cta:active,
+.pp-cta-btn:active,
+.mode-tab-btn:active,
+.workspace-tab-btn:active,
+.mobile-tab-btn:active,
+.nav-switcher-btn:active,
+.btn-subtle-back:active,
+.btn-file-control:active,
+.btn-copy-note:active,
+.chat-send-btn:active,
+.btn-choose-files:active,
+.btn-choose-folder:active,
+.btn-copy-code:active,
+.btn-copy-link:active,
+.btn-start-send:active,
+.btn-start-receive:active,
+.btn-connect-room:active,
+.btn-disconnect-card:active,
+.btn-paste-note:active,
+.btn-attach:active {
+  transform: scale(0.97) !important;
+}
+
+/* ── Universal Tabular Number Stabilization (Zero Horizontal Text Jitter) ────────────── */
+.tabular-nums,
+.feed-file-stats,
+.feed-file-pct,
+.feed-file-speed,
+.feed-file-eta,
+.feed-file-size,
+.speed-stat,
+.speed-badge,
+.room-code-display,
+.room-code-display .digit,
+.cdc-room-code,
+.cdc-room-badge,
+.vfs-tab-badge,
+.telemetry-metric,
+.proof-metric,
+.hash-val,
+.font-mono {
+  font-family: 'Google Sans Code', monospace !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: 'tnum' 1 !important;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -3650,11 +3759,6 @@ pre,
   cursor: pointer;
   text-decoration: none;
   min-height: 40px;
-  transition: all var(--transition-fast);
-}
-
-.btn:active {
-  transform: scale(0.98);
 }
 
 .btn-sm {
@@ -4076,7 +4180,7 @@ pre,
   width: 100%;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
   box-sizing: border-box;
 }
 
