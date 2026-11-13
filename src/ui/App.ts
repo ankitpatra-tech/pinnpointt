@@ -123,6 +123,7 @@ export class App {
 
   constructor(root: HTMLElement) {
     this.root = root;
+    (window as any).__pinnpointtApp = this;
   }
 
   init(): void {
@@ -176,8 +177,8 @@ export class App {
       qrCanvas.render(matrix, {
         moduleSize: 6,
         quietZone: 3,
-        darkColor: this.currentTheme === 'light' ? '#141413' : '#F4F4F6',
-        lightColor: this.currentTheme === 'light' ? '#FFFFFF' : '#18191D',
+        darkColor: '#090A0F',
+        lightColor: '#FFFFFF',
       });
     } catch (e) {
       console.warn('QR render error:', e);
@@ -447,7 +448,7 @@ export class App {
       setTimeout(() => this.renderQRCodeIntoCanvas(canvas), 10);
 
       // Dedicated Room Connection Display (clean QR, PIN, and copy links without duplicate back row)
-      const roomDisplay = createRoomDisplay(this.roomCode, canvas);
+      const roomDisplay = createRoomDisplay(this.roomCode, canvas, undefined, (code) => this.handleJoinRoom(code));
       leftCol.append(roomDisplay);
 
       const rightCol = document.createElement('div');
@@ -660,7 +661,10 @@ export class App {
           this.cleanup();
           this.transition('idle');
         },
-      }
+      },
+      false,
+      this.roomCode,
+      (canvas) => this.renderQRCodeIntoCanvas(canvas)
     );
 
     if (this.wakeLockUnsub) {

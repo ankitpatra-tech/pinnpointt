@@ -42,6 +42,8 @@ import {
   iconQrCode,
   iconRefresh,
   iconCamera,
+  iconMonitor,
+  iconSmartphone,
 } from './icons';
 import { startCameraQRScanner, extractRoomCode, type QRScannerSession } from '../lib/qrScanner';
 
@@ -674,7 +676,7 @@ export function createRoomDisplay(
   onBack?: () => void,
   onJoinCode?: (code: string) => void
 ): HTMLElement {
-  const container = el('div', { className: 'stack stack-md text-center fade-in' });
+  const container = el('div', { className: 'stack stack-md text-center fade-in pp-pairing-card' });
 
   if (onBack) {
     const headerRow = el('div', { className: 'room-header-row row-between' });
@@ -692,22 +694,35 @@ export function createRoomDisplay(
     container.append(headerRow);
   }
 
-  // QR Code Area
-  const qrWrap = el('div', { className: 'qr-container' });
-  const canvasWrap = el('div', { className: 'qr-canvas-wrap' });
-  canvasWrap.append(canvasElement);
-
-  const qrHint = el('div', {
-    className: 'qr-instruction text-sm font-semibold',
-    textContent: 'Scan with your phone camera to connect',
+  // Friendly Title & Subtitle
+  const titleWrap = el('div', { className: 'pairing-title-wrap stack stack-xs' });
+  const heading = el('h2', { className: 'pairing-card-heading', textContent: 'Connect another device' });
+  const subtitle = el('p', {
+    className: 'pairing-card-subtitle',
+    textContent: 'Scan this QR code with your phone camera, or enter the 6-digit room code on your other device.',
   });
+  titleWrap.append(heading, subtitle);
+  container.append(titleWrap);
 
-  qrWrap.append(canvasWrap, qrHint);
+  // Tactile QR Code Frame with corner viewfinder ticks
+  const qrWrap = el('div', { className: 'qr-container' });
+  const viewfinderFrame = el('div', { className: 'qr-viewfinder-frame' });
+
+  const tickTL = el('span', { className: 'qr-tick tick-tl' });
+  const tickTR = el('span', { className: 'qr-tick tick-tr' });
+  const tickBL = el('span', { className: 'qr-tick tick-bl' });
+  const tickBR = el('span', { className: 'qr-tick tick-br' });
+
+  const whiteBox = el('div', { className: 'qr-canvas-white-box qr-canvas-wrap' });
+  whiteBox.append(canvasElement);
+
+  viewfinderFrame.append(tickTL, tickTR, tickBL, tickBR, whiteBox);
+  qrWrap.append(viewfinderFrame);
   container.append(qrWrap);
 
-  // Large 6-Character Code in JetBrains Mono
+  // One-Click Room Code & Share Strip
   const codeWrap = el('div', { className: 'room-code-section stack stack-xs' });
-  const codeLabel = el('div', { className: 'text-xs muted', textContent: 'Or enter this 6-letter code on your other device:' });
+  const codeLabel = el('div', { className: 'room-code-label', textContent: 'Your Room Code' });
 
   const codeDisplay = el('div', { className: 'room-code-display mono' });
   for (const ch of roomCode) {
@@ -717,32 +732,36 @@ export function createRoomDisplay(
 
   const linkRow = el('div', { className: 'room-actions-row' });
   const copyCodeBtn = el('button', {
-    className: 'btn btn-sm btn-secondary',
+    className: 'btn btn-sm btn-secondary btn-copy-code',
     type: 'button',
   });
-  copyCodeBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Copy Code</span>`;
+  copyCodeBtn.innerHTML = `${iconCopy({ size: 14 })} <span>Copy Code</span>`;
   copyCodeBtn.addEventListener('click', () => {
     void copyTextToClipboard(roomCode).then(() => {
       showToast(`Room code ${roomCode} copied!`);
-      copyCodeBtn.innerHTML = `${iconCheck({ size: 13 })} <span>Copied!</span>`;
+      copyCodeBtn.classList.add('btn-copied-morph');
+      copyCodeBtn.innerHTML = `${iconCheck({ size: 14 })} <span>Copied!</span>`;
       setTimeout(() => {
-        copyCodeBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Copy Code</span>`;
+        copyCodeBtn.classList.remove('btn-copied-morph');
+        copyCodeBtn.innerHTML = `${iconCopy({ size: 14 })} <span>Copy Code</span>`;
       }, 1500);
     });
   });
 
   const copyLinkBtn = el('button', {
-    className: 'btn btn-sm btn-secondary',
+    className: 'btn btn-sm btn-secondary btn-copy-link',
     type: 'button',
   });
-  copyLinkBtn.innerHTML = `${iconShare({ size: 13 })} <span>Copy Link</span>`;
+  copyLinkBtn.innerHTML = `${iconShare({ size: 14 })} <span>Copy Direct Link</span>`;
   copyLinkBtn.addEventListener('click', () => {
     const joinUrl = `${window.location.origin}/app?room=${roomCode}`;
     void copyTextToClipboard(joinUrl).then(() => {
       showToast('Direct connect link copied!');
-      copyLinkBtn.innerHTML = `${iconCheck({ size: 13 })} <span>Copied!</span>`;
+      copyLinkBtn.classList.add('btn-copied-morph');
+      copyLinkBtn.innerHTML = `${iconCheck({ size: 14 })} <span>Copied!</span>`;
       setTimeout(() => {
-        copyLinkBtn.innerHTML = `${iconShare({ size: 13 })} <span>Copy Link</span>`;
+        copyLinkBtn.classList.remove('btn-copied-morph');
+        copyLinkBtn.innerHTML = `${iconShare({ size: 14 })} <span>Copy Direct Link</span>`;
       }, 1500);
     });
   });
@@ -751,30 +770,33 @@ export function createRoomDisplay(
   codeWrap.append(codeLabel, codeDisplay, linkRow);
   container.append(codeWrap);
 
-  // Bottom Input Row: "Connecting from another device? Enter code..." + Join
+  // Intuitive "Join a Room" Input Box
   if (onJoinCode) {
-    const joinRowWrap = el('div', { className: 'quick-join-row-wrap' });
-    const joinRowLabel = el('div', { className: 'text-xs muted mb-xs', textContent: 'Connecting from another device?' });
+    const joinSection = el('div', { className: 'room-join-section' });
+    const divider = el('div', { className: 'room-join-divider' });
+    divider.innerHTML = `<span class="divider-line"></span><span class="divider-text">OR ENTER CODE FROM ANOTHER DEVICE</span><span class="divider-line"></span>`;
 
-    const joinInputGroup = el('div', { className: 'quick-join-input-group' });
+    const inputGroup = el('div', { className: 'quick-join-input-group' });
     const quickInput = el('input', {
       type: 'text',
       className: 'quick-join-input mono',
-      placeholder: 'Enter 6-letter code...',
+      placeholder: 'ENTER 6-DIGIT CODE',
       maxlength: '6',
       autocomplete: 'off',
     }) as HTMLInputElement;
 
     const quickJoinBtn = el('button', {
       type: 'button',
-      className: 'btn btn-primary btn-sm btn-connect-room',
-      textContent: 'Join',
+      className: 'btn btn-primary btn-connect-room',
+      textContent: 'Connect',
     });
 
     const submitQuick = () => {
       const val = quickInput.value.trim().toUpperCase();
       if (val.length === 6) {
         onJoinCode(val);
+      } else {
+        showToast('Please enter all 6 characters of the room code.');
       }
     };
 
@@ -783,9 +805,9 @@ export function createRoomDisplay(
       if (e.key === 'Enter') submitQuick();
     });
 
-    joinInputGroup.append(quickInput, quickJoinBtn);
-    joinRowWrap.append(joinRowLabel, joinInputGroup);
-    container.append(joinRowWrap);
+    inputGroup.append(quickInput, quickJoinBtn);
+    joinSection.append(divider, inputGroup);
+    container.append(joinSection);
   }
 
   return container;
@@ -1329,9 +1351,132 @@ export function createConnectedWorkspace(
   initialPeerName: string,
   initialRole: string,
   callbacks: WorkspaceCallbacks,
-  isPreview: boolean = false
+  isPreview: boolean = false,
+  roomCode?: string,
+  onRenderQR?: (canvas: HTMLCanvasElement) => void
 ): WorkspaceController {
   const container = el('div', { className: 'app-connected-workspace app-fluid-shell fade-in' });
+
+  // ── TOP CONNECTED DEVICE CARD (Flagship Morph) ──
+  const deviceCard = el('div', { className: 'connected-device-card' });
+
+  const cardMainRow = el('div', { className: 'cdc-main-bar row-between' });
+
+  const leftGroup = el('div', { className: 'cdc-left-group' });
+  const deviceIconWrap = el('div', { className: 'cdc-device-icon-wrap' });
+  deviceIconWrap.innerHTML = iconMonitor({ size: 22 });
+
+  const infoGroup = el('div', { className: 'cdc-info-group stack stack-xs' });
+  const statusRow = el('div', { className: 'cdc-status-row' });
+  statusRow.innerHTML = `
+    <span class="status-dot connected cdc-dot"></span>
+    <span class="cdc-status-text font-semibold">Connected &amp; Ready to Share</span>
+  `;
+
+  const peerDisplayRow = el('div', { className: 'cdc-peer-label text-xs muted' });
+  const peerNameSpan = el('strong', { className: 'peer-name', textContent: initialPeerName || 'Peer Device' });
+  peerNameSpan.style.color = 'var(--text-bright)';
+
+  const roomCodeSpan = el('span', { className: 'cdc-room-code mono', textContent: roomCode || 'DIRECT' });
+  roomCodeSpan.style.color = 'var(--accent-blue)';
+
+  const speedSpan = el('span', { textContent: 'Direct Wi-Fi Speed' });
+  speedSpan.style.color = '#34D399';
+
+  peerDisplayRow.append(
+    'Linked with ',
+    peerNameSpan,
+    ' • Room ',
+    roomCodeSpan,
+    ' • ',
+    speedSpan
+  );
+
+  infoGroup.append(statusRow, peerDisplayRow);
+  leftGroup.append(deviceIconWrap, infoGroup);
+
+  const rightActions = el('div', { className: 'cdc-actions row-end' });
+
+  const toggleQrBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-secondary btn-sm btn-show-qr',
+  });
+  toggleQrBtn.innerHTML = `${iconQrCode({ size: 14 })} <span>Show QR / Add Device</span>`;
+
+  const disconnectBtn = el('button', {
+    type: 'button',
+    className: 'btn-subtle-rose btn-disconnect-card',
+  });
+  disconnectBtn.innerHTML = `${iconX({ size: 13 })} <span>Disconnect</span>`;
+  disconnectBtn.addEventListener('click', () => {
+    callbacks.onDisconnect();
+  });
+
+  rightActions.append(toggleQrBtn, disconnectBtn);
+  cardMainRow.append(leftGroup, rightActions);
+  deviceCard.append(cardMainRow);
+
+  // Expandable QR drawer
+  const qrDrawer = el('div', { className: 'cdc-expand-drawer' });
+  qrDrawer.style.display = 'none';
+
+  if (roomCode) {
+    const qrCanvas = document.createElement('canvas');
+    qrCanvas.width = 160;
+    qrCanvas.height = 160;
+    if (onRenderQR) {
+      setTimeout(() => onRenderQR(qrCanvas), 20);
+    }
+
+    const drawerContent = el('div', { className: 'cdc-drawer-content stack stack-sm text-center' });
+    const drawerHint = el('p', {
+      className: 'text-xs muted',
+      textContent: 'Scan this QR code with another phone camera to join this direct session:',
+    });
+
+    const drawerQrWrap = el('div', { className: 'qr-viewfinder-frame' });
+    const tickTL = el('span', { className: 'qr-tick tick-tl' });
+    const tickTR = el('span', { className: 'qr-tick tick-tr' });
+    const tickBL = el('span', { className: 'qr-tick tick-bl' });
+    const tickBR = el('span', { className: 'qr-tick tick-br' });
+    const whiteBox = el('div', { className: 'qr-canvas-white-box qr-canvas-wrap' });
+    whiteBox.append(qrCanvas);
+    drawerQrWrap.append(tickTL, tickTR, tickBL, tickBR, whiteBox);
+
+    const drawerCodeRow = el('div', { className: 'row-center gap-sm mt-xs' });
+    const drawerCodeBadge = el('span', {
+      className: 'cdc-room-badge mono font-semibold',
+      textContent: `ROOM: ${roomCode}`,
+    });
+    const copyBtn = el('button', {
+      type: 'button',
+      className: 'btn btn-secondary btn-xs',
+    });
+    copyBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Copy Link</span>`;
+    copyBtn.addEventListener('click', () => {
+      void copyTextToClipboard(`${window.location.origin}/app?room=${roomCode}`).then(() => {
+        showToast('Room link copied!');
+        copyBtn.innerHTML = `${iconCheck({ size: 12 })} <span>Copied!</span>`;
+        setTimeout(() => {
+          copyBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Copy Link</span>`;
+        }, 1500);
+      });
+    });
+    drawerCodeRow.append(drawerCodeBadge, copyBtn);
+    drawerContent.append(drawerHint, drawerQrWrap, drawerCodeRow);
+    qrDrawer.append(drawerContent);
+  }
+
+  let isQrExpanded = false;
+  toggleQrBtn.addEventListener('click', () => {
+    isQrExpanded = !isQrExpanded;
+    qrDrawer.style.display = isQrExpanded ? 'block' : 'none';
+    toggleQrBtn.innerHTML = isQrExpanded
+      ? `${iconX({ size: 14 })} <span>Hide QR</span>`
+      : `${iconQrCode({ size: 14 })} <span>Show QR / Add Device</span>`;
+  });
+
+  deviceCard.append(qrDrawer);
 
   // ── MOBILE TAB SWITCHER (Transfers | Chat & Notes | Virtual Drive) ──
   const mobileTabRow = el('div', { className: 'mobile-workspace-tabs' });
@@ -1666,7 +1811,7 @@ export function createConnectedWorkspace(
   inputRow.append(attachBtn, textInput, sendBtn);
   rightDrawer.append(drawerHeader, chatFeed, inputRow);
 
-  container.append(mobileTabRow, mainStage, rightDrawer);
+  container.append(deviceCard, mobileTabRow, mainStage, rightDrawer);
 
   let localVfsList: VfsFileEntry[] = [];
   let remoteVfsList: VfsFileEntry[] = [];
@@ -1700,6 +1845,7 @@ export function createConnectedWorkspace(
     element: container,
     setPeerName(name: string, _role: string) {
       currentPeerName = name;
+      peerNameSpan.textContent = name;
       updateRemoteView();
     },
     setWakeLockActive(_active: boolean) {},
