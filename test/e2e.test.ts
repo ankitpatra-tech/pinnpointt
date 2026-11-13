@@ -595,6 +595,35 @@ async function run(): Promise<void> {
     );
     console.log('✓ Alice received reply from Bob!');
 
+    // Alice sends a link note to test URL auto-highlighting & copy note button
+    await pageSender.evaluate(() => {
+      const inp = document.querySelector('.chat-input') as HTMLInputElement;
+      inp.value = 'Check documentation at https://pinnpointt.app/specs';
+      const sendBtn = document.querySelector('.chat-send-btn') as HTMLElement;
+      sendBtn?.click();
+    });
+
+    await pageReceiver.waitForFunction(
+      () => document.querySelector('.chat-link') !== null,
+      { timeout: 10000 }
+    );
+    console.log('✓ URL auto-highlighting confirmed on Live Notes feed (.chat-link).');
+
+    // Bob clicks copy button on the note
+    await pageReceiver.evaluate(() => {
+      const copyBtns = document.querySelectorAll('.btn-copy-note');
+      const lastCopyBtn = copyBtns[copyBtns.length - 1] as HTMLElement;
+      lastCopyBtn?.click();
+    });
+
+    await pageReceiver.waitForSelector('.pinnpointt-toast.visible', { timeout: 5000 });
+    console.log('✓ Whisper glass toast confirmed on note copy.');
+
+    try {
+      await pageSender.screenshot({ path: path.join(artifactDir, 'app_phase4_live_notes_desktop_1440p.png') });
+      await pageReceiver.screenshot({ path: path.join(artifactDir, 'app_phase4_whisper_toast.png') });
+    } catch {}
+
     // 8. Test 10 MB File Streaming Transfer
     console.log('Step E: Alice selecting and sending 10 MB binary file...');
     const fileInput = await pageSender.$('input.file-hidden-input');

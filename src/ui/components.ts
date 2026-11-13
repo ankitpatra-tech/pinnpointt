@@ -76,9 +76,12 @@ export function showToast(message: string, durationMs = 2400): void {
   if (existing) existing.remove();
 
   const toast = el('div', {
-    className: 'pinnpointt-toast text-xs',
-    textContent: message,
+    className: 'pinnpointt-toast whisper-glass-toast text-xs',
   });
+  const dot = el('span', { className: 'toast-dot' });
+  const text = el('span', { className: 'toast-text', textContent: message });
+  toast.append(dot, text);
+
   toast.setAttribute('role', 'status');
   toast.setAttribute('aria-live', 'polite');
 
@@ -91,6 +94,34 @@ export function showToast(message: string, durationMs = 2400): void {
     toast.classList.remove('visible');
     setTimeout(() => toast.remove(), 250);
   }, durationMs);
+}
+
+export function renderNoteTextWithLinks(container: HTMLElement, text: string): void {
+  const urlRegex = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    const textBefore = text.slice(lastIndex, match.index);
+    if (textBefore) {
+      container.appendChild(document.createTextNode(textBefore));
+    }
+    const url = match[0];
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.className = 'chat-link';
+    link.textContent = url;
+    link.addEventListener('click', (e) => e.stopPropagation());
+    container.appendChild(link);
+    lastIndex = match.index + url.length;
+  }
+
+  const textAfter = text.slice(lastIndex);
+  if (textAfter) {
+    container.appendChild(document.createTextNode(textAfter));
+  }
 }
 
 export function formatBytes(bytes: number): string {
@@ -1768,8 +1799,11 @@ export function createConnectedWorkspace(
 
   const drawerHeader = el('div', { className: 'drawer-header row-between' });
   const drawerTitleGroup = el('div', { className: 'drawer-title-group stack stack-xs' });
-  const drawerTitle = el('div', { className: 'drawer-title font-semibold text-sm', textContent: 'Shared Notes & Links' });
-  const drawerSubtitle = el('div', { className: 'drawer-subtitle text-xs muted', textContent: 'Instant peer-to-peer messaging & clipboard' });
+  const drawerTitle = el('div', { className: 'drawer-title font-semibold text-sm', textContent: 'Live Notes & Links' });
+  const drawerSubtitle = el('div', {
+    className: 'drawer-subtitle text-xs muted',
+    textContent: 'Type or paste links, text, or snippets to beam them instantly to your connected device.',
+  });
   drawerTitleGroup.append(drawerTitle, drawerSubtitle);
 
   const clipboardBtn = el('button', {
@@ -1806,9 +1840,29 @@ export function createConnectedWorkspace(
     autocomplete: 'off',
   }) as HTMLInputElement;
 
+  const pasteBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-secondary btn-sm btn-paste-note text-xs',
+    title: 'Paste text from clipboard',
+  });
+  pasteBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Paste</span>`;
+  pasteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        textInput.value = (textInput.value ? textInput.value + ' ' : '') + text;
+        textInput.focus();
+        showToast('Pasted from clipboard!');
+      }
+    } catch {
+      textInput.focus();
+    }
+  });
+
   const sendBtn = el('button', {
     className: 'btn btn-primary chat-send-btn',
-    textContent: 'Send',
+    textContent: 'Send Note',
     type: 'button',
   });
 
@@ -1828,7 +1882,7 @@ export function createConnectedWorkspace(
     }
   });
 
-  inputRow.append(attachBtn, textInput, sendBtn);
+  inputRow.append(attachBtn, textInput, pasteBtn, sendBtn);
   rightDrawer.append(drawerHeader, chatFeed, inputRow);
 
   container.append(deviceCard, mobileTabRow, mainStage, rightDrawer);
@@ -1888,12 +1942,39 @@ export function createConnectedWorkspace(
     addChatMessage(msg: { sender: string; text: string; timestamp: number; isMine: boolean }) {
       const row = el('div', { className: `chat-msg ${msg.isMine ? 'mine' : 'peer'}` });
 
-      const meta = el('div', { className: 'chat-meta' });
+      const meta = el('div', { className: 'chat-meta row-between' });
+      const senderGroup = el('div', { className: 'row-start gap-xs' });
       const sender = el('span', { className: 'chat-sender font-semibold', textContent: msg.sender });
       const time = el('span', { className: 'chat-time text-xs muted tabular-nums', textContent: formatTime(msg.timestamp) });
-      meta.append(sender, time);
+      senderGroup.append(sender, time);
 
-      const bubble = el('div', { className: 'chat-bubble', textContent: msg.text });
+      const copyNoteBtn = el('button', {
+        type: 'button',
+        className: 'btn-copy-note text-xs',
+        title: 'Copy note text',
+      });
+      copyNoteBtn.innerHTML = `${iconCopy({ size: 11 })} <span>Copy</span>`;
+      copyNoteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const ok = await copyTextToClipboard(msg.text);
+        if (ok) {
+          copyNoteBtn.innerHTML = `${iconCheck({ size: 11 })} <span>Copied</span>`;
+          copyNoteBtn.classList.add('copied');
+          showToast('Note copied to clipboard!');
+          setTimeout(() => {
+            copyNoteBtn.innerHTML = `${iconCopy({ size: 11 })} <span>Copy</span>`;
+            copyNoteBtn.classList.remove('copied');
+          }, 1500);
+        } else {
+          showToast('Failed to copy to clipboard.');
+        }
+      });
+
+      meta.append(senderGroup, copyNoteBtn);
+
+      const bubble = el('div', { className: 'chat-bubble' });
+      renderNoteTextWithLinks(bubble, msg.text);
+
       row.append(meta, bubble);
 
       chatFeed.append(row);
