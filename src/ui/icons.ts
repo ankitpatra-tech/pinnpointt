@@ -12,19 +12,12 @@ function svg(paths: string, size = 16, className = 'svg-icon'): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="${className}">${paths}</svg>`;
 }
 
-export function iconLogo(size = 20): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" class="svg-icon brand-mark">
-    <!-- Apple-style continuous rounded squircle container -->
-    <rect x="2.5" y="2.5" width="19" height="19" rx="6" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.5"/>
-    <!-- Left Radiating Signal Arc -->
-    <path d="M7 15.5C7.8 13.8 9.2 12.5 11 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-    <!-- Right Radiating Signal Arc -->
-    <path d="M17 8.5C16.2 10.2 14.8 11.5 13 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-    <!-- Beacon Center Point -->
-    <circle cx="12" cy="12" r="2.25" fill="currentColor"/>
-    <!-- Terminal Node Points -->
-    <circle cx="7" cy="15.5" r="1.25" fill="currentColor"/>
-    <circle cx="17" cy="8.5" r="1.25" fill="currentColor"/>
+export function iconLogo(size = 28): string {
+  return `<svg class="pp-logo-svg pinnpointt-logo svg-icon brand-mark" width="${size}" height="${size}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="PinnPointt Logo">
+    <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-opacity="0.16" stroke-width="1.2"/>
+    <path class="pp-arc-a logo-arc-a" d="M7 16C7 11.0294 11.0294 7 16 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    <path class="pp-arc-b logo-arc-b" d="M25 16C25 20.9706 20.9706 25 16 25" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    <circle class="pp-core-dot logo-core" cx="16" cy="16" r="3.4" fill="#38BDF8"/>
   </svg>`;
 }
 

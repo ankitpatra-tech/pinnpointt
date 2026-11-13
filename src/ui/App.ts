@@ -216,7 +216,8 @@ export class App {
         }
       },
       () => openOnboardingModal(),
-      peerInfo
+      peerInfo,
+      (view) => this.handleSwitchView(view)
     );
     appShell.append(navbar);
 
@@ -247,11 +248,34 @@ export class App {
     }
   }
 
+  private handleSwitchView(view: 'files' | 'notes' | 'shield'): void {
+    if (view === 'shield') {
+      openDocModal('privacy');
+      return;
+    }
+    if (this.state === 'connected' && this.workspace) {
+      if (view === 'files') {
+        this.workspace.switchTab('activity');
+        const wsEl = this.root.querySelector('.app-connected-workspace');
+        if (wsEl) wsEl.setAttribute('data-mobile-view', 'transfers');
+      } else if (view === 'notes') {
+        const wsEl = this.root.querySelector('.app-connected-workspace');
+        if (wsEl) wsEl.setAttribute('data-mobile-view', 'chat');
+        const chatInput = this.root.querySelector<HTMLInputElement>('.chat-input');
+        chatInput?.focus();
+      }
+    } else {
+      if (view === 'notes') {
+        showToast('Connect with a peer device to exchange live notes & clipboard');
+      }
+    }
+  }
+
   // ── STATE A: Unified Glass Pairing System & Desktop Auto-Scaling ──
 
   private renderStateAPairingLayout(): HTMLElement {
     const layout = document.createElement('div');
-    layout.className = 'app-pairing-layout';
+    layout.className = 'app-pairing-layout app-fluid-shell';
 
     // PRIMARY CARD: Single Unified Apple/Linear-Grade Glass Surface
     const card = document.createElement('div');

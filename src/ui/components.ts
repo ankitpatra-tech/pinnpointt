@@ -183,32 +183,99 @@ export function createNavbar(
   onToggleTheme: () => void,
   onBrandClick?: () => void,
   onOpenGuide?: () => void,
-  peerInfo?: NavbarPeerInfo
+  peerInfo?: NavbarPeerInfo,
+  onSwitchView?: (view: 'files' | 'notes' | 'shield') => void
 ): HTMLElement {
-  const nav = el('header', { className: 'app-navbar' });
-  const inner = el('div', { className: 'app-navbar-inner' });
+  const nav = el('header', { className: 'app-navbar pp-navbar', id: 'site-navbar' });
+  const inner = el('div', { className: 'app-navbar-inner pp-nav-container' });
 
-  // Left Brand Area
-  const brand = el('div', { className: 'nav-brand' });
-  const logo = el('div', { className: 'nav-logo' });
-  logo.innerHTML = iconLogo(20);
+  // Left Brand Area with Spring Rotation on Hover
+  const brand = el('a', {
+    className: 'nav-brand pp-brand',
+    href: '/',
+    'aria-label': 'PinnPointt Home',
+  });
+  const logo = el('div', { className: 'nav-logo pp-logo-wrap' });
+  logo.innerHTML = iconLogo(26);
   const titleWrap = el('div', { className: 'nav-title-wrap' });
-  const title = el('span', { className: 'nav-title', textContent: 'PinnPointt' });
-  titleWrap.append(title);
+  const title = el('span', { className: 'nav-title pp-brand-name', textContent: 'PinnPointt' });
+  const badge = el('span', { className: 'nav-badge pp-version-pill', textContent: 'Beta' });
+  titleWrap.append(title, badge);
   brand.append(logo, titleWrap);
 
   if (onBrandClick) {
-    brand.addEventListener('click', onBrandClick);
+    brand.addEventListener('click', (e) => {
+      e.preventDefault();
+      onBrandClick();
+    });
   }
 
-  // Center Connection Area (Active connected peer info or dynamic live telemetry)
-  const centerArea = el('div', { className: 'nav-center-area' });
+  // Center Area: Segmented switcher pill (Files | Live Notes & Links | Safety Shield)
+  const switcher = el('nav', {
+    className: 'app-nav-switcher pp-nav-links',
+    id: 'app-nav-switcher',
+  });
+  switcher.setAttribute('aria-label', 'App Navigation');
+
+  const highlight = el('span', {
+    className: 'nav-switcher-highlight pp-nav-highlight',
+    id: 'nav-switcher-indicator',
+  });
+  switcher.append(highlight);
+
+  const updateHighlight = (targetBtn: HTMLElement) => {
+    requestAnimationFrame(() => {
+      highlight.style.left = `${targetBtn.offsetLeft}px`;
+      highlight.style.top = `${targetBtn.offsetTop}px`;
+      highlight.style.width = `${targetBtn.offsetWidth}px`;
+      highlight.style.height = `${targetBtn.offsetHeight}px`;
+    });
+  };
+
+  const tabs: { id: 'files' | 'notes' | 'shield'; label: string; icon: string }[] = [
+    { id: 'files', label: 'Files', icon: iconShare({ size: 14 }) },
+    { id: 'notes', label: 'Live Notes & Links', icon: iconFileText({ size: 14 }) },
+    { id: 'shield', label: 'Safety Shield', icon: iconShield({ size: 14 }) },
+  ];
+
+  tabs.forEach(({ id, label, icon }, idx) => {
+    const btn = el('button', {
+      type: 'button',
+      className: `nav-switcher-btn pp-nav-item ${idx === 0 ? 'active' : ''}`,
+    });
+    btn.setAttribute('data-view', id);
+    btn.innerHTML = `<span class="switcher-icon">${icon}</span> <span class="switcher-label">${label}</span>`;
+    btn.addEventListener('click', () => {
+      switcher.querySelectorAll('.nav-switcher-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateHighlight(btn);
+      onSwitchView?.(id);
+    });
+    switcher.append(btn);
+  });
+
+  setTimeout(() => {
+    const activeBtn = switcher.querySelector<HTMLElement>('.nav-switcher-btn.active');
+    if (activeBtn) updateHighlight(activeBtn);
+  }, 50);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(() => {
+      const activeBtn = switcher.querySelector<HTMLElement>('.nav-switcher-btn.active');
+      if (activeBtn) updateHighlight(activeBtn);
+    });
+    ro.observe(switcher);
+  }
+
+  // Right Actions & Live Connection Pill
+  const actions = el('div', { className: 'nav-actions pp-nav-actions' });
+
   if (peerInfo) {
-    const pill = el('div', { className: 'header-connected-pill workspace-peer-badge' });
+    const pill = el('div', { className: 'nav-live-pill header-connected-pill workspace-peer-badge is-connected' });
     pill.innerHTML = `
       <div class="header-peer-chip">
         <span class="status-dot connected"></span>
-        <span class="peer-text">Connected: <strong class="peer-name">${peerInfo.name}</strong></span>
+        <span class="peer-text">Connected on Local Wi-Fi: <strong class="peer-name">${peerInfo.name}</strong></span>
       </div>
       <div class="header-meta-group">
         <span class="room-pill-code mono">Room ${peerInfo.roomCode}</span>
@@ -224,19 +291,16 @@ export function createNavbar(
     });
     discBtn.addEventListener('click', peerInfo.onDisconnect);
     pill.append(discBtn);
-    centerArea.append(pill);
+    actions.append(pill);
   } else {
-    const telemetry = el('div', { className: 'header-dynamic-telemetry' });
+    const telemetry = el('div', { className: 'nav-live-pill header-dynamic-telemetry is-waiting' });
     telemetry.innerHTML = `
-      <span class="nav-status-beacon"></span>
-      <span class="telemetry-bold text-xs">Direct P2P Link</span>
-      <span class="telemetry-sub text-xs muted">• End-to-End Encrypted</span>
+      <span class="nav-status-beacon status-beacon-dot waiting"></span>
+      <span class="telemetry-bold text-xs">Ready to Connect</span>
+      <span class="telemetry-sub text-xs muted">• Direct P2P Link</span>
     `;
-    centerArea.append(telemetry);
+    actions.append(telemetry);
   }
-
-  // Right Actions
-  const actions = el('div', { className: 'nav-actions' });
 
   if (onOpenGuide) {
     const guideBtn = el('button', {
@@ -268,7 +332,7 @@ export function createNavbar(
   themeBtn.addEventListener('click', onToggleTheme);
 
   actions.append(aboutLink, themeBtn);
-  inner.append(brand, centerArea, actions);
+  inner.append(brand, switcher, actions);
   nav.append(inner);
   return nav;
 }
@@ -1267,7 +1331,7 @@ export function createConnectedWorkspace(
   callbacks: WorkspaceCallbacks,
   isPreview: boolean = false
 ): WorkspaceController {
-  const container = el('div', { className: 'app-connected-workspace fade-in' });
+  const container = el('div', { className: 'app-connected-workspace app-fluid-shell fade-in' });
 
   // ── MOBILE TAB SWITCHER (Transfers | Chat & Notes | Virtual Drive) ──
   const mobileTabRow = el('div', { className: 'mobile-workspace-tabs' });
