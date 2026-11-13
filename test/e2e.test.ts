@@ -469,6 +469,11 @@ async function run(): Promise<void> {
     });
     await pageSender.waitForSelector('.room-code-display', { timeout: 10000 });
 
+    const artifactDir = 'C:\\Users\\pc\\.gemini\\antigravity\\brain\\56c6ee2d-d3ad-412d-92a3-f70040fe71eb';
+    try {
+      await pageSender.screenshot({ path: path.join(artifactDir, 'app_phase3_split_view_dropzone_1440p.png') });
+    } catch {}
+
     const digits = await pageSender.$$eval('.room-code-display .digit', (els) =>
       els.map((el) => el.textContent?.trim() || '').join('')
     );
@@ -615,6 +620,22 @@ async function run(): Promise<void> {
       throw new Error('Receiver download button not found');
     }
     console.log('✓ Receiver download button confirmed ready in activity stream.');
+
+    try {
+      await pageSender.screenshot({ path: path.join(artifactDir, 'app_phase3_connected_workspace_sender.png') });
+      await pageReceiver.screenshot({ path: path.join(artifactDir, 'app_phase3_connected_workspace_receiver.png') });
+      await pageReceiver.setViewport({ width: 375, height: 812, deviceScaleFactor: 2 });
+      await pageReceiver.evaluate(() => {
+        const transBtn = document.querySelectorAll('.mobile-tab-btn')[0] as HTMLElement;
+        transBtn?.click();
+      });
+      await new Promise(r => setTimeout(r, 200));
+      await pageReceiver.screenshot({ path: path.join(artifactDir, 'app_phase3_connected_workspace_mobile_375p.png') });
+      await pageReceiver.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
+      console.log('✓ Captured Phase 3 precision transfer card screenshots (desktop & mobile).');
+    } catch (err) {
+      console.warn('Screenshot capture error:', err);
+    }
 
     // 9. Test P2P Virtual Drive (Live Remote Mount & Byte-Slice Preview)
     console.log('Step F: Testing P2P Virtual Drive (Live Remote Mount & Byte-Slice Preview)...');

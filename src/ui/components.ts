@@ -109,10 +109,10 @@ export function formatSpeed(bps: number): string {
 
 export function formatETA(seconds: number): string {
   if (!isFinite(seconds) || seconds <= 0) return 'Just a moment';
-  if (seconds < 60) return `About ${Math.ceil(seconds)} seconds left`;
+  if (seconds < 60) return `About ${Math.ceil(seconds)}s left`;
   const m = Math.floor(seconds / 60);
   const s = Math.ceil(seconds % 60);
-  if (s === 0) return `About ${m} minute${m > 1 ? 's' : ''} left`;
+  if (s === 0) return `About ${m}m left`;
   return `About ${m}m ${s}s left`;
 }
 
@@ -1005,7 +1005,7 @@ export interface DropSurfaceOptions {
 }
 
 export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElement {
-  const canvas = el('div', { className: 'pairing-drop-surface' });
+  const canvas = el('div', { className: 'pairing-drop-surface magnetic-dropzone' });
 
   const fileInput = el('input', {
     type: 'file',
@@ -1041,16 +1041,16 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
   const iconWrap = el('div', { className: 'drop-canvas-icon' });
   iconWrap.innerHTML = iconUpload({ size: 36 });
 
-  const title = el('h3', { className: 'drop-canvas-title font-semibold', textContent: 'Drop Files to Send' });
+  const title = el('h3', { className: 'drop-canvas-title font-semibold', textContent: 'Drop files or folders here to send' });
   const subtitle = el('p', {
     className: 'drop-canvas-sub text-xs muted',
-    textContent: 'Drop files here anytime, or click below. They will stream the moment your other device connects.',
+    textContent: 'Photos, 4K videos, ZIP archives, or any file type — unlimited size, sent straight to the other device.',
   });
 
   const btnRow = el('div', { className: 'drop-canvas-actions' });
   const browseFilesBtn = el('button', {
     type: 'button',
-    className: 'btn btn-primary btn-sm',
+    className: 'btn btn-primary btn-sm btn-choose-files',
   });
   browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Choose Files</span>`;
   browseFilesBtn.addEventListener('click', (e) => {
@@ -1060,7 +1060,7 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
 
   const browseFolderBtn = el('button', {
     type: 'button',
-    className: 'btn btn-secondary btn-sm',
+    className: 'btn btn-secondary btn-sm btn-choose-folder',
   });
   browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Choose Folder</span>`;
   browseFolderBtn.addEventListener('click', (e) => {
@@ -1347,6 +1347,23 @@ function renderRemoteVfsView(
   container.append(sectionHead, tableWrap);
 }
 
+function getFileTypeSvg(fileName: string): string {
+  const ext = fileName.toLowerCase().split('.').pop() || '';
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic', 'bmp', 'tiff'].includes(ext)) {
+    return iconEye({ size: 20 });
+  }
+  if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(ext)) {
+    return iconFolder({ size: 20 });
+  }
+  if (['mp4', 'mov', 'mkv', 'webm', 'avi', 'mp3', 'wav', 'flac', 'm4a'].includes(ext)) {
+    return iconPlay({ size: 20 });
+  }
+  if (['pdf', 'doc', 'docx', 'txt', 'md', 'json', 'csv', 'ts', 'js', 'html', 'css'].includes(ext)) {
+    return iconFileText({ size: 20 });
+  }
+  return iconFile({ size: 20 });
+}
+
 export function createConnectedWorkspace(
   initialPeerName: string,
   initialRole: string,
@@ -1605,24 +1622,22 @@ export function createConnectedWorkspace(
   activityTabBtn.addEventListener('click', () => switchTab('activity'));
   driveTabBtn.addEventListener('click', () => switchTab('drive'));
 
-  // Sleek Glass Dropzone Staging Bar
-  const dropzone = el('div', { className: 'stage-dropzone' });
+  // Magnetic Glass Dropzone Stage
+  const dropzone = el('div', { className: 'stage-dropzone magnetic-dropzone' });
   dropzone.innerHTML = `
-    <div class="stage-dropzone-left">
-      <div class="stage-dropzone-icon">${iconUpload({ size: 20 })}</div>
-      <div class="stage-dropzone-text">
-        <div class="stage-dropzone-title font-semibold text-xs">Drop Files to Stream</div>
-        <div class="stage-dropzone-sub text-xs muted">Unlimited size • Direct P2P stream</div>
-      </div>
+    <div class="stage-dropzone-icon">${iconUpload({ size: 30 })}</div>
+    <div class="stage-dropzone-text">
+      <div class="stage-dropzone-title font-semibold">Drop files or folders here to send</div>
+      <div class="stage-dropzone-sub text-xs muted">Photos, 4K videos, ZIP archives, or any file type — unlimited size, sent straight to the other device.</div>
     </div>
   `;
 
-  const dropActions = el('div', { className: 'stage-dropzone-actions' });
+  const dropActions = el('div', { className: 'stage-dropzone-actions row-center gap-sm' });
   const browseFilesBtn = el('button', {
     type: 'button',
-    className: 'btn btn-primary btn-sm stage-dropzone-btn',
+    className: 'btn btn-primary btn-sm stage-dropzone-btn btn-choose-files',
   });
-  browseFilesBtn.innerHTML = `${iconFile({ size: 13 })} <span>Browse Files</span>`;
+  browseFilesBtn.innerHTML = `${iconFile({ size: 14 })} <span>Choose Files</span>`;
   browseFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     isMountMode = false;
@@ -1631,14 +1646,19 @@ export function createConnectedWorkspace(
 
   const browseFolderBtn = el('button', {
     type: 'button',
-    className: 'btn btn-secondary btn-sm',
+    className: 'btn btn-secondary btn-sm btn-choose-folder',
   });
-  browseFolderBtn.innerHTML = `${iconFolder({ size: 13 })} <span>Add Folder</span>`;
+  browseFolderBtn.innerHTML = `${iconFolder({ size: 14 })} <span>Choose Folder</span>`;
   browseFolderBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     isMountMode = false;
     folderInput.click();
   });
+
+  dropActions.append(browseFilesBtn, browseFolderBtn);
+
+  // Micro-Toggles Row Below Buttons
+  const dropToggles = el('div', { className: 'stage-dropzone-toggles row-center gap-xs' });
 
   const privacyPill = el('label', {
     className: 'clean-toggle-pill stage-privacy-toggle',
@@ -1677,8 +1697,8 @@ export function createConnectedWorkspace(
   zeroTracePill.append(zeroTraceCheckbox, zeroTraceLabel);
   zeroTracePill.addEventListener('click', (e) => e.stopPropagation());
 
-  dropActions.append(browseFilesBtn, browseFolderBtn, privacyPill, zeroTracePill);
-  dropzone.append(dropActions);
+  dropToggles.append(privacyPill, zeroTracePill);
+  dropzone.append(dropActions, dropToggles);
 
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('dragover', (e) => {
@@ -1929,6 +1949,7 @@ export function createConnectedWorkspace(
       chatFeed.append(row);
       scrollToChatBottom();
     },
+
     addFileTransfer(opts: {
       fileId?: string;
       fileName: string;
@@ -1943,16 +1964,44 @@ export function createConnectedWorkspace(
       let isMetadataStripped = !!opts.isMetadataStripped;
       let isZeroTrace = !!opts.isZeroTrace;
 
-      const row = el('div', { className: `chat-msg ${opts.isMine ? 'mine' : 'peer'}` });
-      const card = el('div', { className: 'feed-file' });
+      const row = el('div', { className: `chat-msg ${opts.isMine ? 'mine' : 'peer'} feed-file-row` });
+      const card = el('div', { className: 'feed-file precision-transfer-card' });
 
-      const head = el('div', { className: 'feed-file-head' });
-      const icon = el('div', { className: 'feed-file-icon' });
-      icon.innerHTML = iconFileText({ size: 20 });
-      const info = el('div', { className: 'feed-file-info' });
-      const name = el('div', { className: 'feed-file-name font-semibold', textContent: opts.fileName });
-      const size = el('div', { className: 'feed-file-size tabular-nums text-xs muted', textContent: formatBytes(opts.fileSize) });
-      info.append(name, size);
+      // Subtle Background Progress Sweep
+      const sweep = el('div', { className: 'feed-file-sweep' });
+      sweep.style.width = '0%';
+
+      // Top File Meta Row
+      const topRow = el('div', { className: 'feed-file-top-row row-between' });
+      const topLeft = el('div', { className: 'feed-file-top-left row-start gap-sm' });
+      const iconBox = el('div', { className: 'feed-file-type-box feed-file-icon' });
+      iconBox.innerHTML = getFileTypeSvg(opts.fileName);
+
+      const titleWrap = el('div', { className: 'feed-file-title-wrap feed-file-info stack stack-xs' });
+      const nameLine = el('div', { className: 'feed-file-name-line row-start gap-xs' });
+      const nameEl = el('span', { className: 'feed-file-name font-semibold', textContent: opts.fileName });
+      nameEl.setAttribute('title', opts.fileName);
+
+      const directionBadge = el('span', {
+        className: `feed-file-direction-badge ${opts.isMine ? 'sending' : 'receiving'}`,
+        textContent: opts.isMine ? 'Sending' : 'Receiving',
+      });
+      nameLine.append(nameEl, directionBadge);
+
+      const tagsRow = el('div', { className: 'feed-file-tags-row row-start gap-xs' });
+      const privacyBadge = el('span', {
+        className: 'safety-badge safe file-badge-privacy-shield text-xs',
+        title: 'Location details and camera tags were removed.',
+      });
+      privacyBadge.innerHTML = `${iconShield({ size: 11 })} <span>Location Hidden</span>`;
+      privacyBadge.style.display = isMetadataStripped ? 'inline-flex' : 'none';
+
+      const zeroTraceBadge = el('span', {
+        className: 'safety-badge warning file-badge-zero-trace text-xs',
+        title: 'Ephemeral view-only mode: preview directly in memory without saving to disk',
+      });
+      zeroTraceBadge.innerHTML = `${iconEye({ size: 11 })} <span>Zero-Trace</span>`;
+      zeroTraceBadge.style.display = isZeroTrace ? 'inline-flex' : 'none';
 
       const initialSafety = inspectFileSafety(opts.fileName, opts.fileSize);
       if (initialSafety.riskLevel !== 'safe') {
@@ -1961,39 +2010,36 @@ export function createConnectedWorkspace(
           textContent: initialSafety.badgeLabel,
           title: initialSafety.reason,
         });
-        info.append(badge);
+        tagsRow.append(badge);
       }
+      tagsRow.append(privacyBadge, zeroTraceBadge);
+      titleWrap.append(nameLine, tagsRow);
+      topLeft.append(iconBox, titleWrap);
 
-      const privacyBadge = el('span', {
-        className: 'safety-badge safe file-badge-privacy-shield text-xs',
-        title: 'Location details and camera tags were removed.',
-      });
-      privacyBadge.innerHTML = `${iconShield({ size: 12 })} <span>Location Hidden</span>`;
-      privacyBadge.style.display = isMetadataStripped ? 'inline-flex' : 'none';
+      const topRight = el('div', { className: 'feed-file-top-right' });
+      const sizeEl = el('span', { className: 'feed-file-size tabular-nums', textContent: formatBytes(opts.fileSize) });
+      topRight.append(sizeEl);
 
-      const zeroTraceBadge = el('span', {
-        className: 'safety-badge warning file-badge-zero-trace text-xs',
-        title: 'Ephemeral view-only mode: preview directly in memory without saving to disk',
-      });
-      zeroTraceBadge.innerHTML = `${iconEye({ size: 12 })} <span>Zero-Trace</span>`;
-      zeroTraceBadge.style.display = isZeroTrace ? 'inline-flex' : 'none';
+      topRow.append(topLeft, topRight);
 
-      info.append(privacyBadge, zeroTraceBadge);
-      head.append(icon, info);
-
-      // ONE Single Smooth Progress Bar
+      // Middle Live Telemetry & Track
       const progWrap = el('div', { className: 'feed-file-progress' });
-      const track = el('div', { className: 'feed-file-track' });
-      const fill = el('div', { className: 'feed-file-fill' });
-      track.append(fill);
+      const telemetryRow = el('div', { className: 'feed-file-telemetry-row row-between' });
 
       const stats = el('div', { className: 'feed-file-stats tabular-nums text-xs' });
-      const percentEl = el('span', { className: 'tabular-nums font-semibold', textContent: '0%' });
-      const speedEl = el('span', { className: 'tabular-nums', textContent: '0 B/s' });
-      const etaEl = el('span', { className: 'tabular-nums', textContent: 'Starting...' });
-      stats.append(percentEl, el('span', {}, '•'), speedEl, el('span', {}, '•'), etaEl);
+      const percentEl = el('span', { className: 'tabular-nums font-semibold feed-file-pct', textContent: '0%' });
+      const speedEl = el('span', { className: 'tabular-nums feed-file-speed', textContent: '0 B/s' });
+      const etaEl = el('span', { className: 'tabular-nums feed-file-eta', textContent: 'Starting...' });
+      stats.append(
+        percentEl,
+        el('span', { className: 'telemetry-label' }, ' transferred'),
+        el('span', { className: 'telemetry-sep' }, ' • '),
+        speedEl,
+        el('span', { className: 'telemetry-sep' }, ' • '),
+        etaEl
+      );
 
-      const controls = el('div', { className: 'feed-file-controls' });
+      const controls = el('div', { className: 'feed-file-controls row-end gap-xs' });
       const statusBadge = el('span', { className: 'feed-file-status-badge text-xs' });
       statusBadge.style.display = 'none';
 
@@ -2035,8 +2081,23 @@ export function createConnectedWorkspace(
       });
 
       controls.append(statusBadge, btnPause, btnResume, btnCancel);
-      progWrap.append(track, stats, controls);
-      card.append(head, progWrap);
+      telemetryRow.append(stats, controls);
+
+      const track = el('div', { className: 'feed-file-track' });
+      const fill = el('div', { className: 'feed-file-fill' });
+      track.append(fill);
+
+      progWrap.append(telemetryRow, track);
+
+      // Bottom Done Row
+      const doneRow = el('div', { className: 'feed-file-done row-between' });
+      doneRow.style.display = 'none';
+
+      // Crisp 3px Bottom Progress Edge Bar
+      const bottomBar = el('div', { className: 'feed-file-bottom-bar' });
+      bottomBar.style.width = '0%';
+
+      card.append(sweep, topRow, progWrap, doneRow, bottomBar);
       row.append(card);
 
       fileFeed.append(row);
@@ -2044,8 +2105,11 @@ export function createConnectedWorkspace(
       return {
         updateProgress(p: TransferProgress) {
           const pct = p.bytesTotal > 0 ? (p.bytesSent / p.bytesTotal) * 100 : 0;
+          const roundedPct = Math.min(100, Math.round(pct));
           fill.style.width = `${pct}%`;
-          percentEl.textContent = `${Math.round(pct)}%`;
+          sweep.style.width = `${pct}%`;
+          bottomBar.style.width = `${pct}%`;
+          percentEl.textContent = `${roundedPct}%`;
           speedEl.textContent = formatSpeed(p.speedBps);
           etaEl.textContent = formatETA(p.etaSeconds);
         },
@@ -2078,16 +2142,15 @@ export function createConnectedWorkspace(
           }
         },
         setCancelled(cancelledBy?: 'you' | 'peer') {
-          progWrap.remove();
-          const cancelRow = el('div', { className: 'feed-file-done' });
+          progWrap.style.display = 'none';
+          doneRow.style.display = 'flex';
           const cancelBadge = el('div', {
-            className: 'text-xs muted',
-            style: 'display: flex; align-items: center; gap: 4px;',
+            className: 'text-xs muted feed-file-cancelled-badge',
+            style: 'display: flex; align-items: center; gap: 6px;',
           });
           const who = cancelledBy === 'peer' ? 'other device' : 'you';
           cancelBadge.innerHTML = `${iconX({ size: 12 })} <span>Transfer cancelled by ${who}</span>`;
-          cancelRow.append(cancelBadge);
-          card.append(cancelRow);
+          doneRow.append(cancelBadge);
           scrollToBottom();
         },
         complete(info: {
@@ -2098,7 +2161,11 @@ export function createConnectedWorkspace(
           isZeroTrace?: boolean;
           onZeroTraceView?: () => void;
         }) {
-          progWrap.remove();
+          progWrap.style.display = 'none';
+          doneRow.style.display = 'flex';
+          sweep.style.width = '100%';
+          bottomBar.style.width = '100%';
+          bottomBar.classList.add('completed');
 
           if (info.isMetadataStripped) {
             isMetadataStripped = true;
@@ -2109,17 +2176,47 @@ export function createConnectedWorkspace(
             zeroTraceBadge.style.display = 'inline-flex';
           }
 
-          const doneRow = el('div', { className: 'feed-file-done' });
           const safety = inspectFileSafety(opts.fileName, opts.fileSize, info.sha256);
 
           if (safety.isBlockedHash) {
             const blocked = el('div', { className: 'feed-file-threat danger text-xs' });
             blocked.innerHTML = `${iconAlertCircle({ size: 13 })} <span>Blocked Threat</span>`;
             doneRow.append(blocked);
+          } else if (safety.riskLevel === 'warning') {
+            const warningBadge = el('div', { className: 'feed-file-threat warning text-xs' });
+            warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Safety Warning: Executable file — verify before opening</span>`;
+            doneRow.append(warningBadge);
+
+            if (info.onDownload) {
+              const actionsWrap = el('div', { className: 'feed-file-done-actions row-end gap-xs' });
+              const saveAnywayBtn = el('button', {
+                type: 'button',
+                className: 'btn btn-secondary btn-sm text-xs btn-save-anyway',
+                textContent: 'Save Anyway',
+              });
+              saveAnywayBtn.addEventListener('click', info.onDownload);
+
+              const discardBtn = el('button', {
+                type: 'button',
+                className: 'btn btn-ghost btn-sm text-xs btn-discard-file',
+                textContent: 'Discard',
+              });
+              discardBtn.addEventListener('click', () => {
+                row.remove();
+              });
+
+              actionsWrap.append(saveAnywayBtn, discardBtn);
+              doneRow.append(actionsWrap);
+            }
           } else {
             const verified = el('div', { className: 'feed-file-verified text-xs' });
-            verified.innerHTML = `${iconCheck({ size: 13 })} <span>Verified Safe</span>`;
+            const verifiedText = opts.isMine
+              ? '✓ Sent & Verified Identical (SHA-256)'
+              : '✓ Received & Verified Identical (SHA-256)';
+            verified.innerHTML = `${iconCheck({ size: 13 })} <span>${verifiedText}</span>`;
             doneRow.append(verified);
+
+            const doneActions = el('div', { className: 'feed-file-done-actions row-end gap-xs' });
 
             if (isZeroTrace || info.isZeroTrace) {
               if (info.onZeroTraceView) {
@@ -2128,40 +2225,29 @@ export function createConnectedWorkspace(
                   className: 'btn btn-primary btn-sm btn-zero-trace-view text-xs',
                   textContent: 'View (Zero-Trace)',
                 });
-                viewBtn.style.padding = '4px 10px';
                 viewBtn.addEventListener('click', info.onZeroTraceView);
-                doneRow.append(viewBtn);
+                doneActions.append(viewBtn);
               }
             } else if (info.isDirectDiskSave) {
               const savedBadge = el('div', {
                 className: 'feed-file-disk-saved text-xs',
               });
-              savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk</span>`;
-              doneRow.append(savedBadge);
-            } else if (safety.riskLevel === 'warning') {
-              const warningBadge = el('div', { className: 'feed-file-threat warning text-xs' });
-              warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Executable</span>`;
-              doneRow.append(warningBadge);
-
-              if (info.onDownload) {
-                const dlBtn = el('button', {
-                  className: 'btn btn-secondary btn-sm text-xs',
-                  textContent: 'Save File',
-                });
-                dlBtn.style.padding = '4px 10px';
-                dlBtn.addEventListener('click', info.onDownload);
-                doneRow.append(dlBtn);
-              }
+              savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk (OPFS)</span>`;
+              doneActions.append(savedBadge);
             } else {
               if (info.onDownload) {
                 const dlBtn = el('button', {
-                  className: 'btn btn-primary btn-sm text-xs',
-                  textContent: 'Download',
+                  type: 'button',
+                  className: 'btn btn-primary btn-sm btn-save-download text-xs',
+                  textContent: 'Save / Download',
                 });
-                dlBtn.style.padding = '4px 10px';
                 dlBtn.addEventListener('click', info.onDownload);
-                doneRow.append(dlBtn);
+                doneActions.append(dlBtn);
               }
+            }
+
+            if (doneActions.childNodes.length > 0) {
+              doneRow.append(doneActions);
             }
           }
 
