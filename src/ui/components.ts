@@ -44,7 +44,10 @@ import {
   iconCamera,
   iconMonitor,
   iconSmartphone,
+  iconVolume,
+  iconVolumeX,
 } from './icons';
+import { isSoundMuted, toggleSoundMuted, playCompleteSound } from '../lib/audioHaptics';
 import { startCameraQRScanner, extractRoomCode, type QRScannerSession } from '../lib/qrScanner';
 
 // ─── DOM Helper ─────────────────────────────────────
@@ -335,6 +338,27 @@ export function createNavbar(
     `;
     actions.append(telemetry);
   }
+
+  // Discreet Sound / Mute Toggle Icon next to connection pill
+  const isMuted = isSoundMuted();
+  const soundBtn = el('button', {
+    type: 'button',
+    className: `btn-sound-toggle pp-nav-icon-btn ${isMuted ? 'is-muted' : ''}`,
+    title: isMuted ? 'Sound effects muted (Click to enable)' : 'Sound effects enabled (Click to mute)',
+    'aria-label': isMuted ? 'Sound effects muted (Click to enable)' : 'Sound effects enabled (Click to mute)',
+  });
+  soundBtn.innerHTML = isMuted ? iconVolumeX({ size: 14 }) : iconVolume({ size: 14 });
+  soundBtn.addEventListener('click', () => {
+    const muted = toggleSoundMuted();
+    soundBtn.classList.toggle('is-muted', muted);
+    soundBtn.title = muted ? 'Sound effects muted (Click to enable)' : 'Sound effects enabled (Click to mute)';
+    soundBtn.setAttribute('aria-label', muted ? 'Sound effects muted (Click to enable)' : 'Sound effects enabled (Click to mute)');
+    soundBtn.innerHTML = muted ? iconVolumeX({ size: 14 }) : iconVolume({ size: 14 });
+    if (!muted) {
+      playCompleteSound();
+    }
+  });
+  actions.append(soundBtn);
 
   if (onOpenGuide) {
     const guideBtn = el('button', {

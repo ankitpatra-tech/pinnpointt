@@ -69,6 +69,7 @@ import {
   type ClipboardItemData,
 } from '../lib/clipboardSync';
 import { openZeroTraceViewer } from './zeroTraceViewer';
+import { playConnectSound, playCompleteSound } from '../lib/audioHaptics';
 
 type AppState =
   | 'idle'
@@ -129,6 +130,7 @@ export class App {
   init(): void {
     applyTheme(this.currentTheme);
     this.setupGlobalDragDrop();
+    this.setupGlobalClipboard();
     this.render();
 
     // Show onboarding guide on first visit, unless auto-joining via room URL
@@ -536,7 +538,7 @@ export class App {
     return layout;
   }
 
-  // ── Global Ambient Drag & Drop Scrim ──────────────────────
+  // ── Full-Window Drag-and-Drop Hijack ──────────────────────
 
   private setupGlobalDragDrop(): void {
     window.addEventListener('dragenter', (e) => {
@@ -550,7 +552,7 @@ export class App {
     window.addEventListener('dragleave', (e) => {
       e.preventDefault();
       this.dragCounter--;
-      if (this.dragCounter <= 0) {
+      if (this.dragCounter <= 0 || e.relatedTarget === null) {
         this.dragCounter = 0;
         this.hideGlobalDropScrim();
       }
@@ -558,6 +560,9 @@ export class App {
 
     window.addEventListener('dragover', (e) => {
       e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'copy';
+      }
     });
 
     window.addEventListener('drop', (e) => {
@@ -575,12 +580,25 @@ export class App {
       this.dropScrimEl = document.createElement('div');
       this.dropScrimEl.className = 'global-drop-scrim';
       this.dropScrimEl.innerHTML = `
-        <div class="global-drop-box stack stack-sm text-center">
+        <div class="global-drop-box">
           <div class="global-drop-icon">${iconUpload({ size: 48 })}</div>
-          <div class="global-drop-title font-semibold text-base">Drop files here anytime</div>
-          <div class="global-drop-subtitle text-xs muted">Files will stream instantly to paired device</div>
+          <div class="global-drop-title">Release anywhere to stream to peer</div>
+          <div class="global-drop-subtitle">Photos, 4K videos, ZIP archives, or any file type — unlimited size, sent straight to peer.</div>
         </div>
       `;
+      // Ensure dropping onto overlay itself forwards files directly
+      this.dropScrimEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+      });
+      this.dropScrimEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        this.dragCounter = 0;
+        this.hideGlobalDropScrim();
+        if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+          this.handleQueueOrSendFiles(e.dataTransfer.files);
+        }
+      });
       document.body.append(this.dropScrimEl);
     }
     requestAnimationFrame(() => {
@@ -594,16 +612,19 @@ export class App {
     }
   }
 
-  private handleQueueOrSendFiles(files: FileList): void {
+  private handleQueueOrSendFiles(files: FileList | File[]): void {
+    const list: File[] = Array.from(files as any);
+    if (list.length === 0) return;
+
     if (this.state === 'connected') {
-      void this.handleSendFiles(files);
+      void this.handleSendFileList(list);
       return;
     }
 
-    for (let i = 0; i < files.length; i++) {
-      this.queuedFiles.push(files[i]);
+    for (let i = 0; i < list.length; i++) {
+      this.queuedFiles.push(list[i]);
     }
-    showToast(`${files.length} file(s) ready to stream as soon as you connect`);
+    showToast(`${list.length} file(s) ready to stream as soon as you connect`);
     this.render();
   }
 
@@ -799,6 +820,7 @@ export class App {
   private attachDataChannel(channel: RTCDataChannel): void {
     this.dataChannel = channel;
     this.transition('connected');
+    playConnectSound();
 
     void wakeLock.acquire('webrtc');
 
@@ -832,7 +854,6 @@ export class App {
       username: this.myUsername,
     });
 
-    window.addEventListener('paste', this.handleGlobalPaste);
     channel.addEventListener('message', (event: MessageEvent) => {
       if (typeof event.data !== 'string') return;
 
@@ -927,41 +948,59 @@ export class App {
     }
   }
 
-  // ── Universal Clipboard Sync ──────────────────────
+  // ── Universal Global Clipboard Listener (Ctrl+V / Cmd+V) ──
+
+  private setupGlobalClipboard(): void {
+    window.addEventListener('paste', this.handleGlobalPaste);
+  }
 
   private handleGlobalPaste = (e: ClipboardEvent): void => {
-    if (this.state !== 'connected') return;
-
-    const items = e.clipboardData?.items;
-    if (items) {
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
+    // 1. Intercept pasted files (images, documents, archives from OS clipboard or screenshot)
+    const files: File[] = [];
+    if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+      for (let i = 0; i < e.clipboardData.files.length; i++) {
+        files.push(e.clipboardData.files[i]);
+      }
+    } else if (e.clipboardData?.items) {
+      for (let i = 0; i < e.clipboardData.items.length; i++) {
+        const item = e.clipboardData.items[i];
+        if (item.kind === 'file') {
           const file = item.getAsFile();
-          if (file) {
-            e.preventDefault();
-            this.workspace?.addSystemNotice(`Pasted image from clipboard (${file.type})`);
-            void this.handleSendSingleFile(file);
-            return;
-          }
+          if (file) files.push(file);
         }
       }
     }
 
+    if (files.length > 0) {
+      e.preventDefault();
+      this.handleQueueOrSendFiles(files);
+      return;
+    }
+
+    // 2. Intercept pasted text or URL
+    const text = e.clipboardData?.getData('text') || '';
+    if (!text.trim()) return;
+
     const target = e.target as HTMLElement | null;
-    if (
+    const isEditingField = Boolean(
       target &&
       (target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable)
-    ) {
+    );
+
+    // If typing in an active form input or text area, allow default text paste
+    if (isEditingField) {
       return;
     }
 
-    const text = e.clipboardData?.getData('text') || '';
-    if (text.trim()) {
-      e.preventDefault();
+    // Global paste anywhere on the page: switch & broadcast into Live Notes stream
+    e.preventDefault();
+    if (this.state === 'connected') {
+      this.handleSwitchView('notes');
       this.dispatchClipboardSync(text);
+    } else {
+      showToast('Connect with a peer device to beam live notes & links');
     }
   };
 
@@ -1122,6 +1161,7 @@ export class App {
             isMetadataStripped,
             isZeroTrace,
           });
+          playCompleteSound();
         } catch (err) {
           if (controller.isCancelled()) {
             card?.setCancelled?.('you');
@@ -1199,6 +1239,7 @@ export class App {
         isMetadataStripped,
         isZeroTrace,
       });
+      playCompleteSound();
     } catch (err) {
       if (controller.isCancelled()) {
         card?.setCancelled?.('you');
@@ -1302,6 +1343,7 @@ export class App {
                 });
               },
             });
+            playCompleteSound();
           } else {
             card?.complete({
               sha256: received.sha256,
@@ -1316,6 +1358,7 @@ export class App {
                 }
               },
             });
+            playCompleteSound();
           }
           listenNext();
         })
@@ -1338,11 +1381,9 @@ export class App {
     }
   }
 
-  // ── Cleanup ──────────────────────────────────────
+  // ── Session Disconnect & Cleanup ─────────────────
 
   private cleanup(): void {
-    window.removeEventListener('paste', this.handleGlobalPaste);
-
     if (this.wakeLockUnsub) {
       this.wakeLockUnsub();
       this.wakeLockUnsub = null;
