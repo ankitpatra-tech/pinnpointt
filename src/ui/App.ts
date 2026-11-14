@@ -348,7 +348,7 @@ export class App {
           </div>
           <span class="wing-badge-pill send-badge">SEND FILES</span>
           <h3 class="wing-title font-semibold">Send Files Directly</h3>
-          <p class="wing-desc text-xs muted">Create an encrypted direct peer connection to stream files of any size without server storage.</p>
+          <p class="wing-desc text-xs muted">Direct peer streaming • Zero cloud</p>
         </div>
       `;
 
@@ -380,7 +380,7 @@ export class App {
           </div>
           <span class="wing-badge-pill receive-badge">RECEIVE FILES</span>
           <h3 class="wing-title font-semibold">Receive on this Device</h3>
-          <p class="wing-desc text-xs muted">Scan sender's QR code with your camera, or enter their 6-letter room PIN below.</p>
+          <p class="wing-desc text-xs muted">Scan QR or enter 6-letter PIN</p>
         </div>
       `;
 
@@ -519,7 +519,7 @@ export class App {
           <div class="wing-header">
             <span class="wing-badge-pill receive-badge">SECURE RECEPTION</span>
             <h4 class="font-semibold" style="margin: 0; color: var(--text-bright);">Direct Memory Stream</h4>
-            <p class="text-xs muted" style="margin: 0; line-height: 1.5;">Transfers travel directly between peer memories via WebRTC DTLS 1.3 encryption. No intermediate servers ever store your files or keys.</p>
+            <p class="text-xs muted" style="margin: 0; line-height: 1.5;">DTLS 1.3 encrypted direct memory stream</p>
           </div>
           <div class="security-feature-list stack stack-xs mt-sm text-xs muted">
             <div class="row-start gap-xs"><span>🔒</span> <span>Authenticated peer handshake</span></div>

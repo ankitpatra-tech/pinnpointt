@@ -230,10 +230,18 @@ pre,
 .vfs-size,
 .vfs-tab-badge,
 .room-pill-code,
+.room-code-chip,
+.peer-latency,
+.storage-metric-val,
+.metric-val,
+.feed-file-pct,
+.feed-file-eta,
+.feed-file-size,
 .proof-metric,
 .telemetry-metric {
   font-family: var(--font-mono) !important;
   font-variant-numeric: tabular-nums !important;
+  font-feature-settings: 'tnum' 1 !important;
 }
 
 .text-xs { font-size: 12px; }
@@ -2650,44 +2658,157 @@ pre,
 }
 
 /* ═══════════════════════════════════════════════════
-   STATE B: ONCE CONNECTED (BALANCED 2-COLUMN STUDIO WORKSPACE)
+   STATE B: ONCE CONNECTED (2-COLUMN DESKTOP STUDIO LAYOUT)
    ═══════════════════════════════════════════════════ */
 .app-connected-workspace {
-  max-width: min(92vw, 1720px);
+  max-width: min(94vw, 1680px);
   margin: 0 auto;
   width: 100%;
-  padding: 16px clamp(1rem, 4vw, 5rem) 24px;
+  padding: 24px 0;
   display: grid;
-  grid-template-columns: minmax(380px, 420px) minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
-  gap: 20px 24px;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
   height: calc(100dvh - 84px);
   min-height: 0;
   box-sizing: border-box;
   align-items: stretch;
 }
 
-.app-connected-workspace .connected-device-card {
-  grid-column: 1;
-  grid-row: 1;
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.app-connected-workspace .connected-notes-drawer {
-  grid-column: 1;
-  grid-row: 2;
-  width: 100%;
+.workspace-left-studio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   height: 100%;
   min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
 }
 
-.app-connected-workspace .connected-main-stage {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  width: 100%;
+.workspace-right-studio {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
+  overflow: hidden;
+}
+
+/* Studio Cards (Solid Matte Surfaces) */
+.studio-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px 18px;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+}
+
+.studio-card:hover {
+  border-color: var(--border-highlight);
+}
+
+.studio-card-title {
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+/* Peer Node Card */
+.peer-node-card .cdc-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.peer-latency {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Google Sans Code', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #34D399;
+  background: rgba(52, 211, 153, 0.10);
+  border: 1px solid rgba(52, 211, 153, 0.24);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.latency-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34D399;
+  box-shadow: 0 0 6px #34D399;
+}
+
+/* Room Code Monospace Chip & Copy */
+.room-code-chip {
+  font-family: 'Google Sans Code', monospace;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #F8FAFC;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-copy-chip {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+}
+
+/* Storage & Performance Meter */
+.meter-chip-badge {
+  font-family: 'Google Sans Code', monospace;
+  font-size: 0.72rem;
+  color: #38BDF8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.storage-meter-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 4px 0 8px;
+}
+
+.storage-meter-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #0284C7 0%, #38BDF8 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.storage-metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.storage-metric-row .metric-val,
+.storage-metric-row .storage-metric-val {
+  font-family: 'Google Sans Code', monospace;
+  font-variant-numeric: tabular-nums;
+  color: #F8FAFC;
+}
+
+/* Connected Notes Drawer in Left Column */
+.connected-notes-drawer {
+  flex: 1;
+  min-height: 280px;
 }
 
 /* Solid Matte Studio Panes (No heavy GPU blur, steady 60fps) */
@@ -2716,36 +2837,36 @@ pre,
   box-shadow: var(--shadow-card);
 }
 
-/* Mobile Segmented Workspace Switcher */
-.mobile-workspace-tabs {
-  display: none;
-}
-
+/* Mobile & Tablet Adjustments (< 1024px) */
 @media (max-width: 1023px) {
   .app-connected-workspace {
-    display: flex;
-    flex-direction: column;
-    padding: 12px 14px 88px;
-    gap: 16px;
-    height: auto;
-    min-height: calc(100dvh - 64px);
-    max-width: 100%;
-    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 12px clamp(12px, 3vw, 24px) 88px !important;
+    gap: 16px !important;
+    height: auto !important;
+    min-height: calc(100dvh - 64px) !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .workspace-left-studio,
+  .workspace-right-studio {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    height: auto !important;
   }
 
   .mobile-workspace-tabs {
-    display: flex;
+    display: flex !important;
     gap: 6px;
     background: var(--surface-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-pill);
     padding: 4px;
     flex-shrink: 0;
-  }
-
-  [data-theme="dark"] .mobile-workspace-tabs {
-    background: var(--surface-elevated);
-    border-color: var(--border-subtle);
   }
 
   .mobile-tab-btn {
@@ -2775,8 +2896,12 @@ pre,
     box-shadow: var(--shadow-sm);
   }
 
-  /* Single-Pane Mobile Views when tab is tapped */
-  .app-connected-workspace[data-mobile-view="chat"] .connected-main-stage {
+  .app-connected-workspace[data-mobile-view="chat"] .workspace-right-studio {
+    display: none !important;
+  }
+  .app-connected-workspace[data-mobile-view="chat"] .workspace-left-studio .peer-node-card,
+  .app-connected-workspace[data-mobile-view="chat"] .workspace-left-studio .room-qr-drawer-card,
+  .app-connected-workspace[data-mobile-view="chat"] .workspace-left-studio .storage-meter-card {
     display: none !important;
   }
   .app-connected-workspace[data-mobile-view="chat"] .connected-notes-drawer {
@@ -2788,7 +2913,7 @@ pre,
   .app-connected-workspace[data-mobile-view="transfers"] .connected-notes-drawer {
     display: none !important;
   }
-  .app-connected-workspace[data-mobile-view="transfers"] .connected-main-stage {
+  .app-connected-workspace[data-mobile-view="transfers"] .workspace-right-studio {
     display: flex !important;
     min-height: calc(100dvh - 160px);
   }
@@ -2796,7 +2921,7 @@ pre,
   .app-connected-workspace[data-mobile-view="drive"] .connected-notes-drawer {
     display: none !important;
   }
-  .app-connected-workspace[data-mobile-view="drive"] .connected-main-stage {
+  .app-connected-workspace[data-mobile-view="drive"] .workspace-right-studio {
     display: flex !important;
     min-height: calc(100dvh - 160px);
   }
@@ -2811,8 +2936,10 @@ pre,
   .mobile-workspace-tabs {
     display: none !important;
   }
-  .app-connected-workspace .connected-main-stage,
-  .app-connected-workspace .connected-notes-drawer {
+  .workspace-left-studio,
+  .workspace-right-studio,
+  .connected-main-stage,
+  .connected-notes-drawer {
     display: flex !important;
   }
 }
@@ -3283,6 +3410,29 @@ pre,
   background: var(--status-rose-bg);
   color: var(--status-rose-text);
   border-color: var(--status-rose-border);
+}
+
+.btn-file-control.btn-control-resume {
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: #34D399;
+  font-weight: 600;
+}
+
+.btn-file-control.btn-control-resume:hover {
+  background: rgba(52, 211, 153, 0.22);
+  border-color: #34D399;
+  color: #6EE7B7;
+}
+
+.feed-file-status-badge.paused {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #FBBF24;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
 }
 
 /* Progress Track Inside Card */
