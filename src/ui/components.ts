@@ -49,6 +49,8 @@ import {
   iconSmartphone,
   iconVolume,
   iconVolumeX,
+  iconLinkBroken,
+  iconArrowLeft,
 } from './icons';
 import { isSoundMuted, toggleSoundMuted, playCompleteSound } from '../lib/audioHaptics';
 import { startCameraQRScanner, extractRoomCode, type QRScannerSession } from '../lib/qrScanner';
@@ -1932,6 +1934,15 @@ export function createConnectedWorkspace(
     </div>
   `;
 
+  // Transfer Queue Table Column Headers (Desktop 4-column workstation table)
+  const transferQueueHeader = el('div', { className: 'transfer-queue-header', 'aria-hidden': 'true' });
+  transferQueueHeader.innerHTML = `
+    <span class="tq-col tq-col-name">Name</span>
+    <span class="tq-col tq-col-size">Size</span>
+    <span class="tq-col tq-col-speed">Speed</span>
+    <span class="tq-col tq-col-status">Status</span>
+  `;
+
   // File Transfer List Feed
   let transferCount = 0;
   const fileFeed = el('div', { className: 'transfer-feed stack stack-sm' });
@@ -1941,7 +1952,7 @@ export function createConnectedWorkspace(
     });
   };
 
-  transfersSection.append(transfersHeader, transfersEmptyState, fileFeed);
+  transfersSection.append(transfersHeader, transferQueueHeader, transfersEmptyState, fileFeed);
   activityInner.append(dropzone, transfersSection);
   activityPanel.append(mobileConnStripWrap, activityInner);
 
@@ -2037,6 +2048,17 @@ export function createConnectedWorkspace(
   const rightDrawer = el('div', { className: 'connected-notes-drawer' });
 
   const drawerHeader = el('div', { className: 'drawer-header row-between' });
+  const drawerHeaderLeft = el('div', { className: 'drawer-header-left' });
+
+  const mobileBackBtn = el('button', {
+    type: 'button',
+    className: 'btn-mobile-notes-back',
+    title: 'Back to Files',
+    'aria-label': 'Back to Files',
+  });
+  mobileBackBtn.innerHTML = `${iconArrowLeft({ size: 15 })} <span>Files</span>`;
+  mobileBackBtn.addEventListener('click', () => setMobileView('transfers'));
+
   const drawerTitleGroup = el('div', { className: 'drawer-title-group' });
   const drawerTitle = el('div', { className: 'drawer-title font-semibold text-sm', textContent: 'Live Notes & Links' });
   const drawerSubtitle = el('div', {
@@ -2044,6 +2066,7 @@ export function createConnectedWorkspace(
     textContent: 'Send text or links instantly',
   });
   drawerTitleGroup.append(drawerTitle, drawerSubtitle);
+  drawerHeaderLeft.append(mobileBackBtn, drawerTitleGroup);
 
   const clipboardBtn = el('button', {
     type: 'button',
@@ -2054,7 +2077,7 @@ export function createConnectedWorkspace(
   clipboardBtn.addEventListener('click', () => {
     callbacks.onSendClipboard?.();
   });
-  drawerHeader.append(drawerTitleGroup, clipboardBtn);
+  drawerHeader.append(drawerHeaderLeft, clipboardBtn);
 
   const chatFeed = el('div', { className: 'chat-feed' });
   const scrollToChatBottom = () => {
@@ -2202,31 +2225,29 @@ export function createConnectedWorkspace(
     addChatMessage(msg: { sender: string; text: string; timestamp: number; isMine: boolean }) {
       const row = el('div', { className: `chat-msg ${msg.isMine ? 'mine' : 'peer'}` });
 
-      const meta = el('div', { className: 'chat-meta row-between' });
-      const senderGroup = el('div', { className: 'row-start gap-xs' });
-      const sender = el('span', { className: 'chat-sender font-semibold', textContent: msg.sender });
-      const time = el('span', { className: 'chat-time text-xs muted tabular-nums', textContent: formatTime(msg.timestamp) });
-      senderGroup.append(sender, time);
-      if (msg.isMine) {
-        const ticks = el('span', { className: 'chat-read-ticks', textContent: '✓✓', title: 'Delivered via direct P2P channel' });
-        senderGroup.append(ticks);
-      }
+      const bubble = el('div', { className: 'chat-bubble' });
+      const body = el('div', { className: 'chat-bubble-body' });
+      renderNoteTextWithLinks(body, msg.text);
+
+      // Inside-bubble bottom-right metadata: subtle Copy trigger + timestamp + delivery tick
+      const footer = el('div', { className: 'chat-bubble-footer' });
 
       const copyNoteBtn = el('button', {
         type: 'button',
         className: 'btn-copy-note text-xs',
         title: 'Copy note text',
+        'aria-label': 'Copy note text',
       });
-      copyNoteBtn.innerHTML = `${iconCopy({ size: 11 })} <span>Copy</span>`;
+      copyNoteBtn.innerHTML = `${iconCopy({ size: 11 })}`;
       copyNoteBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const ok = await copyTextToClipboard(msg.text);
         if (ok) {
-          copyNoteBtn.innerHTML = `${iconCheck({ size: 11 })} <span>Copied</span>`;
+          copyNoteBtn.innerHTML = `${iconCheck({ size: 11 })}`;
           copyNoteBtn.classList.add('copied');
           showToast('Note copied to clipboard!');
           setTimeout(() => {
-            copyNoteBtn.innerHTML = `${iconCopy({ size: 11 })} <span>Copy</span>`;
+            copyNoteBtn.innerHTML = `${iconCopy({ size: 11 })}`;
             copyNoteBtn.classList.remove('copied');
           }, 1500);
         } else {
@@ -2234,12 +2255,16 @@ export function createConnectedWorkspace(
         }
       });
 
-      meta.append(senderGroup, copyNoteBtn);
+      const time = el('span', { className: 'chat-time tabular-nums', textContent: formatTime(msg.timestamp) });
+      footer.append(copyNoteBtn, time);
 
-      const bubble = el('div', { className: 'chat-bubble' });
-      renderNoteTextWithLinks(bubble, msg.text);
+      if (msg.isMine) {
+        const ticks = el('span', { className: 'chat-read-ticks', textContent: '✓✓', title: 'Delivered via direct P2P channel' });
+        footer.append(ticks);
+      }
 
-      row.append(meta, bubble);
+      bubble.append(body, footer);
+      row.append(bubble);
 
       chatFeed.append(row);
       if (!msg.isMine && container.getAttribute('data-mobile-view') !== 'chat') {
@@ -2256,11 +2281,6 @@ export function createConnectedWorkspace(
     addClipboardItem(item: ClipboardItemData, isMine: boolean) {
       const row = el('div', { className: `chat-msg ${isMine ? 'mine' : 'peer'}` });
 
-      const meta = el('div', { className: 'chat-meta' });
-      const sender = el('span', { className: 'chat-sender font-semibold', textContent: item.sender });
-      const time = el('span', { className: 'chat-time text-xs muted tabular-nums', textContent: formatTime(item.timestamp) });
-      meta.append(sender, time);
-
       const card = el('div', { className: 'clipboard-sync-card' });
       const head = el('div', { className: 'clipboard-card-head row-between' });
       const typeBadge = el('span', {
@@ -2268,7 +2288,8 @@ export function createConnectedWorkspace(
       });
       const typeIcon = item.type === 'code' ? iconTerminal({ size: 12 }) : item.type === 'url' ? iconShare({ size: 12 }) : iconFileText({ size: 12 });
       typeBadge.innerHTML = `${typeIcon} <span>${item.type.toUpperCase()}</span>`;
-      head.append(typeBadge);
+      const time = el('span', { className: 'chat-time tabular-nums', textContent: formatTime(item.timestamp) });
+      head.append(typeBadge, time);
 
       const content = el('div', {
         className: 'clipboard-card-content text-xs',
@@ -2292,7 +2313,7 @@ export function createConnectedWorkspace(
 
       actions.append(copyBtn);
       card.append(head, content, actions);
-      row.append(meta, card);
+      row.append(card);
 
       chatFeed.append(row);
       if (!isMine && container.getAttribute('data-mobile-view') !== 'chat') {
@@ -2322,9 +2343,11 @@ export function createConnectedWorkspace(
       const sweep = el('div', { className: 'feed-file-sweep' });
       sweep.style.width = '0%';
 
-      // Top File Meta Row
-      const topRow = el('div', { className: 'feed-file-top-row row-between' });
-      const topLeft = el('div', { className: 'feed-file-top-left row-start gap-sm' });
+      // 4-Column Transfer Queue Table Row: Name | Size | Speed | Status
+      const tableRow = el('div', { className: 'feed-file-table-row' });
+
+      // Col 1: Name + Type Icon + Direction & Privacy Badges
+      const colName = el('div', { className: 'tq-cell tq-cell-name feed-file-top-left row-start gap-sm' });
       const iconBox = el('div', { className: 'feed-file-type-box feed-file-icon' });
       iconBox.innerHTML = getFileTypeSvg(opts.fileName);
 
@@ -2365,30 +2388,24 @@ export function createConnectedWorkspace(
       }
       tagsRow.append(privacyBadge, zeroTraceBadge);
       titleWrap.append(nameLine, tagsRow);
-      topLeft.append(iconBox, titleWrap);
+      colName.append(iconBox, titleWrap);
 
-      const topRight = el('div', { className: 'feed-file-top-right' });
+      // Col 2: Size
+      const colSize = el('div', { className: 'tq-cell tq-cell-size feed-file-top-right' });
       const sizeEl = el('span', { className: 'feed-file-size tabular-nums', textContent: formatBytes(opts.fileSize) });
-      topRight.append(sizeEl);
+      colSize.append(sizeEl);
 
-      topRow.append(topLeft, topRight);
-
-      // Middle Live Telemetry & Track
-      const progWrap = el('div', { className: 'feed-file-progress' });
-      const telemetryRow = el('div', { className: 'feed-file-telemetry-row row-between' });
-
-      const stats = el('div', { className: 'feed-file-stats tabular-nums text-xs' });
-      const percentEl = el('span', { className: 'tabular-nums font-semibold feed-file-pct', textContent: '0%' });
+      // Col 3: Speed + ETA
+      const colSpeed = el('div', { className: 'tq-cell tq-cell-speed feed-file-stats tabular-nums text-xs' });
       const speedEl = el('span', { className: 'tabular-nums feed-file-speed', textContent: '0 B/s' });
-      const etaEl = el('span', { className: 'tabular-nums feed-file-eta', textContent: 'Starting...' });
-      stats.append(
-        percentEl,
-        el('span', { className: 'telemetry-label' }, ' transferred'),
-        el('span', { className: 'telemetry-sep' }, ' • '),
-        speedEl,
-        el('span', { className: 'telemetry-sep' }, ' • '),
-        etaEl
-      );
+      const etaEl = el('span', { className: 'tabular-nums feed-file-eta muted', textContent: 'Starting...' });
+      colSpeed.append(speedEl, etaEl);
+
+      // Col 4: Status (Active % + Pause/Cancel Controls, or Verified + Download Action)
+      const colStatus = el('div', { className: 'tq-cell tq-cell-status' });
+
+      const activeStatusGroup = el('div', { className: 'feed-file-active-status' });
+      const percentEl = el('span', { className: 'tabular-nums font-semibold feed-file-pct', textContent: '0%' });
 
       const controls = el('div', { className: 'feed-file-controls row-end gap-xs' });
       const statusBadge = el('span', { className: 'feed-file-status-badge text-xs' });
@@ -2432,23 +2449,27 @@ export function createConnectedWorkspace(
       });
 
       controls.append(statusBadge, btnPause, btnResume, btnCancel);
-      telemetryRow.append(stats, controls);
+      activeStatusGroup.append(percentEl, controls);
 
+      // Completed / Cancelled Status Container (inside Status column)
+      const doneRow = el('div', { className: 'feed-file-done' });
+      doneRow.style.display = 'none';
+
+      colStatus.append(activeStatusGroup, doneRow);
+      tableRow.append(colName, colSize, colSpeed, colStatus);
+
+      // Animated Glowing Progress Bar Strip (active transfer)
+      const progWrap = el('div', { className: 'feed-file-progress' });
       const track = el('div', { className: 'feed-file-track' });
       const fill = el('div', { className: 'feed-file-fill' });
       track.append(fill);
+      progWrap.append(track);
 
-      progWrap.append(telemetryRow, track);
-
-      // Bottom Done Row
-      const doneRow = el('div', { className: 'feed-file-done row-between' });
-      doneRow.style.display = 'none';
-
-      // Crisp 3px Bottom Progress Edge Bar
+      // Crisp 2px Bottom Progress Edge Bar
       const bottomBar = el('div', { className: 'feed-file-bottom-bar' });
       bottomBar.style.width = '0%';
 
-      card.append(sweep, topRow, progWrap, doneRow, bottomBar);
+      card.append(sweep, tableRow, progWrap, bottomBar);
       row.append(card);
 
       fileFeed.append(row);
@@ -2497,13 +2518,16 @@ export function createConnectedWorkspace(
         },
         setCancelled(cancelledBy?: 'you' | 'peer') {
           progWrap.style.display = 'none';
+          activeStatusGroup.style.display = 'none';
           doneRow.style.display = 'flex';
+          speedEl.textContent = '—';
+          etaEl.textContent = 'Cancelled';
           const cancelBadge = el('div', {
             className: 'text-xs muted feed-file-cancelled-badge',
             style: 'display: flex; align-items: center; gap: 6px;',
           });
           const who = cancelledBy === 'peer' ? 'other device' : 'you';
-          cancelBadge.innerHTML = `${iconX({ size: 12 })} <span>Transfer cancelled by ${who}</span>`;
+          cancelBadge.innerHTML = `${iconX({ size: 12 })} <span>Cancelled by ${who}</span>`;
           doneRow.append(cancelBadge);
           scrollToBottom();
         },
@@ -2516,10 +2540,14 @@ export function createConnectedWorkspace(
           onZeroTraceView?: () => void;
         }) {
           progWrap.style.display = 'none';
+          activeStatusGroup.style.display = 'none';
           doneRow.style.display = 'flex';
           sweep.style.width = '100%';
           bottomBar.style.width = '100%';
           bottomBar.classList.add('completed');
+          directionBadge.textContent = opts.isMine ? 'Sent' : 'Received';
+          if (speedEl.textContent === '0 B/s') speedEl.textContent = 'Direct P2P';
+          etaEl.textContent = '100%';
 
           if (info.isMetadataStripped) {
             isMetadataStripped = true;
@@ -2538,7 +2566,7 @@ export function createConnectedWorkspace(
             doneRow.append(blocked);
           } else if (safety.riskLevel === 'warning') {
             const warningBadge = el('div', { className: 'feed-file-threat warning text-xs' });
-            warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Safety Warning: Executable file — verify before opening</span>`;
+            warningBadge.innerHTML = `${iconAlertTriangle({ size: 13 })} <span>Executable — verify first</span>`;
             doneRow.append(warningBadge);
 
             if (info.onDownload) {
@@ -2563,11 +2591,13 @@ export function createConnectedWorkspace(
               doneRow.append(actionsWrap);
             }
           } else {
-            const verified = el('div', { className: 'feed-file-verified text-xs' });
-            const verifiedText = opts.isMine
-              ? 'Verified Bit-Exact SHA-256 • 0 Cloud Server Requests'
-              : 'Verified Bit-Exact SHA-256 • Direct Stream';
-            verified.innerHTML = `${iconCheck({ size: 13 })} <span>${verifiedText}</span>`;
+            const verified = el('div', {
+              className: 'feed-file-verified text-xs',
+              title: opts.isMine
+                ? 'Verified Bit-Exact SHA-256 • 0 Cloud Server Requests'
+                : 'Verified Bit-Exact SHA-256 • Direct Stream',
+            });
+            verified.innerHTML = `${iconCheck({ size: 13 })} <span>Verified SHA-256</span>`;
             doneRow.append(verified);
 
             const doneActions = el('div', { className: 'feed-file-done-actions row-end gap-xs' });
@@ -2586,14 +2616,14 @@ export function createConnectedWorkspace(
               const savedBadge = el('div', {
                 className: 'feed-file-disk-saved text-xs',
               });
-              savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk (OPFS)</span>`;
+              savedBadge.innerHTML = `${iconCheck({ size: 12 })} <span>Saved to Disk</span>`;
               doneActions.append(savedBadge);
             } else {
               if (info.onDownload) {
                 const dlBtn = el('button', {
                   type: 'button',
                   className: 'btn btn-primary btn-sm btn-save-download text-xs',
-                  textContent: 'Save / Download',
+                  textContent: 'Save',
                 });
                 dlBtn.addEventListener('click', info.onDownload);
                 doneActions.append(dlBtn);
@@ -2605,17 +2635,20 @@ export function createConnectedWorkspace(
             }
           }
 
-          card.append(doneRow);
           scrollToBottom();
         },
         fail(err: string) {
           progWrap.remove();
+          activeStatusGroup.style.display = 'none';
+          doneRow.style.display = 'flex';
+          speedEl.textContent = '—';
+          etaEl.textContent = 'Failed';
           const errEl = el('div', {
             className: 'text-xs',
             textContent: `Failed: ${err}`,
           });
           errEl.style.color = 'var(--danger)';
-          card.append(errEl);
+          doneRow.append(errEl);
           scrollToBottom();
         },
       };
@@ -2770,31 +2803,58 @@ export function createRadarCanvas(opts: RadarCanvasOptions): HTMLElement {
   return stage;
 }
 
-// ─── Error / Reconnection Radar View ────────────────
+// ─── Session Ended / Disconnection Glass Card ───────
 
 export function createErrorView(
-  message: string,
-  onRetry: () => void,
-  lastRoomCode?: string | null,
-  onReconnect?: (roomCode: string) => void,
-  myDeviceName?: string,
-  lastPeerName?: string
+  _message: string,
+  onReturnHome: () => void,
+  onCreateNewRoom?: () => void
 ): HTMLElement {
-  const layout = el('div', { className: 'connection-lost-layout fade-in' });
+  const layout = el('div', { className: 'connection-lost-layout session-ended-stage fade-in' });
 
-  const radar = createRadarCanvas({
-    myDeviceName: myDeviceName || 'Your Device',
-    targetName: lastPeerName && lastPeerName !== 'Other Device' ? lastPeerName : undefined,
-    roomCode: lastRoomCode || null,
-    statusPrimary: lastPeerName && lastPeerName !== 'Other Device'
-      ? `Connection to ${lastPeerName} paused`
-      : 'Direct P2P connection paused',
-    subMessage: message || 'Transfer checkpoints are preserved in memory. Tap Retry Now to re-open the P2P DataChannel.',
-    isError: true,
-    onRetryNow: lastRoomCode && onReconnect ? () => onReconnect(lastRoomCode) : onRetry,
-    onReturnHome: onRetry,
+  const card = el('div', { className: 'session-ended-card' });
+
+  // Animated pulsing broken-chain icon inside specular glass ring
+  const iconWrap = el('div', { className: 'session-ended-icon-wrap', 'aria-hidden': 'true' });
+  iconWrap.innerHTML = `
+    <span class="session-ended-pulse-ring"></span>
+    <span class="session-ended-icon-orb">${iconLinkBroken({ size: 28 })}</span>
+  `;
+
+  const headline = el('h2', {
+    className: 'session-ended-title',
+    textContent: 'Session Ended',
   });
 
-  layout.append(radar);
+  const subtext = el('p', {
+    className: 'session-ended-subtext',
+    textContent: 'Peer closed the connection. Checkpoints saved.',
+  });
+
+  const actions = el('div', { className: 'session-ended-actions' });
+
+  const createBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-primary btn-create-new-room',
+    textContent: 'Create New Room',
+  });
+  createBtn.addEventListener('click', () => {
+    if (onCreateNewRoom) {
+      onCreateNewRoom();
+    } else {
+      onReturnHome();
+    }
+  });
+
+  const returnBtn = el('button', {
+    type: 'button',
+    className: 'btn btn-ghost btn-return-home btn-back-room',
+    textContent: 'Return Home',
+  });
+  returnBtn.addEventListener('click', () => onReturnHome());
+
+  actions.append(createBtn, returnBtn);
+  card.append(iconWrap, headline, subtext, actions);
+  layout.append(card);
   return layout;
 }

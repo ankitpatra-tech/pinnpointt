@@ -195,8 +195,12 @@ export class App {
   private render(): void {
     this.clear();
 
+    const isConnected = this.state === 'connected';
+    document.body.classList.toggle('workspace-locked', isConnected);
+    document.documentElement.classList.toggle('workspace-locked', isConnected);
+
     const appShell = document.createElement('div');
-    appShell.className = `app-shell ${this.state === 'connected' ? 'is-connected' : 'is-pairing'}`;
+    appShell.className = `app-shell ${isConnected ? 'is-connected' : this.state === 'error' ? 'is-error' : 'is-pairing'}`;
 
     // Top Header: In State B (Connected), auto-collapses QR/room info into the top pill
     const peerInfo = this.state === 'connected'
@@ -707,16 +711,12 @@ export class App {
         this.cleanup();
         this.transition('idle');
       },
-      this.lastConnectedRoomCode,
-      (code) => {
+      () => {
         this.cleanup();
-        void this.handleJoinRoom(code);
-      },
-      this.myUsername,
-      this.peerUsername
+        void this.handleCreateRoom();
+      }
     );
     errorWrapper.append(errorView);
-    errorWrapper.append(createFooter((tab) => openDocModal(tab)));
     return errorWrapper;
   }
 
