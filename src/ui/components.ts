@@ -541,7 +541,7 @@ export function createUsernameBar(
 ): HTMLElement {
   const card = el('div', { className: 'identity-card identity-chip' });
 
-  const labelTag = el('span', { className: 'identity-chip-label text-xs muted font-semibold', textContent: 'Device:' });
+  const labelTag = el('span', { className: 'identity-chip-label text-xs muted', textContent: 'Your device name:' });
   const avatar = el('div', { className: 'avatar-monogram', textContent: getMonogram(username) });
 
   const inputWrap = el('div', { className: 'identity-input-wrap' });
@@ -559,7 +559,7 @@ export function createUsernameBar(
     type: 'button',
     title: 'Generate random name',
   });
-  randBtn.innerHTML = iconRefresh({ size: 14 });
+  randBtn.innerHTML = iconRefresh({ size: 13 });
 
   randBtn.addEventListener('click', () => {
     const generated = generateDefaultUsername();
@@ -1105,7 +1105,7 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
   const title = el('h3', { className: 'drop-canvas-title font-semibold', textContent: 'Drop files or folders here to send' });
   const subtitle = el('p', {
     className: 'drop-canvas-sub text-xs muted',
-    textContent: 'Unlimited file size • Direct peer streaming',
+    textContent: 'Sent directly between devices. Never stored online.',
   });
 
   const btnRow = el('div', { className: 'drop-canvas-actions' });
@@ -1189,7 +1189,7 @@ export function createDropZoneReadySurface(opts: DropSurfaceOptions): HTMLElemen
   });
 
   const toggleText = el('span', { className: 'toggle-pill-label text-xs' });
-  toggleText.innerHTML = `${iconShield({ size: 13 })} <span>Remove location details from photos</span>`;
+  toggleText.innerHTML = `${iconShield({ size: 13 })} <span>Strip photo GPS</span>`;
 
   toggleLabel.append(checkbox, toggleText);
   toggleWrap.append(toggleLabel);
@@ -1652,7 +1652,8 @@ export function createConnectedWorkspace(
   // ── MAIN SHARING STAGE (Right Pane on Desktop; Tab 1 Files & Tab 3 Virtual Drive on Mobile) ──
   const mainStage = el('div', { className: 'connected-main-stage' });
 
-  // Desktop Underline Switcher Tabs (File Transfers & Activity | Virtual Drive Explorer)
+  // Desktop Underline Switcher Tabs (Centered to match dropzone & transfers column edges)
+  const tabBarOuter = el('div', { className: 'workspace-tab-bar-outer' });
   const tabRow = el('div', { className: 'workspace-tab-row' });
   const activityTabBtn = el('button', {
     type: 'button',
@@ -1666,13 +1667,14 @@ export function createConnectedWorkspace(
     className: 'workspace-tab-btn',
   });
   driveTabBtn.setAttribute('data-tab', 'drive');
-  const driveTabTitle = el('span', {}, 'Virtual Drive Explorer');
+  const driveTabTitle = el('span', {}, 'Shared Folder');
   const driveTabBadge = el('span', { className: 'vfs-tab-badge tabular-nums' });
   driveTabBadge.style.display = 'none';
   driveTabBtn.append(driveTabTitle, driveTabBadge);
 
   tabRow.append(activityTabBtn, driveTabBtn);
-  mainStage.append(tabRow);
+  tabBarOuter.append(tabRow);
+  mainStage.append(tabBarOuter);
 
   // Hidden File Inputs
   const fileInput = el('input', {
@@ -1746,10 +1748,16 @@ export function createConnectedWorkspace(
   });
   const mobDriveBadge = el('span', { className: 'mobile-tab-badge tabular-nums' });
   mobDriveBadge.style.display = 'none';
-  mobDriveBtn.innerHTML = `<span class="mobile-tab-icon">${iconHardDrive({ size: 18 })}</span><span class="mobile-tab-label">Virtual Drive</span>`;
+  mobDriveBtn.innerHTML = `<span class="mobile-tab-icon">${iconHardDrive({ size: 18 })}</span><span class="mobile-tab-label">Shared Folder</span>`;
   mobDriveBtn.append(mobDriveBadge);
 
   mobileBottomNav.append(mobTransfersBtn, mobChatBtn, mobDriveBtn);
+
+  const animateViewEnter = (target: HTMLElement) => {
+    target.classList.remove('view-enter');
+    void target.offsetWidth;
+    target.classList.add('view-enter');
+  };
 
   function setMobileView(view: 'transfers' | 'chat' | 'drive') {
     mobTransfersBtn.classList.toggle('active', view === 'transfers');
@@ -1758,8 +1766,12 @@ export function createConnectedWorkspace(
     container.setAttribute('data-mobile-view', view);
     if (view === 'transfers') {
       switchTab('activity', true);
+      animateViewEnter(activityPanel);
     } else if (view === 'drive') {
       switchTab('drive', true);
+      animateViewEnter(drivePanel);
+    } else {
+      animateViewEnter(rightDrawer);
     }
   }
 
@@ -1774,6 +1786,7 @@ export function createConnectedWorkspace(
       activityPanel.style.display = 'flex';
       drivePanel.style.display = 'none';
       isMountMode = false;
+      animateViewEnter(activityPanel);
       if (!fromMobile && container.getAttribute('data-mobile-view') !== 'chat') {
         mobTransfersBtn.classList.add('active');
         mobDriveBtn.classList.remove('active');
@@ -1785,6 +1798,7 @@ export function createConnectedWorkspace(
       activityPanel.style.display = 'none';
       drivePanel.style.display = 'flex';
       isMountMode = true;
+      animateViewEnter(drivePanel);
       if (!fromMobile && container.getAttribute('data-mobile-view') !== 'chat') {
         mobDriveBtn.classList.add('active');
         mobTransfersBtn.classList.remove('active');
@@ -1804,7 +1818,7 @@ export function createConnectedWorkspace(
     <div class="stage-dropzone-icon">${iconUpload({ size: 22 })}</div>
     <div class="stage-dropzone-text">
       <div class="stage-dropzone-title font-semibold">Drop files or folders here to send</div>
-      <div class="stage-dropzone-sub text-xs muted">Unlimited file size • Direct peer streaming</div>
+      <div class="stage-dropzone-sub text-xs muted">Sent directly between devices. Never stored online.</div>
     </div>
   `;
 
@@ -1851,7 +1865,7 @@ export function createConnectedWorkspace(
     privacyShieldChecked = privacyCheckbox.checked;
   });
   const privacyLabel = el('span', { className: 'toggle-pill-label text-xs' });
-  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Remove Locations</span>`;
+  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Strip photo GPS</span>`;
   privacyPill.append(privacyCheckbox, privacyLabel);
   privacyPill.addEventListener('click', (e) => e.stopPropagation());
 
@@ -1869,7 +1883,7 @@ export function createConnectedWorkspace(
     e.stopPropagation();
   });
   const zeroTraceLabel = el('span', { className: 'toggle-pill-label text-xs' });
-  zeroTraceLabel.innerHTML = `${iconEye({ size: 12 })} <span>Zero-Trace</span>`;
+  zeroTraceLabel.innerHTML = `${iconEye({ size: 12 })} <span>Auto-clear when done</span>`;
   zeroTracePill.append(zeroTraceCheckbox, zeroTraceLabel);
   zeroTracePill.addEventListener('click', (e) => e.stopPropagation());
 
@@ -1903,7 +1917,7 @@ export function createConnectedWorkspace(
   transfersEmptyState.innerHTML = `
     <div class="transfers-empty-main">
       <div class="transfers-empty-title">No transfers yet</div>
-      <div class="transfers-empty-desc">Files and folders you drop, paste, or pull from Virtual Drive appear here with bit-exact SHA-256 verification.</div>
+      <div class="transfers-empty-desc">Files and folders you drop, paste, or pull from Shared Folder appear here with bit-exact verification.</div>
     </div>
     <div class="transfers-empty-hints">
       <span class="hint-item">Drop anywhere on window</span>
@@ -2023,7 +2037,7 @@ export function createConnectedWorkspace(
   const drawerTitle = el('div', { className: 'drawer-title font-semibold text-sm', textContent: 'Live Notes & Links' });
   const drawerSubtitle = el('div', {
     className: 'drawer-subtitle text-xs muted',
-    textContent: 'Beam text, links, or code snippets',
+    textContent: 'Send text or links instantly',
   });
   drawerTitleGroup.append(drawerTitle, drawerSubtitle);
 

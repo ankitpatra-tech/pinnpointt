@@ -440,6 +440,11 @@ async function run(): Promise<void> {
       inp.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
+    try {
+      await pageSender.setViewport({ width: 1280, height: 800 });
+      await pageSender.screenshot({ path: path.join('C:\\Users\\pc\\.gemini\\antigravity\\brain\\56c6ee2d-d3ad-412d-92a3-f70040fe71eb', 'app_polish_pairing_desktop.png') });
+    } catch {}
+
     // Host clicks "Create Room"
     console.log('Host clicking Create Room...');
     await pageSender.evaluate(() => {
@@ -692,10 +697,10 @@ async function run(): Promise<void> {
     const VFS_TEST_PATH = path.resolve('test/vfs-sample.md');
     fs.writeFileSync(VFS_TEST_PATH, '# Virtual Drive Specification\n\nLive on-demand byte-slice preview and selective pull.\n');
 
-    // Alice switches to Virtual Drive tab and mounts vfs-sample.md
+    // Alice switches to Shared Folder (Virtual Drive) tab and mounts vfs-sample.md
     console.log('Alice mounting file to Virtual Drive...');
     await pageSender.evaluate(() => {
-      const driveTab = Array.from(document.querySelectorAll('.workspace-tab-btn')).find((b) => b.textContent?.includes('Virtual Drive')) as HTMLElement;
+      const driveTab = document.querySelector('.workspace-tab-btn[data-tab="drive"]') as HTMLElement | null;
       driveTab?.click();
     });
 
@@ -707,10 +712,10 @@ async function run(): Promise<void> {
     await pageSender.waitForSelector('.vfs-local-badge');
     console.log('✓ Alice successfully mounted local file in Virtual Drive.');
 
-    // Bob switches to Virtual Drive tab and sees remote mounted table
+    // Bob switches to Shared Folder (Virtual Drive) tab and sees remote mounted table
     console.log('Bob switching to Virtual Drive tab to inspect remote mount...');
     await pageReceiver.evaluate(() => {
-      const driveTab = Array.from(document.querySelectorAll('.workspace-tab-btn')).find((b) => b.textContent?.includes('Virtual Drive')) as HTMLElement;
+      const driveTab = document.querySelector('.workspace-tab-btn[data-tab="drive"]') as HTMLElement | null;
       driveTab?.click();
     });
 

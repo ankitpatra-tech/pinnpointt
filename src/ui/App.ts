@@ -293,14 +293,8 @@ export class App {
     });
 
     if (this.state === 'idle') {
-      const systemStatus = document.createElement('div');
-      systemStatus.className = 'pairing-system-status';
-      systemStatus.innerHTML = `
-        <span class="ready-status-dot"></span>
-        <span class="font-semibold text-xs">Direct P2P Link</span>
-        <span class="text-xs muted">• End-to-End Encrypted</span>
-      `;
-      glassHeader.append(systemStatus, userBar);
+      glassHeader.classList.add('is-idle-subheader');
+      glassHeader.append(userBar);
     } else {
       const leftHeader = document.createElement('div');
       leftHeader.className = 'pairing-active-header-left';
@@ -344,18 +338,17 @@ export class App {
       sendWing.innerHTML = `
         <div class="wing-header">
           <div class="wing-icon-circle send-icon-circle">
-            ${iconShare({ size: 24 })}
+            ${iconShare({ size: 22 })}
           </div>
-          <span class="wing-badge-pill send-badge">SEND FILES</span>
           <h3 class="wing-title font-semibold">Send Files Directly</h3>
-          <p class="wing-desc text-xs muted">Direct peer streaming • Zero cloud</p>
+          <p class="wing-desc text-xs muted">Sent directly between devices. Never stored online.</p>
         </div>
       `;
 
       const sendBtn = document.createElement('button');
       sendBtn.type = 'button';
       sendBtn.className = 'btn btn-primary btn-lg w-full btn-start-send';
-      sendBtn.innerHTML = `${iconShare({ size: 18 })} <span>Start Sending Files →</span>`;
+      sendBtn.innerHTML = `${iconShare({ size: 17 })} <span>Start Sending Files →</span>`;
       sendBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.handleCreateRoom();
@@ -367,7 +360,7 @@ export class App {
       // Center Divider
       const divider = document.createElement('div');
       divider.className = 'dual-station-divider';
-      divider.innerHTML = `<div class="divider-line"></div><span class="divider-pill">OR</span><div class="divider-line"></div>`;
+      divider.innerHTML = `<div class="divider-line"></div><span class="divider-pill">or</span><div class="divider-line"></div>`;
 
       // Right Wing: Receive Files Station (Has class .pair-option and data-mode="receive")
       const receiveWing = document.createElement('div');
@@ -376,11 +369,10 @@ export class App {
       receiveWing.innerHTML = `
         <div class="wing-header">
           <div class="wing-icon-circle receive-icon-circle">
-            ${iconKey({ size: 24 })}
+            ${iconKey({ size: 22 })}
           </div>
-          <span class="wing-badge-pill receive-badge">RECEIVE FILES</span>
           <h3 class="wing-title font-semibold">Receive on this Device</h3>
-          <p class="wing-desc text-xs muted">Scan QR or enter 6-letter PIN</p>
+          <p class="wing-desc text-xs muted">Scan QR code or enter a 6-digit code</p>
         </div>
       `;
 
@@ -395,13 +387,13 @@ export class App {
 
       const quickJoinWrap = document.createElement('div');
       quickJoinWrap.className = 'quick-join-row-wrap';
-      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs font-semibold">Or enter 6-letter PIN:</div>`;
+      quickJoinWrap.innerHTML = `<div class="text-xs muted mb-xs">Or enter 6-digit code</div>`;
       const inputGroup = document.createElement('div');
       inputGroup.className = 'quick-join-input-group';
       const quickInput = document.createElement('input');
       quickInput.type = 'text';
-      quickInput.className = 'quick-join-input mono';
-      quickInput.placeholder = '6-LETTER PIN...';
+      quickInput.className = 'quick-join-input';
+      quickInput.placeholder = 'Enter 6-digit code';
       quickInput.maxLength = 6;
       quickInput.autocomplete = 'off';
       quickInput.addEventListener('click', (e) => e.stopPropagation());
@@ -517,9 +509,8 @@ export class App {
         securityBadge.className = 'dual-station-wing receive-wing';
         securityBadge.innerHTML = `
           <div class="wing-header">
-            <span class="wing-badge-pill receive-badge">SECURE RECEPTION</span>
             <h4 class="font-semibold" style="margin: 0; color: var(--text-bright);">Direct Memory Stream</h4>
-            <p class="text-xs muted" style="margin: 0; line-height: 1.5;">DTLS 1.3 encrypted direct memory stream</p>
+            <p class="text-xs muted" style="margin: 0; line-height: 1.5;">Sent directly between devices with end-to-end encryption.</p>
           </div>
           <div class="security-feature-list stack stack-xs mt-sm text-xs muted">
             <div class="row-start gap-xs"><span>🔒</span> <span>Authenticated peer handshake</span></div>
