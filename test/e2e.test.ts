@@ -540,8 +540,25 @@ async function run(): Promise<void> {
     const e2eText = await pageSender.$eval('.workspace-e2e-badge', (el) => el.textContent || '');
     console.log(`✓ Verified E2E encryption header indicator: "${e2eText.trim()}"`);
 
-    // Verify chat Send button alignment on narrow viewport (375px mobile phone)
+    // Verify mobile True Tab View Switching & chat Send button alignment on narrow viewport (375px mobile phone)
     await pageSender.setViewport({ width: 375, height: 667 });
+    const mobileFilesCheck = await pageSender.evaluate(() => {
+      const strip = document.querySelector('.mobile-connection-strip') as HTMLElement | null;
+      const drop = document.querySelector('.stage-dropzone') as HTMLElement | null;
+      const nav = document.querySelector('.app-navbar') as HTMLElement | null;
+      if (!strip || !drop || !nav) return false;
+      const sRect = strip.getBoundingClientRect();
+      const dRect = drop.getBoundingClientRect();
+      const nRect = nav.getBoundingClientRect();
+      return sRect.height > 0 && dRect.height > 0 && nRect.right <= window.innerWidth + 1;
+    });
+    if (!mobileFilesCheck) throw new Error('Mobile Tab 1 (Files) strip/dropzone or header overflow check failed!');
+
+    // Switch to Tab 2 (Live Notes) on mobile to verify full-height composer & Send button alignment
+    await pageSender.evaluate(() => {
+      const notesBtn = document.querySelector('.mobile-tab-btn[data-mobile-tab="chat"]') as HTMLElement | null;
+      notesBtn?.click();
+    });
     const isSendBtnVisible = await pageSender.evaluate(() => {
       const btn = document.querySelector('.chat-send-btn') as HTMLElement | null;
       if (!btn) return false;
@@ -550,6 +567,10 @@ async function run(): Promise<void> {
     });
     console.log(`✓ Verified Send button aligns within mobile window without overflow: ${isSendBtnVisible}`);
     if (!isSendBtnVisible) throw new Error('Send button is out of window on mobile phone viewport!');
+    await pageSender.evaluate(() => {
+      const filesBtn = document.querySelector('.mobile-tab-btn[data-mobile-tab="transfers"]') as HTMLElement | null;
+      filesBtn?.click();
+    });
     await pageSender.setViewport({ width: 1280, height: 800 });
 
     // Wait for username exchange handshake

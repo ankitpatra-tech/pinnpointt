@@ -324,8 +324,70 @@ function renderTabContent(tab: DocTab): HTMLElement {
 
         <div class="changelog-release">
           <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.66-beta</span>
+            <span class="changelog-date">Current Release • Carbon-Zinc Studio UI</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Linear/Vercel Carbon-Zinc Design System:</strong> Replaced deep blue-slate surfaces and glowing cyan/emerald badges with a crisp, flat carbon/zinc palette (<code>#09090b</code> canvas, <code>#121215</code> elevated surfaces, <code>#27272a</code> 1px solid borders, <code>#fafafa</code> primary text, and flat 6px <code>#10b981</code> connection dots).</li>
+            <li><strong>Edge-to-Edge Desktop Split-Pane Workspace:</strong> Eliminated box-in-a-box floating card overload on desktop in favor of a clean full-height split-pane layout separated by a single 1px vertical divider, combining Peer Status, Room Code, Copy, QR Drawer, and collapsible Connection Details into one compact sidebar header block.</li>
+            <li><strong>Two-Row Live Notes Composer &amp; Balanced Activity Stage:</strong> Upgraded the Live Notes composer to a full-width input above a clean Attach / Paste / Send Note utility toolbar, paired with clean underline workspace tabs and a structured Recent Transfers list with an intentional empty state.</li>
+            <li><strong>Complete Mobile Redesign (&lt; 768px):</strong> Resolved the triple-navigation clash into a single unified bottom navigation bar (<em>Files</em>, <em>Live Notes</em>, <em>Virtual Drive</em>) with true conditional tab view switching, a compact 1-line Connection &amp; Room Strip above the fold, centered dropzone alignment, zero header overflow, and generous bottom clearance.</li>
+            <li><strong>Collapsible Raw Telemetry:</strong> Moved OPFS storage quota, 64 KB multi-channel buffer, and DTLS 1.3 protocol metrics out of permanent cards into an on-demand <em>Connection Details</em> accordion on desktop and a collapsible <em>Storage &amp; Performance</em> panel inside Virtual Drive on mobile.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.65-beta</span>
+            <span class="changelog-date">Native Desktop Ergonomics</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Full-Window Drag-and-Drop Hijack:</strong> Added global OS file drag detection anywhere over the browser window with a full-viewport blurred scrim that routes dropped files directly into the peer transfer queue.</li>
+            <li><strong>Global Clipboard Paste Listener (Ctrl+V / Cmd+V):</strong> Pasting files anywhere queues them directly for P2P streaming; pasting text or URLs outside input fields automatically beams them into Live Notes &amp; Links.</li>
+            <li><strong>Zero-Dependency Web Audio Haptics:</strong> Synthesized lightweight micro-chimes for peer connection and transfer completion using the native Web Audio API, paired with a persistent header mute toggle.</li>
+            <li><strong>Live OPFS Storage Estimation &amp; Tabular Numerals:</strong> Integrated real-time <code>navigator.storage.estimate()</code> quota telemetry and enforced <code>Google Sans Code</code> <code>tabular-nums</code> across all speeds, ETAs, byte counts, and room codes.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.64-beta</span>
+            <span class="changelog-date">App UX Phases 1–4 &amp; Branding</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Human-Friendly Pairing &amp; Connection Morph:</strong> Refined the pairing flow with a crisp white QR viewfinder container, instant room code copy/share strip, and clean transition into the connected workspace.</li>
+            <li><strong>Magnetic Dropzone &amp; Precision Transfer Queue:</strong> Upgraded file transfer cards with edge-to-edge progress sweeps, per-file pause/resume/cancel controls, and bit-exact SubtleCrypto SHA-256 verification badges.</li>
+            <li><strong>Live Notes &amp; Links Workspace:</strong> Added automatic URL highlighting on beamed messages, one-click note copy with checkmark confirmation, and accessible toast notifications.</li>
+            <li><strong>Updated Browser Tab Logo &amp; Multi-Resolution Favicons:</strong> Rolled out the refreshed PinnPointt vector mark across browser tabs, PWA icons, and app headers.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.63-beta</span>
+            <span class="changelog-date">Flagship Product Website</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Fluid Full-Bleed Landing Page Architecture:</strong> Rebuilt the product homepage with <code>100dvh</code> fluid scaling, scroll-spy sliding navigation highlight, interactive hero transfer preview, and responsive mobile drawer.</li>
+            <li><strong>Interactive Cryptographic Proof &amp; Safety Sandbox:</strong> Added live animated security metrics and a 5-preset interactive file threat triage sandbox demonstrating real-time double-extension and executable detection.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
+            <span class="changelog-version">v0.0.62-beta</span>
+            <span class="changelog-date">Reliability &amp; Zero-Trace Fixes</span>
+          </div>
+          <ul class="changelog-list">
+            <li><strong>Zero-Trace &amp; Privacy Shield Restoration:</strong> Hardened Ephemeral Zero-Trace view mode rendering and Privacy Shield EXIF/GPS metadata stripping badges across active transfer cards and automated E2E verification.</li>
+            <li><strong>Global Alignment &amp; Typography Polish:</strong> Aligned product page grids, centered Founder's Note layout, and standardized Google Sans typography across desktop and mobile viewports.</li>
+          </ul>
+        </div>
+
+        <div class="changelog-release">
+          <div class="changelog-badge-row">
             <span class="changelog-version">v0.0.61-beta</span>
-            <span class="changelog-date">Current Release • Milestone 1</span>
+            <span class="changelog-date">Milestone 1</span>
           </div>
           <ul class="changelog-list">
             <li><strong>Unified Glass Pairing System:</strong> Consolidated Send Files and Receive Files into a single cohesive glassmorphic card with seamless real-time mode switching and continuous ambient backdrop blur.</li>
@@ -628,7 +690,7 @@ function renderTabContent(tab: DocTab): HTMLElement {
             `Sender Name:   ${name}\n` +
             `Reply Email:   ${replyEmail}\n` +
             `Category:      ${category}\n` +
-            `App Version:   v0.0.61-beta\n` +
+            `App Version:   v0.0.66-beta\n` +
             `Timestamp:     ${new Date().toISOString()}\n\n` +
             `Message Body:\n` +
             `------------------------------------\n` +

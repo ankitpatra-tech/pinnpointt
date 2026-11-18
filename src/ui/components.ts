@@ -32,6 +32,9 @@ import {
   iconAlertTriangle,
   iconAlertCircle,
   iconHelpCircle,
+  iconInfo,
+  iconChevronDown,
+  iconMessageSquare,
   iconHardDrive,
   iconZap,
   iconUsers,
@@ -304,37 +307,26 @@ export function createNavbar(
     ro.observe(switcher);
   }
 
-  // Right Actions & Live Connection Pill
+  // Right Actions & Minimal Inline Connection Status
   const actions = el('div', { className: 'nav-actions pp-nav-actions' });
 
   if (peerInfo) {
-    const pill = el('div', { className: 'nav-live-pill header-connected-pill workspace-peer-badge is-connected' });
-    pill.innerHTML = `
-      <div class="header-peer-chip">
+    const statusStrip = el('div', { className: 'nav-live-pill header-connected-pill workspace-peer-badge is-connected' });
+    statusStrip.innerHTML = `
+      <span class="header-peer-chip">
         <span class="status-dot connected"></span>
-        <span class="peer-text">Connected on Local Wi-Fi: <strong class="peer-name">${peerInfo.name}</strong></span>
-      </div>
-      <div class="header-meta-group">
-        <span class="room-pill-code mono">Room ${peerInfo.roomCode}</span>
-        <span class="workspace-e2e-badge text-xs">${iconLock({ size: 11 })} Direct &amp; Private</span>
-      </div>
+        <span class="peer-text"><strong class="peer-name">${peerInfo.name}</strong></span>
+      </span>
+      <span class="nav-inline-sep" aria-hidden="true">·</span>
+      <span class="workspace-e2e-badge text-xs">${iconLock({ size: 11 })} <span>Direct &amp; Private</span></span>
     `;
-
-    const discBtn = el('button', {
-      type: 'button',
-      className: 'btn-pill-disconnect text-xs',
-      textContent: 'Disconnect',
-      title: 'Disconnect and end secure session',
-    });
-    discBtn.addEventListener('click', peerInfo.onDisconnect);
-    pill.append(discBtn);
-    actions.append(pill);
+    actions.append(statusStrip);
   } else {
     const telemetry = el('div', { className: 'nav-live-pill header-dynamic-telemetry is-waiting' });
     telemetry.innerHTML = `
       <span class="nav-status-beacon status-beacon-dot waiting"></span>
-      <span class="telemetry-bold text-xs">Ready to Connect</span>
-      <span class="telemetry-sub text-xs muted">• Direct P2P Link</span>
+      <span class="telemetry-bold text-xs">Ready</span>
+      <span class="telemetry-sub text-xs muted">· Direct P2P</span>
     `;
     actions.append(telemetry);
   }
@@ -520,8 +512,8 @@ export function createFooter(onOpenDocModal?: (tab: DocTab) => void): HTMLElemen
   });
   const version = el('span', {
     className: 'footer-version tabular-nums',
-    textContent: 'v0.0.61-beta',
-    title: 'PinnPointt Version 0.0.61 Beta',
+    textContent: 'v0.0.66-beta',
+    title: 'PinnPointt Version 0.0.66 Beta',
   });
   meta.append(subtitle, version);
 
@@ -1435,233 +1427,232 @@ function getFileTypeSvg(fileName: string): string {
 
 export function createConnectedWorkspace(
   initialPeerName: string,
-  initialRole: string,
+  _initialRole: string,
   callbacks: WorkspaceCallbacks,
-  isPreview: boolean = false,
+  _isPreview: boolean = false,
   roomCode?: string,
   onRenderQR?: (canvas: HTMLCanvasElement) => void
 ): WorkspaceController {
-  const container = el('div', { className: 'app-connected-workspace app-fluid-shell fade-in' });
+  const container = el('div', { className: 'app-connected-workspace fade-in' });
+  container.setAttribute('data-mobile-view', 'transfers');
 
-  // ── LEFT STUDIO COLUMN (360px on Desktop Studio Layout) ──
-  const leftStudio = el('div', { className: 'workspace-left-studio studio-col-left' });
+  // Helper to copy room link with visual feedback
+  const handleCopyRoom = (btnEl: HTMLElement, isIconOnly = false) => {
+    if (!roomCode) return;
+    void copyTextToClipboard(`${window.location.origin}/app?room=${roomCode}`).then(() => {
+      showToast(`Room code ${roomCode} copied!`);
+      btnEl.innerHTML = isIconOnly
+        ? `${iconCheck({ size: 14 })}`
+        : `${iconCheck({ size: 12 })} <span>Copied</span>`;
+      btnEl.classList.add('copied');
+      setTimeout(() => {
+        btnEl.innerHTML = isIconOnly
+          ? `${iconCopy({ size: 14 })}`
+          : `${iconCopy({ size: 12 })} <span>Copy</span>`;
+        btnEl.classList.remove('copied');
+      }, 1500);
+    });
+  };
 
-  // 1. Peer Node Card: Connected device name, latency (<1ms), and connection health
-  const deviceCard = el('div', { className: 'peer-node-card studio-card connected-device-card' });
-  const cardMainRow = el('div', { className: 'cdc-main-bar row-between' });
-
-  const leftGroup = el('div', { className: 'cdc-left-group row-start gap-sm' });
-  const deviceIconWrap = el('div', { className: 'cdc-device-icon-wrap' });
-  deviceIconWrap.innerHTML = iconMonitor({ size: 20 });
-
-  const infoGroup = el('div', { className: 'cdc-info-group stack stack-xs' });
-  const statusRow = el('div', { className: 'cdc-status-row row-start gap-xs' });
-  statusRow.innerHTML = `
-    <span class="status-dot connected cdc-dot"></span>
-    <span class="cdc-status-text font-semibold text-sm">Direct P2P Link</span>
-    <span class="peer-latency tabular-nums"><span class="latency-dot"></span> &lt;1ms</span>
-  `;
-
-  const peerDisplayRow = el('div', { className: 'cdc-peer-label text-xs muted' });
-  const peerNameSpan = el('strong', { className: 'peer-name font-semibold', textContent: initialPeerName || 'Peer Device' });
-  peerNameSpan.style.color = 'var(--text-bright)';
-
-  const speedSpan = el('span', { textContent: 'Direct Wi-Fi' });
-  speedSpan.style.color = '#34D399';
-
-  peerDisplayRow.append('Linked with ', peerNameSpan, ' • ', speedSpan);
-
-  infoGroup.append(statusRow, peerDisplayRow);
-  leftGroup.append(deviceIconWrap, infoGroup);
-
-  const rightActions = el('div', { className: 'cdc-actions row-end' });
-  const disconnectBtn = el('button', {
-    type: 'button',
-    className: 'btn-subtle-rose btn-disconnect-card',
-    title: 'Disconnect session',
-  });
-  disconnectBtn.innerHTML = `${iconX({ size: 12 })} <span>Disconnect</span>`;
-  disconnectBtn.addEventListener('click', () => {
-    callbacks.onDisconnect();
-  });
-  rightActions.append(disconnectBtn);
-
-  cardMainRow.append(leftGroup, rightActions);
-  deviceCard.append(cardMainRow);
-
-  // 2. Room Code & QR Drawer: High-contrast monospace chip (tabular-nums) + instant Copy button
-  const roomQrCard = el('div', { className: 'room-qr-drawer-card studio-card stack stack-sm' });
-  const roomQrHeader = el('div', { className: 'row-between' });
-  const roomQrTitle = el('span', { className: 'studio-card-title text-xs font-semibold muted', textContent: 'ROOM CODE & QR' });
-
-  const toggleQrBtn = el('button', {
-    type: 'button',
-    className: 'btn btn-ghost btn-xs btn-show-qr btn-toggle-compact-qr',
-    title: 'Expand or hide QR code',
-  });
-  toggleQrBtn.innerHTML = `${iconQrCode({ size: 13 })} <span>Expand QR</span>`;
-  roomQrHeader.append(roomQrTitle, toggleQrBtn);
-
-  const codeChipRow = el('div', { className: 'row-between gap-sm' });
-  const roomCodeChip = el('div', {
-    className: 'room-code-chip mono tabular-nums font-semibold',
-    textContent: roomCode || 'DIRECT',
-  });
-  const copyRoomBtn = el('button', {
-    type: 'button',
-    className: 'btn btn-secondary btn-sm btn-copy-chip text-xs',
-    title: 'Copy room link',
-  });
-  copyRoomBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Copy</span>`;
-  copyRoomBtn.addEventListener('click', () => {
-    if (roomCode) {
-      void copyTextToClipboard(`${window.location.origin}/app?room=${roomCode}`).then(() => {
-        showToast(`Room code ${roomCode} copied!`);
-        copyRoomBtn.innerHTML = `${iconCheck({ size: 12 })} <span>Copied!</span>`;
-        setTimeout(() => {
-          copyRoomBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Copy</span>`;
-        }, 1500);
-      });
-    }
-  });
-
-  codeChipRow.append(roomCodeChip, copyRoomBtn);
-  roomQrCard.append(roomQrHeader, codeChipRow);
-
-  // Expandable QR drawer
-  const qrDrawer = el('div', { className: 'cdc-expand-drawer' });
-  qrDrawer.style.display = 'none';
-
-  if (roomCode) {
+  // Helper to build a QR canvas container
+  const createQrBox = (size = 152): HTMLElement | null => {
+    if (!roomCode) return null;
     const qrCanvas = document.createElement('canvas');
-    qrCanvas.width = 160;
-    qrCanvas.height = 160;
+    qrCanvas.width = size;
+    qrCanvas.height = size;
     if (onRenderQR) {
       setTimeout(() => onRenderQR(qrCanvas), 20);
     }
-
-    const drawerContent = el('div', { className: 'cdc-drawer-content stack stack-sm text-center' });
-    const drawerHint = el('p', {
-      className: 'text-xs muted',
-      textContent: 'Scan to connect',
-    });
-
-    const drawerQrWrap = el('div', { className: 'qr-viewfinder-frame' });
-    const tickTL = el('span', { className: 'qr-tick tick-tl' });
-    const tickTR = el('span', { className: 'qr-tick tick-tr' });
-    const tickBL = el('span', { className: 'qr-tick tick-bl' });
-    const tickBR = el('span', { className: 'qr-tick tick-br' });
+    const drawerContent = el('div', { className: 'cdc-drawer-content stack stack-xs text-center' });
     const whiteBox = el('div', { className: 'qr-canvas-white-box qr-canvas-wrap' });
     whiteBox.append(qrCanvas);
-    drawerQrWrap.append(tickTL, tickTR, tickBL, tickBR, whiteBox);
+    const drawerHint = el('p', { className: 'text-xs muted', textContent: 'Scan to connect' });
+    drawerContent.append(whiteBox, drawerHint);
+    return drawerContent;
+  };
 
-    drawerContent.append(drawerHint, drawerQrWrap);
-    qrDrawer.append(drawerContent);
-  }
+  // ── MOBILE-ONLY COMPACT 1-LINE CONNECTION & ROOM STRIP (Tab 1: Files) ──
+  const mobileConnStripWrap = el('div', { className: 'mobile-connection-strip-wrap' });
+  const mobileConnStrip = el('div', { className: 'mobile-connection-strip' });
+
+  const mobPeerLeft = el('div', { className: 'mobile-strip-left' });
+  const mobDot = el('span', { className: 'status-dot connected' });
+  const mobPeerNameSpan = el('strong', {
+    className: 'peer-name mobile-peer-name',
+    textContent: initialPeerName || 'Peer Device',
+  });
+  mobPeerLeft.append(mobDot, mobPeerNameSpan);
+
+  const mobStripRight = el('div', { className: 'mobile-strip-right' });
+  const mobRoomCode = el('span', {
+    className: 'mobile-room-code mono tabular-nums',
+    textContent: roomCode || 'DIRECT',
+  });
+
+  const mobCopyBtn = el('button', {
+    type: 'button',
+    className: 'mobile-strip-icon-btn btn-copy-mobile',
+    title: 'Copy room code',
+    'aria-label': 'Copy room code',
+  });
+  mobCopyBtn.innerHTML = iconCopy({ size: 14 });
+  mobCopyBtn.addEventListener('click', () => handleCopyRoom(mobCopyBtn, true));
+
+  const mobQrBtn = el('button', {
+    type: 'button',
+    className: 'mobile-strip-icon-btn btn-qr-mobile',
+    title: 'Show QR code',
+    'aria-label': 'Show QR code',
+  });
+  mobQrBtn.innerHTML = iconQrCode({ size: 14 });
+
+  const mobDiscBtn = el('button', {
+    type: 'button',
+    className: 'mobile-strip-icon-btn btn-disconnect-mobile',
+    title: 'Disconnect session',
+    'aria-label': 'Disconnect session',
+  });
+  mobDiscBtn.innerHTML = iconX({ size: 14 });
+  mobDiscBtn.addEventListener('click', () => callbacks.onDisconnect());
+
+  mobStripRight.append(mobRoomCode, mobCopyBtn, mobQrBtn, mobDiscBtn);
+  mobileConnStrip.append(mobPeerLeft, mobStripRight);
+
+  const mobQrPopover = el('div', { className: 'mobile-qr-popover' });
+  mobQrPopover.style.display = 'none';
+  const mobQrBox = createQrBox(148);
+  if (mobQrBox) mobQrPopover.append(mobQrBox);
+
+  let isMobQrOpen = false;
+  mobQrBtn.addEventListener('click', () => {
+    isMobQrOpen = !isMobQrOpen;
+    mobQrPopover.style.display = isMobQrOpen ? 'block' : 'none';
+    mobQrBtn.classList.toggle('active', isMobQrOpen);
+  });
+
+  mobileConnStripWrap.append(mobileConnStrip, mobQrPopover);
+
+  // ── LEFT SIDEBAR (Desktop Split-Pane + Mobile Tab 2: Live Notes) ──
+  const leftStudio = el('aside', { className: 'workspace-left-studio studio-col-left' });
+
+  // 1. Sleek Combined Session Header Block (Peer + Room Code + QR + Connection Details Popover)
+  const sidebarSessionHeader = el('div', { className: 'sidebar-session-header' });
+
+  const sessionTopRow = el('div', { className: 'session-header-top row-between' });
+  const sessionPeerLeft = el('div', { className: 'session-peer-identity' });
+  const peerDot = el('span', { className: 'status-dot connected cdc-dot' });
+  const peerNameSpan = el('strong', {
+    className: 'peer-name font-semibold',
+    textContent: initialPeerName || 'Peer Device',
+  });
+  const latencyText = el('span', { className: 'peer-latency tabular-nums', textContent: '<1ms' });
+  sessionPeerLeft.append(peerDot, peerNameSpan, latencyText);
+
+  const sessionTopActions = el('div', { className: 'session-top-actions' });
+  const detailsToggleBtn = el('button', {
+    type: 'button',
+    className: 'sidebar-icon-btn btn-conn-details',
+    title: 'Connection Details & Storage Telemetry',
+    'aria-label': 'Connection Details',
+    'aria-expanded': 'false',
+  });
+  detailsToggleBtn.innerHTML = iconInfo({ size: 14 });
+
+  const disconnectBtn = el('button', {
+    type: 'button',
+    className: 'sidebar-icon-btn btn-disconnect-card',
+    title: 'Disconnect session',
+    'aria-label': 'Disconnect session',
+  });
+  disconnectBtn.innerHTML = `${iconX({ size: 14 })}`;
+  disconnectBtn.addEventListener('click', () => callbacks.onDisconnect());
+
+  sessionTopActions.append(detailsToggleBtn, disconnectBtn);
+  sessionTopRow.append(sessionPeerLeft, sessionTopActions);
+
+  // Second compact row: Room code + Copy + QR
+  const sessionRoomRow = el('div', { className: 'session-room-row row-between' });
+  const roomLeft = el('div', { className: 'session-room-left' });
+  const roomLabel = el('span', { className: 'sidebar-room-label', textContent: 'Room' });
+  const roomCodeChip = el('span', {
+    className: 'room-code-chip mono tabular-nums',
+    textContent: roomCode || 'DIRECT',
+  });
+  roomLeft.append(roomLabel, roomCodeChip);
+
+  const roomActions = el('div', { className: 'session-room-actions' });
+  const copyRoomBtn = el('button', {
+    type: 'button',
+    className: 'sidebar-ghost-btn btn-copy-chip',
+    title: 'Copy room link',
+  });
+  copyRoomBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Copy</span>`;
+  copyRoomBtn.addEventListener('click', () => handleCopyRoom(copyRoomBtn, false));
+
+  const toggleQrBtn = el('button', {
+    type: 'button',
+    className: 'sidebar-ghost-btn btn-show-qr btn-toggle-compact-qr',
+    title: 'Toggle QR code',
+  });
+  toggleQrBtn.innerHTML = `${iconQrCode({ size: 12 })} <span>QR</span>`;
+
+  roomActions.append(copyRoomBtn, toggleQrBtn);
+  sessionRoomRow.append(roomLeft, roomActions);
+
+  // Collapsible Connection Details Accordion (Hidden by default to keep main view uncluttered)
+  const detailsAccordion = el('div', { className: 'connection-details-accordion' });
+  detailsAccordion.style.display = 'none';
+  detailsAccordion.innerHTML = `
+    <div class="conn-details-head row-between">
+      <span class="conn-details-title">Connection Details</span>
+      <span class="conn-details-opfs"><span class="status-dot connected"></span> OPFS Active</span>
+    </div>
+    <div class="storage-metrics-grid">
+      <div class="storage-metric-row">
+        <span class="metric-label">Available Storage</span>
+        <span class="storage-metric-val opfs-storage-val tabular-nums" id="opfs-storage-val">Estimating...</span>
+      </div>
+      <div class="storage-metric-row">
+        <span class="metric-label">Active Buffer</span>
+        <span class="metric-val tabular-nums">64 KB Multi-Channel Chunks</span>
+      </div>
+      <div class="storage-metric-row">
+        <span class="metric-label">Transport Protocol</span>
+        <span class="metric-val tabular-nums">WebRTC DTLS 1.3 · 0 Relays</span>
+      </div>
+    </div>
+  `;
+
+  let isDetailsOpen = false;
+  detailsToggleBtn.addEventListener('click', () => {
+    isDetailsOpen = !isDetailsOpen;
+    detailsAccordion.style.display = isDetailsOpen ? 'block' : 'none';
+    detailsToggleBtn.classList.toggle('active', isDetailsOpen);
+    detailsToggleBtn.setAttribute('aria-expanded', String(isDetailsOpen));
+  });
+
+  // Expandable QR drawer inside sidebar header
+  const qrDrawer = el('div', { className: 'cdc-expand-drawer' });
+  qrDrawer.style.display = 'none';
+  const desktopQrBox = createQrBox(152);
+  if (desktopQrBox) qrDrawer.append(desktopQrBox);
 
   let isQrExpanded = false;
   toggleQrBtn.addEventListener('click', () => {
     isQrExpanded = !isQrExpanded;
     qrDrawer.style.display = isQrExpanded ? 'block' : 'none';
+    toggleQrBtn.classList.toggle('active', isQrExpanded);
     toggleQrBtn.innerHTML = isQrExpanded
-      ? `${iconX({ size: 13 })} <span>Hide QR</span>`
-      : `${iconQrCode({ size: 13 })} <span>Expand QR</span>`;
+      ? `${iconX({ size: 12 })} <span>Hide</span>`
+      : `${iconQrCode({ size: 12 })} <span>QR</span>`;
   });
-  roomQrCard.append(qrDrawer);
 
-  // 3. Storage & Performance Meter: Estimated disk space or active OPFS buffer status
-  const storageMeterCard = el('div', { className: 'storage-meter-card studio-card stack stack-sm' });
-  const storageHeader = el('div', { className: 'row-between' });
-  storageHeader.innerHTML = `
-    <span class="studio-card-title text-xs font-semibold muted">STORAGE &amp; PERFORMANCE</span>
-    <span class="meter-chip-badge text-xs">OPFS Active</span>
-  `;
+  sidebarSessionHeader.append(sessionTopRow, sessionRoomRow, detailsAccordion, qrDrawer);
 
-  const storageMeterBar = el('div', { className: 'storage-meter-track' });
-  const storageMeterFill = el('div', { className: 'storage-meter-fill' });
-  storageMeterBar.append(storageMeterFill);
+  // ── MAIN SHARING STAGE (Right Pane on Desktop; Tab 1 Files & Tab 3 Virtual Drive on Mobile) ──
+  const mainStage = el('div', { className: 'connected-main-stage' });
 
-  const storageMetrics = el('div', { className: 'storage-metrics-grid stack stack-xs' });
-  
-  const metricStorageRow = el('div', { className: 'storage-metric-row row-between text-xs' });
-  metricStorageRow.innerHTML = `
-    <span class="metric-label muted">Available Storage</span>
-    <span class="storage-metric-val tabular-nums font-semibold" id="opfs-storage-val">Estimating...</span>
-  `;
-
-  const metricBufferRow = el('div', { className: 'storage-metric-row row-between text-xs' });
-  metricBufferRow.innerHTML = `
-    <span class="metric-label muted">Active Buffer</span>
-    <span class="metric-val tabular-nums">64 KB Multi-Channel Chunks</span>
-  `;
-
-  const metricPipelineRow = el('div', { className: 'storage-metric-row row-between text-xs' });
-  metricPipelineRow.innerHTML = `
-    <span class="metric-label muted">Transport Protocol</span>
-    <span class="metric-val tabular-nums">WebRTC DTLS 1.3 • 0 Relays</span>
-  `;
-
-  storageMetrics.append(metricStorageRow, metricBufferRow, metricPipelineRow);
-  storageMeterCard.append(storageHeader, storageMeterBar, storageMetrics);
-
-  if (typeof navigator !== 'undefined' && navigator.storage && typeof navigator.storage.estimate === 'function') {
-    navigator.storage.estimate().then((est) => {
-      const valEl = storageMeterCard.querySelector('#opfs-storage-val');
-      if (valEl && est.quota) {
-        const avail = Math.max(0, est.quota - (est.usage || 0));
-        valEl.textContent = `${formatBytes(avail)} Available`;
-      }
-    }).catch(() => {
-      const valEl = storageMeterCard.querySelector('#opfs-storage-val');
-      if (valEl) valEl.textContent = '50+ GB Available';
-    });
-  } else {
-    const valEl = storageMeterCard.querySelector('#opfs-storage-val');
-    if (valEl) valEl.textContent = '50+ GB Available';
-  }
-
-  // ── MOBILE TAB SWITCHER (Transfers | Chat & Notes | Virtual Drive) ──
-  const mobileTabRow = el('div', { className: 'mobile-workspace-tabs' });
-  const mobTransfersBtn = el('button', {
-    type: 'button',
-    className: 'mobile-tab-btn active',
-  });
-  mobTransfersBtn.innerHTML = `<span>Transfers &amp; Activity</span>`;
-
-  const mobChatBtn = el('button', {
-    type: 'button',
-    className: 'mobile-tab-btn',
-  });
-  mobChatBtn.innerHTML = `<span>Chat &amp; Notes</span>`;
-
-  const mobDriveBtn = el('button', {
-    type: 'button',
-    className: 'mobile-tab-btn',
-  });
-  mobDriveBtn.innerHTML = `<span>Virtual Drive</span>`;
-
-  mobileTabRow.append(mobTransfersBtn, mobChatBtn, mobDriveBtn);
-
-  function setMobileView(view: 'transfers' | 'chat' | 'drive') {
-    mobTransfersBtn.classList.toggle('active', view === 'transfers');
-    mobChatBtn.classList.toggle('active', view === 'chat');
-    mobDriveBtn.classList.toggle('active', view === 'drive');
-    container.setAttribute('data-mobile-view', view);
-    if (view === 'transfers') {
-      switchTab('activity');
-    } else if (view === 'drive') {
-      switchTab('drive');
-    }
-  }
-
-  mobTransfersBtn.addEventListener('click', () => setMobileView('transfers'));
-  mobChatBtn.addEventListener('click', () => setMobileView('chat'));
-  mobDriveBtn.addEventListener('click', () => setMobileView('drive'));
-
-  // ── MAIN SHARING STAGE (Left / Center 1fr) ──
-  const mainStage = el('div', { className: 'connected-main-stage studio-pane' });
-
-  // Top Switcher Tabs (File Transfers & Activity | Virtual Drive Explorer)
+  // Desktop Underline Switcher Tabs (File Transfers & Activity | Virtual Drive Explorer)
   const tabRow = el('div', { className: 'workspace-tab-row' });
   const activityTabBtn = el('button', {
     type: 'button',
@@ -1724,33 +1715,93 @@ export function createConnectedWorkspace(
   });
 
   // Panels
-  const activityPanel = el('div', { className: 'workspace-panel activity-panel stack stack-md' });
-  const drivePanel = el('div', { className: 'workspace-panel drive-panel stack stack-md' });
+  const activityPanel = el('div', { className: 'workspace-panel activity-panel' });
+  const drivePanel = el('div', { className: 'workspace-panel drive-panel' });
   drivePanel.style.display = 'none';
 
-  function switchTab(tab: 'activity' | 'drive') {
+  // Unified Mobile Bottom Navigation Bar (Files | Live Notes | Virtual Drive)
+  const mobileBottomNav = el('nav', {
+    className: 'mobile-bottom-nav',
+    'aria-label': 'Workspace navigation',
+  });
+
+  const mobTransfersBtn = el('button', {
+    type: 'button',
+    className: 'mobile-tab-btn active',
+    'data-mobile-tab': 'transfers',
+  });
+  mobTransfersBtn.innerHTML = `<span class="mobile-tab-icon">${iconShare({ size: 18 })}</span><span class="mobile-tab-label">Files</span>`;
+
+  const mobChatBtn = el('button', {
+    type: 'button',
+    className: 'mobile-tab-btn',
+    'data-mobile-tab': 'chat',
+  });
+  mobChatBtn.innerHTML = `<span class="mobile-tab-icon">${iconMessageSquare({ size: 18 })}</span><span class="mobile-tab-label">Live Notes</span>`;
+
+  const mobDriveBtn = el('button', {
+    type: 'button',
+    className: 'mobile-tab-btn',
+    'data-mobile-tab': 'drive',
+  });
+  const mobDriveBadge = el('span', { className: 'mobile-tab-badge tabular-nums' });
+  mobDriveBadge.style.display = 'none';
+  mobDriveBtn.innerHTML = `<span class="mobile-tab-icon">${iconHardDrive({ size: 18 })}</span><span class="mobile-tab-label">Virtual Drive</span>`;
+  mobDriveBtn.append(mobDriveBadge);
+
+  mobileBottomNav.append(mobTransfersBtn, mobChatBtn, mobDriveBtn);
+
+  function setMobileView(view: 'transfers' | 'chat' | 'drive') {
+    mobTransfersBtn.classList.toggle('active', view === 'transfers');
+    mobChatBtn.classList.toggle('active', view === 'chat');
+    mobDriveBtn.classList.toggle('active', view === 'drive');
+    container.setAttribute('data-mobile-view', view);
+    if (view === 'transfers') {
+      switchTab('activity', true);
+    } else if (view === 'drive') {
+      switchTab('drive', true);
+    }
+  }
+
+  mobTransfersBtn.addEventListener('click', () => setMobileView('transfers'));
+  mobChatBtn.addEventListener('click', () => setMobileView('chat'));
+  mobDriveBtn.addEventListener('click', () => setMobileView('drive'));
+
+  function switchTab(tab: 'activity' | 'drive', fromMobile = false) {
     if (tab === 'activity') {
       activityTabBtn.classList.add('active');
       driveTabBtn.classList.remove('active');
       activityPanel.style.display = 'flex';
       drivePanel.style.display = 'none';
       isMountMode = false;
+      if (!fromMobile && container.getAttribute('data-mobile-view') !== 'chat') {
+        mobTransfersBtn.classList.add('active');
+        mobDriveBtn.classList.remove('active');
+        container.setAttribute('data-mobile-view', 'transfers');
+      }
     } else {
       driveTabBtn.classList.add('active');
       activityTabBtn.classList.remove('active');
       activityPanel.style.display = 'none';
       drivePanel.style.display = 'flex';
       isMountMode = true;
+      if (!fromMobile && container.getAttribute('data-mobile-view') !== 'chat') {
+        mobDriveBtn.classList.add('active');
+        mobTransfersBtn.classList.remove('active');
+        container.setAttribute('data-mobile-view', 'drive');
+      }
     }
   }
 
   activityTabBtn.addEventListener('click', () => switchTab('activity'));
   driveTabBtn.addEventListener('click', () => switchTab('drive'));
 
-  // Magnetic Glass Dropzone Stage
+  // ── ACTIVITY PANEL CONTENT (Proportioned Dropzone + Recent Transfers) ──
+  const activityInner = el('div', { className: 'stage-content-inner' });
+
   const dropzone = el('div', { className: 'stage-dropzone magnetic-dropzone' });
   dropzone.innerHTML = `
-    <div class="stage-dropzone-icon">${iconUpload({ size: 30 })}</div>
+    <div class="stage-dropzone-icon">${iconUpload({ size: 22 })}</div>
     <div class="stage-dropzone-text">
       <div class="stage-dropzone-title font-semibold">Drop files or folders here to send</div>
       <div class="stage-dropzone-sub text-xs muted">Unlimited file size • Direct peer streaming</div>
@@ -1782,8 +1833,8 @@ export function createConnectedWorkspace(
 
   dropActions.append(browseFilesBtn, browseFolderBtn);
 
-  // Micro-Toggles Row Below Buttons
-  const dropToggles = el('div', { className: 'stage-dropzone-toggles row-center gap-xs' });
+  // Clean Inline Privacy Checkboxes Below Buttons
+  const dropToggles = el('div', { className: 'stage-dropzone-toggles row-center gap-md' });
 
   const privacyPill = el('label', {
     className: 'clean-toggle-pill stage-privacy-toggle',
@@ -1841,7 +1892,30 @@ export function createConnectedWorkspace(
     }
   });
 
+  // Recent Transfers & Activity Section (Balances Desktop Right Pane)
+  const transfersSection = el('div', { className: 'transfers-section' });
+  const transfersHeader = el('div', { className: 'transfers-section-header row-between' });
+  const transfersTitle = el('span', { className: 'transfers-section-title', textContent: 'RECENT TRANSFERS' });
+  const transfersCountEl = el('span', { className: 'transfers-section-count tabular-nums', textContent: '0 items' });
+  transfersHeader.append(transfersTitle, transfersCountEl);
+
+  const transfersEmptyState = el('div', { className: 'transfers-empty-state' });
+  transfersEmptyState.innerHTML = `
+    <div class="transfers-empty-main">
+      <div class="transfers-empty-title">No transfers yet</div>
+      <div class="transfers-empty-desc">Files and folders you drop, paste, or pull from Virtual Drive appear here with bit-exact SHA-256 verification.</div>
+    </div>
+    <div class="transfers-empty-hints">
+      <span class="hint-item">Drop anywhere on window</span>
+      <span class="hint-sep">·</span>
+      <span class="hint-item"><kbd>Ctrl+V</kbd> to paste files</span>
+      <span class="hint-sep">·</span>
+      <span class="hint-item">Zero cloud relays</span>
+    </div>
+  `;
+
   // File Transfer List Feed
+  let transferCount = 0;
   const fileFeed = el('div', { className: 'transfer-feed stack stack-sm' });
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
@@ -1849,9 +1923,13 @@ export function createConnectedWorkspace(
     });
   };
 
-  activityPanel.append(dropzone, fileFeed);
+  transfersSection.append(transfersHeader, transfersEmptyState, fileFeed);
+  activityInner.append(dropzone, transfersSection);
+  activityPanel.append(mobileConnStripWrap, activityInner);
 
-  // Virtual Drive Panel Layout
+  // ── VIRTUAL DRIVE PANEL LAYOUT (Tab 3 on Mobile + Desktop Tab) ──
+  const driveInner = el('div', { className: 'stage-content-inner' });
+
   const driveTopBar = el('div', { className: 'vfs-top-bar row-between' });
   const driveBarLeft = el('div');
   const driveBarTitle = el('div', { className: 'vfs-top-title font-semibold text-sm', textContent: 'Browse Files on Other Device' });
@@ -1885,14 +1963,63 @@ export function createConnectedWorkspace(
   const localVfsContainer = el('div', { className: 'vfs-local-container' });
   const remoteVfsContainer = el('div', { className: 'vfs-remote-container' });
 
-  drivePanel.append(driveTopBar, localVfsContainer, remoteVfsContainer);
+  // Collapsible Storage & Performance Accordion inside Virtual Drive (Collapsed by default)
+  const driveStorageDetails = el('details', { className: 'drive-storage-details' });
+  driveStorageDetails.innerHTML = `
+    <summary class="drive-storage-summary">
+      <span class="drive-storage-summary-left">
+        <span class="drive-storage-chevron">${iconChevronDown({ size: 14 })}</span>
+        <span>Storage &amp; Performance</span>
+      </span>
+      <span class="drive-storage-summary-status"><span class="status-dot connected"></span> OPFS Active</span>
+    </summary>
+    <div class="drive-storage-body">
+      <div class="storage-metric-row">
+        <span class="metric-label">Available Storage</span>
+        <span class="storage-metric-val opfs-storage-val tabular-nums">Estimating...</span>
+      </div>
+      <div class="storage-metric-row">
+        <span class="metric-label">Active Buffer</span>
+        <span class="metric-val tabular-nums">64 KB Multi-Channel Chunks</span>
+      </div>
+      <div class="storage-metric-row">
+        <span class="metric-label">Transport Protocol</span>
+        <span class="metric-val tabular-nums">WebRTC DTLS 1.3 · 0 Relays</span>
+      </div>
+    </div>
+  `;
+
+  driveInner.append(driveTopBar, localVfsContainer, remoteVfsContainer, driveStorageDetails);
+  drivePanel.append(driveInner);
   mainStage.append(activityPanel, drivePanel);
 
-  // ── RIGHT DRAWER: Shared Notes & Links (Studio Pane) ──
-  const rightDrawer = el('div', { className: 'connected-notes-drawer studio-pane' });
+  // Populate live OPFS storage estimate across both desktop & mobile collapsible panels
+  const updateStorageEstimateText = (text: string) => {
+    container.querySelectorAll('.opfs-storage-val').forEach((node) => {
+      node.textContent = text;
+    });
+  };
+
+  if (typeof navigator !== 'undefined' && navigator.storage && typeof navigator.storage.estimate === 'function') {
+    navigator.storage.estimate().then((est) => {
+      if (est.quota) {
+        const avail = Math.max(0, est.quota - (est.usage || 0));
+        updateStorageEstimateText(`${formatBytes(avail)} Available`);
+      } else {
+        updateStorageEstimateText('50+ GB Available');
+      }
+    }).catch(() => {
+      updateStorageEstimateText('50+ GB Available');
+    });
+  } else {
+    updateStorageEstimateText('50+ GB Available');
+  }
+
+  // ── LIVE NOTES & LINKS (Sidebar Pane on Desktop; Full-Height Tab 2 on Mobile) ──
+  const rightDrawer = el('div', { className: 'connected-notes-drawer' });
 
   const drawerHeader = el('div', { className: 'drawer-header row-between' });
-  const drawerTitleGroup = el('div', { className: 'drawer-title-group stack stack-xs' });
+  const drawerTitleGroup = el('div', { className: 'drawer-title-group' });
   const drawerTitle = el('div', { className: 'drawer-title font-semibold text-sm', textContent: 'Live Notes & Links' });
   const drawerSubtitle = el('div', {
     className: 'drawer-subtitle text-xs muted',
@@ -1905,7 +2032,7 @@ export function createConnectedWorkspace(
     className: 'btn btn-secondary btn-sm btn-clipboard-sync text-xs',
     title: 'Share clipboard content with other device',
   });
-  clipboardBtn.innerHTML = `${iconCopy({ size: 13 })} <span>Sync Clipboard</span>`;
+  clipboardBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Sync Clipboard</span>`;
   clipboardBtn.addEventListener('click', () => {
     callbacks.onSendClipboard?.();
   });
@@ -1918,14 +2045,8 @@ export function createConnectedWorkspace(
     });
   };
 
-  const inputRow = el('div', { className: 'chat-input-row' });
-  const attachBtn = el('button', {
-    className: 'btn-attach',
-    type: 'button',
-    title: 'Attach file to send',
-  });
-  attachBtn.innerHTML = `${iconPaperclip({ size: 14 })}`;
-  attachBtn.addEventListener('click', () => fileInput.click());
+  // Two-Row Linear-Style Composer: Full-width input above, clean utility toolbar below
+  const inputRow = el('div', { className: 'chat-input-row chat-composer' });
 
   const textInput = el('input', {
     type: 'text',
@@ -1934,9 +2055,20 @@ export function createConnectedWorkspace(
     autocomplete: 'off',
   }) as HTMLInputElement;
 
+  const composerToolbar = el('div', { className: 'chat-composer-toolbar' });
+  const composerLeft = el('div', { className: 'chat-composer-actions-left' });
+
+  const attachBtn = el('button', {
+    className: 'btn-attach',
+    type: 'button',
+    title: 'Attach file to send',
+  });
+  attachBtn.innerHTML = `${iconPaperclip({ size: 13 })} <span>Attach</span>`;
+  attachBtn.addEventListener('click', () => fileInput.click());
+
   const pasteBtn = el('button', {
     type: 'button',
-    className: 'btn btn-secondary btn-sm btn-paste-note text-xs',
+    className: 'btn-paste-note text-xs',
     title: 'Paste text from clipboard',
   });
   pasteBtn.innerHTML = `${iconCopy({ size: 12 })} <span>Paste</span>`;
@@ -1953,6 +2085,8 @@ export function createConnectedWorkspace(
       textInput.focus();
     }
   });
+
+  composerLeft.append(attachBtn, pasteBtn);
 
   const sendBtn = el('button', {
     className: 'btn btn-primary chat-send-btn',
@@ -1976,15 +2110,16 @@ export function createConnectedWorkspace(
     }
   });
 
-  inputRow.append(attachBtn, textInput, pasteBtn, sendBtn);
+  composerToolbar.append(composerLeft, sendBtn);
+  inputRow.append(textInput, composerToolbar);
   rightDrawer.append(drawerHeader, chatFeed, inputRow);
 
-  leftStudio.append(deviceCard, roomQrCard, storageMeterCard, rightDrawer);
+  leftStudio.append(sidebarSessionHeader, rightDrawer);
 
-  const rightStudio = el('div', { className: 'workspace-right-studio studio-col-right' });
+  const rightStudio = el('main', { className: 'workspace-right-studio studio-col-right' });
   rightStudio.append(mainStage);
 
-  container.append(mobileTabRow, leftStudio, rightStudio);
+  container.append(leftStudio, rightStudio, mobileBottomNav);
 
   let localVfsList: VfsFileEntry[] = [];
   let remoteVfsList: VfsFileEntry[] = [];
@@ -2004,10 +2139,14 @@ export function createConnectedWorkspace(
       callbacks.onPullRemoteFile,
     );
     if (remoteVfsList.length > 0) {
-      driveTabBadge.textContent = String(remoteVfsList.length);
+      const countStr = String(remoteVfsList.length);
+      driveTabBadge.textContent = countStr;
       driveTabBadge.style.display = 'inline-flex';
+      mobDriveBadge.textContent = countStr;
+      mobDriveBadge.style.display = 'inline-flex';
     } else {
       driveTabBadge.style.display = 'none';
+      mobDriveBadge.style.display = 'none';
     }
   }
 
@@ -2019,6 +2158,10 @@ export function createConnectedWorkspace(
     setPeerName(name: string, _role: string) {
       currentPeerName = name;
       peerNameSpan.textContent = name;
+      mobPeerNameSpan.textContent = name;
+      document.querySelectorAll('.peer-name').forEach((n) => {
+        n.textContent = name;
+      });
       updateRemoteView();
     },
     setWakeLockActive(_active: boolean) {},
@@ -2281,6 +2424,9 @@ export function createConnectedWorkspace(
       row.append(card);
 
       fileFeed.append(row);
+      transferCount += 1;
+      transfersEmptyState.style.display = 'none';
+      transfersCountEl.textContent = transferCount === 1 ? '1 item' : `${transferCount} items`;
 
       return {
         updateProgress(p: TransferProgress) {
@@ -2391,8 +2537,8 @@ export function createConnectedWorkspace(
           } else {
             const verified = el('div', { className: 'feed-file-verified text-xs' });
             const verifiedText = opts.isMine
-              ? '✓ Verified Bit-Exact SHA-256 • 0 Cloud Server Requests'
-              : '✓ Verified Bit-Exact SHA-256 • Direct Stream';
+              ? 'Verified Bit-Exact SHA-256 • 0 Cloud Server Requests'
+              : 'Verified Bit-Exact SHA-256 • Direct Stream';
             verified.innerHTML = `${iconCheck({ size: 13 })} <span>${verifiedText}</span>`;
             doneRow.append(verified);
 
