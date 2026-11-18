@@ -20,6 +20,7 @@ import {
   createJoinInputWithBack,
   createConnectedWorkspace,
   createDropZoneReadySurface,
+  createRadarCanvas,
   createErrorView,
   createNearbyRadar,
   showToast,
@@ -467,22 +468,26 @@ export class App {
       card.append(splitView);
     } else if (this.state === 'joining') {
       if (this.roomCode) {
-        const waitingView = document.createElement('div');
-        waitingView.className = 'stack stack-md text-center fade-in';
-        waitingView.innerHTML = `
-          <h2 class="font-semibold">Connecting to Room</h2>
-          <div class="room-code-display mono"><span class="digit">${this.roomCode}</span></div>
-          <div class="status-badge"><span class="status-dot"></span> Establishing direct peer connection...</div>
-        `;
-        const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'btn btn-ghost w-full mt-sm btn-back-room';
-        cancelBtn.textContent = '← Cancel';
-        cancelBtn.addEventListener('click', () => {
-          this.cleanup();
-          this.transition('idle');
+        const currentRoom = this.roomCode;
+        const radarView = createRadarCanvas({
+          myDeviceName: this.myUsername || 'Your Device',
+          targetName: this.peerUsername && this.peerUsername !== 'Other Device' ? this.peerUsername : undefined,
+          roomCode: currentRoom,
+          statusPrimary:
+            this.peerUsername && this.peerUsername !== 'Other Device'
+              ? `Searching for ${this.peerUsername}...`
+              : `Searching for Room ${currentRoom}...`,
+          statusSecondary: 'Opening P2P DataChannel...',
+          onRetryNow: () => {
+            this.cleanup();
+            void this.handleJoinRoom(currentRoom);
+          },
+          onReturnHome: () => {
+            this.cleanup();
+            this.transition('idle');
+          },
         });
-        waitingView.append(cancelBtn);
-        card.append(waitingView);
+        card.append(radarView);
       } else {
         const { element, backBtn } = createJoinInputWithBack((code) => {
           this.handleJoinRoom(code);
@@ -706,7 +711,9 @@ export class App {
       (code) => {
         this.cleanup();
         void this.handleJoinRoom(code);
-      }
+      },
+      this.myUsername,
+      this.peerUsername
     );
     errorWrapper.append(errorView);
     errorWrapper.append(createFooter((tab) => openDocModal(tab)));

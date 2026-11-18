@@ -1652,15 +1652,15 @@ export function createConnectedWorkspace(
   // ── MAIN SHARING STAGE (Right Pane on Desktop; Tab 1 Files & Tab 3 Virtual Drive on Mobile) ──
   const mainStage = el('div', { className: 'connected-main-stage' });
 
-  // Desktop Underline Switcher Tabs (Centered to match dropzone & transfers column edges)
+  // Floating Acrylic Navigation Pill (Transfers & Activity | Shared Folder)
   const tabBarOuter = el('div', { className: 'workspace-tab-bar-outer' });
-  const tabRow = el('div', { className: 'workspace-tab-row' });
+  const tabRow = el('div', { className: 'workspace-tab-row liquid-nav-pill' });
   const activityTabBtn = el('button', {
     type: 'button',
     className: 'workspace-tab-btn active',
   });
   activityTabBtn.setAttribute('data-tab', 'activity');
-  activityTabBtn.innerHTML = `<span>File Transfers &amp; Activity</span>`;
+  activityTabBtn.innerHTML = `<span>Transfers &amp; Activity</span>`;
 
   const driveTabBtn = el('button', {
     type: 'button',
@@ -1739,7 +1739,10 @@ export function createConnectedWorkspace(
     className: 'mobile-tab-btn',
     'data-mobile-tab': 'chat',
   });
-  mobChatBtn.innerHTML = `<span class="mobile-tab-icon">${iconMessageSquare({ size: 18 })}</span><span class="mobile-tab-label">Live Notes</span>`;
+  const mobNotesDot = el('span', { className: 'mobile-notes-dot', 'aria-hidden': 'true' });
+  mobNotesDot.style.display = 'none';
+  mobChatBtn.innerHTML = `<span class="mobile-tab-icon">${iconMessageSquare({ size: 17 })}</span><span class="mobile-tab-label">Live Notes</span>`;
+  mobChatBtn.append(mobNotesDot);
 
   const mobDriveBtn = el('button', {
     type: 'button',
@@ -1771,6 +1774,7 @@ export function createConnectedWorkspace(
       switchTab('drive', true);
       animateViewEnter(drivePanel);
     } else {
+      mobNotesDot.style.display = 'none';
       animateViewEnter(rightDrawer);
     }
   }
@@ -1865,7 +1869,7 @@ export function createConnectedWorkspace(
     privacyShieldChecked = privacyCheckbox.checked;
   });
   const privacyLabel = el('span', { className: 'toggle-pill-label text-xs' });
-  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Strip photo GPS</span>`;
+  privacyLabel.innerHTML = `${iconShield({ size: 12 })} <span>Strip GPS</span>`;
   privacyPill.append(privacyCheckbox, privacyLabel);
   privacyPill.addEventListener('click', (e) => e.stopPropagation());
 
@@ -1883,7 +1887,7 @@ export function createConnectedWorkspace(
     e.stopPropagation();
   });
   const zeroTraceLabel = el('span', { className: 'toggle-pill-label text-xs' });
-  zeroTraceLabel.innerHTML = `${iconEye({ size: 12 })} <span>Auto-clear when done</span>`;
+  zeroTraceLabel.innerHTML = `${iconEye({ size: 12 })} <span>Auto-clear</span>`;
   zeroTracePill.append(zeroTraceCheckbox, zeroTraceLabel);
   zeroTracePill.addEventListener('click', (e) => e.stopPropagation());
 
@@ -2203,6 +2207,10 @@ export function createConnectedWorkspace(
       const sender = el('span', { className: 'chat-sender font-semibold', textContent: msg.sender });
       const time = el('span', { className: 'chat-time text-xs muted tabular-nums', textContent: formatTime(msg.timestamp) });
       senderGroup.append(sender, time);
+      if (msg.isMine) {
+        const ticks = el('span', { className: 'chat-read-ticks', textContent: '✓✓', title: 'Delivered via direct P2P channel' });
+        senderGroup.append(ticks);
+      }
 
       const copyNoteBtn = el('button', {
         type: 'button',
@@ -2234,6 +2242,9 @@ export function createConnectedWorkspace(
       row.append(meta, bubble);
 
       chatFeed.append(row);
+      if (!msg.isMine && container.getAttribute('data-mobile-view') !== 'chat') {
+        mobNotesDot.style.display = 'block';
+      }
       scrollToChatBottom();
     },
     getPrivacyShieldEnabled() {
@@ -2284,6 +2295,9 @@ export function createConnectedWorkspace(
       row.append(meta, card);
 
       chatFeed.append(row);
+      if (!isMine && container.getAttribute('data-mobile-view') !== 'chat') {
+        mobNotesDot.style.display = 'block';
+      }
       scrollToChatBottom();
     },
 
@@ -2609,75 +2623,178 @@ export function createConnectedWorkspace(
   };
 }
 
-// ─── Error Display ──────────────────────────────────
+// ─── Aqueous Liquid Glass Radar Connection Visualizer ─
+
+export interface RadarCanvasOptions {
+  myDeviceName: string;
+  targetName?: string;
+  roomCode?: string | null;
+  statusPrimary?: string;
+  statusSecondary?: string;
+  subMessage?: string;
+  isError?: boolean;
+  onRetryNow?: () => void;
+  onReturnHome: () => void;
+}
+
+export function createRadarCanvas(opts: RadarCanvasOptions): HTMLElement {
+  const stage = el('div', { className: `radar-canvas-stage fade-in ${opts.isError ? 'is-interrupted' : ''}` });
+
+  // Ambient drifting glowing particles layer
+  const particles = el('div', { className: 'radar-particles', 'aria-hidden': 'true' });
+  particles.innerHTML = `
+    <span class="radar-particle p1"></span>
+    <span class="radar-particle p2"></span>
+    <span class="radar-particle p3"></span>
+    <span class="radar-particle p4"></span>
+    <span class="radar-particle p5"></span>
+    <span class="radar-particle p6"></span>
+  `;
+
+  const inner = el('div', { className: 'radar-canvas-inner' });
+
+  // Centered Connection Visualizer: Two Circular Glass Nodes + Concentric Waves + Glowing SVG Beam
+  const visualizer = el('div', { className: 'radar-visualizer' });
+
+  const waves = el('div', { className: 'radar-waves', 'aria-hidden': 'true' });
+  waves.innerHTML = `
+    <span class="radar-wave-ring r1"></span>
+    <span class="radar-wave-ring r2"></span>
+    <span class="radar-wave-ring r3"></span>
+  `;
+
+  // Left Node: Your Device ("This Device")
+  const localNode = el('div', { className: 'radar-node radar-node-local' });
+  const localOrb = el('div', { className: 'radar-node-orb' });
+  localOrb.innerHTML = iconMonitor({ size: 26 });
+  const localTitle = el('div', { className: 'radar-node-title', textContent: opts.myDeviceName || 'Your Device' });
+  const localSub = el('div', { className: 'radar-node-sub', textContent: 'This Device' });
+  localNode.append(localOrb, localTitle, localSub);
+
+  // Center Animated Glowing SVG Beam
+  const beamWrap = el('div', { className: 'radar-beam-wrap', 'aria-hidden': 'true' });
+  beamWrap.innerHTML = `
+    <svg class="radar-beam-svg" viewBox="0 0 180 40" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="radarBeamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.15"/>
+          <stop offset="50%" stop-color="#818CF8" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#C084FC" stop-opacity="0.25"/>
+        </linearGradient>
+      </defs>
+      <path d="M4 20 H176" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="4 6" stroke-linecap="round"/>
+      <path class="radar-beam-pulse" d="M4 20 H176" stroke="url(#radarBeamGrad)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  // Right Node: Target Room / Peer with Rotating Loading Spinner
+  const targetTitleText = opts.targetName || (opts.roomCode ? `Room ${opts.roomCode}` : 'Peer Device');
+  const targetSubText = opts.roomCode ? `Room ${opts.roomCode}` : 'Peer Node';
+
+  const targetNode = el('div', { className: 'radar-node radar-node-target' });
+  const targetOrbWrap = el('div', { className: 'radar-target-orb-wrap' });
+  const spinnerRing = el('span', { className: 'radar-target-spinner', 'aria-hidden': 'true' });
+  const targetOrb = el('div', { className: 'radar-node-orb radar-node-orb-target' });
+  targetOrb.innerHTML = iconSmartphone({ size: 26 });
+  targetOrbWrap.append(spinnerRing, targetOrb);
+
+  const targetTitle = el('div', { className: 'radar-node-title', textContent: targetTitleText });
+  const targetSub = el('div', { className: 'radar-node-sub mono tabular-nums', textContent: targetSubText });
+  targetNode.append(targetOrbWrap, targetTitle, targetSub);
+
+  visualizer.append(waves, localNode, beamWrap, targetNode);
+
+  // Handshake Sequence Status Text
+  const statusWrap = el('div', { className: 'radar-status-wrap' });
+  const primaryText =
+    opts.statusPrimary ||
+    (opts.targetName
+      ? `Searching for ${opts.targetName}...`
+      : opts.roomCode
+        ? `Searching for Room ${opts.roomCode}...`
+        : 'Searching for peer...');
+  const secondaryText = opts.statusSecondary || 'Opening P2P DataChannel...';
+
+  const statusLine = el('div', { className: 'radar-status-text' });
+  statusLine.innerHTML = `<span class="status-dot ${opts.isError ? '' : 'connected'}"></span> <span class="radar-status-label">${primaryText}</span>`;
+
+  if (!opts.isError) {
+    const labelSpan = statusLine.querySelector('.radar-status-label');
+    setTimeout(() => {
+      if (labelSpan && document.body.contains(labelSpan)) {
+        labelSpan.classList.add('is-swapping');
+        setTimeout(() => {
+          labelSpan.textContent = secondaryText;
+          labelSpan.classList.remove('is-swapping');
+        }, 160);
+      }
+    }, 1350);
+  }
+
+  statusWrap.append(statusLine);
+
+  if (opts.subMessage) {
+    const subMsg = el('p', { className: 'radar-sub-msg text-xs muted', textContent: opts.subMessage });
+    statusWrap.append(subMsg);
+  }
+
+  if (opts.roomCode) {
+    const codeBadge = el('div', { className: 'room-code-display radar-room-pill mono tabular-nums' });
+    codeBadge.innerHTML = `<span class="digit">${opts.roomCode}</span>`;
+    statusWrap.append(codeBadge);
+  }
+
+  // Pill-Shaped Translucent Reconnect & Return Buttons
+  const actions = el('div', { className: 'radar-actions' });
+
+  if (opts.onRetryNow) {
+    const retryBtn = el('button', {
+      type: 'button',
+      className: 'btn radar-btn-retry btn-reconnect',
+    });
+    retryBtn.innerHTML = `${iconRefresh({ size: 15 })} <span>Retry Now</span>`;
+    retryBtn.addEventListener('click', () => opts.onRetryNow?.());
+    actions.append(retryBtn);
+  }
+
+  const returnBtn = el('button', {
+    type: 'button',
+    className: 'btn radar-btn-home btn-back-room btn-return-home',
+    textContent: 'Return Home',
+  });
+  returnBtn.addEventListener('click', () => opts.onReturnHome());
+  actions.append(returnBtn);
+
+  inner.append(visualizer, statusWrap, actions);
+  stage.append(particles, inner);
+  return stage;
+}
+
+// ─── Error / Reconnection Radar View ────────────────
 
 export function createErrorView(
   message: string,
   onRetry: () => void,
   lastRoomCode?: string | null,
-  onReconnect?: (roomCode: string) => void
+  onReconnect?: (roomCode: string) => void,
+  myDeviceName?: string,
+  lastPeerName?: string
 ): HTMLElement {
   const layout = el('div', { className: 'connection-lost-layout fade-in' });
-  const card = el('div', { className: 'card connection-lost-card stack stack-md' });
 
-  // Pulsing Disconnect Beacon
-  const beaconWrap = el('div', { className: 'connection-lost-beacon' });
-  const beaconRing = el('div', { className: 'lost-beacon-ring' });
-  const beaconIcon = el('div', { className: 'lost-beacon-icon' });
-  beaconIcon.innerHTML = iconAlertCircle({ size: 28 });
-  beaconWrap.append(beaconRing, beaconIcon);
-
-  // Title & Humanized Diagnostics
-  const titleWrap = el('div', { className: 'stack stack-xs text-center' });
-  const badge = el('div', { className: 'connection-lost-badge text-xs font-semibold', textContent: 'CONNECTION INTERRUPTED' });
-  const title = el('h2', { className: 'font-semibold connection-lost-title', textContent: 'Direct Connection Was Interrupted' });
-  const msg = el('p', {
-    className: 'connection-lost-desc text-xs muted',
-    textContent: message || 'The peer link was closed or network conditions changed between your devices.',
+  const radar = createRadarCanvas({
+    myDeviceName: myDeviceName || 'Your Device',
+    targetName: lastPeerName && lastPeerName !== 'Other Device' ? lastPeerName : undefined,
+    roomCode: lastRoomCode || null,
+    statusPrimary: lastPeerName && lastPeerName !== 'Other Device'
+      ? `Connection to ${lastPeerName} paused`
+      : 'Direct P2P connection paused',
+    subMessage: message || 'Transfer checkpoints are preserved in memory. Tap Retry Now to re-open the P2P DataChannel.',
+    isError: true,
+    onRetryNow: lastRoomCode && onReconnect ? () => onReconnect(lastRoomCode) : onRetry,
+    onReturnHome: onRetry,
   });
-  titleWrap.append(badge, title, msg);
 
-  // Diagnostic Recovery Card
-  const diagCard = el('div', { className: 'connection-lost-diag' });
-  diagCard.innerHTML = `
-    <div class="diag-item">
-      <span class="diag-bullet">📶</span>
-      <div>
-        <strong>Check Wi-Fi or Mobile Data</strong>
-        <p class="text-xs muted">Ensure both devices have an active network connection or are on the same Wi-Fi.</p>
-      </div>
-    </div>
-    <div class="diag-item">
-      <span class="diag-bullet">⚡</span>
-      <div>
-        <strong>Transfer Checkpoints Preserved</strong>
-        <p class="text-xs muted">Transfers paused cleanly. All verified chunks are retained in memory and will resume upon re-linking.</p>
-      </div>
-    </div>
-  `;
-
-  // Action Buttons
-  const actions = el('div', { className: 'connection-lost-actions stack stack-sm' });
-
-  if (lastRoomCode && onReconnect) {
-    const reconnectBtn = el('button', {
-      type: 'button',
-      className: 'btn btn-primary btn-lg w-full btn-reconnect',
-    });
-    reconnectBtn.innerHTML = `${iconRefresh({ size: 16 })} <span>Reconnect to Room ${lastRoomCode}</span>`;
-    reconnectBtn.addEventListener('click', () => onReconnect(lastRoomCode));
-    actions.append(reconnectBtn);
-  }
-
-  const retryBtn = el('button', {
-    type: 'button',
-    className: `btn ${lastRoomCode && onReconnect ? 'btn-secondary' : 'btn-primary'} w-full btn-return-home`,
-    textContent: lastRoomCode && onReconnect ? '← Return to Pairing Home' : 'Try Again',
-  });
-  retryBtn.addEventListener('click', onRetry);
-  actions.append(retryBtn);
-
-  card.append(beaconWrap, titleWrap, diagCard, actions);
-  layout.append(card);
+  layout.append(radar);
   return layout;
 }
